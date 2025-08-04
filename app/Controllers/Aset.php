@@ -6,6 +6,6 @@ class Aset extends BaseController
 {
     public function index()
     {
-        return view('aset');
+        return view('aset/manajemen_aset');
     }
 }

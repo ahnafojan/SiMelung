@@ -11,6 +11,7 @@ $routes->get('Petani', 'Petani::index');
 $routes->get('Kopimasuk', 'Kopimasuk::index');
 $routes->get('Kopikeluar', 'Kopikeluar::index');
 $routes->get('Aset', 'Aset::index');
+$routes->get('MasterAset', 'MasterAset::index');
 $routes->get('Laporan', 'Laporan::index');
 $routes->get('Log_aktivitas', 'Log_aktivitas::index');
 $routes->get('Profile', 'Profile::index');

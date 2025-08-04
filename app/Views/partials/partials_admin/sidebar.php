@@ -61,11 +61,19 @@
 
     <!-- Nav Item - Aset BUMDES -->
     <li class="nav-item">
-        <a class="nav-link fs-3" href="<?= site_url('Aset') ?>">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAset" aria-expanded="false" aria-controls="collapseAset">
             <i class="fas fa-fw fa-suitcase fa-lg"></i>
             <span>Aset BUMDES</span>
         </a>
+        <div id="collapseAset" class="collapse" aria-labelledby="headingAset" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Menu Aset:</h6>
+                <a class="collapse-item" href="<?= site_url('Aset') ?>">Manajemen Aset</a>
+                <a class="collapse-item" href="<?= site_url('MasterAset') ?>">Master Aset</a>
+            </div>
+        </div>
     </li>
+
 
     <!-- Nav Item - Laporan -->
     <li class="nav-item">

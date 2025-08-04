@@ -107,9 +107,14 @@
                             <td>Aktif</td>
                             <td><img src="<?= base_url('assets/img/sample.jpg') ?>" width="80"></td>
                             <td>
-                                <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editAsetModal">Edit</button>
-                                <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#hapusAsetModal">Hapus</button>
+                                <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editAsetModal" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#hapusAsetModal" title="Hapus">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </td>
+
                         </tr>
                         <tr>
                             <td>2</td>
@@ -122,9 +127,14 @@
                             <td>Dipinjam</td>
                             <td><img src="<?= base_url('assets/img/sample2.jpg') ?>" width="80"></td>
                             <td>
-                                <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editAsetModal">Edit</button>
-                                <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#hapusAsetModal">Hapus</button>
+                                <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editAsetModal" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#hapusAsetModal" title="Hapus">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </td>
+
                         </tr>
                     </tbody>
                 </table>
