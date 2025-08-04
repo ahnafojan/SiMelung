@@ -1,0 +1,48 @@
+/* Warna utama: sidebar, header, footer */
+.bg-main,
+.sidebar,
+.bg-gradient-primary {
+    background-color: #2D336B !important;
+    background-image: none !important;
+}
+
+/* Warna sekunder: elemen navigasi aktif, hover */
+.bg-secondary,
+.navbar-nav .nav-item.active,
+.navbar-nav .nav-item:hover,
+.sidebar .nav-link.active {
+    background-color: #7886C7 !important;
+    color: #fff !important;
+}
+
+/* Warna latar: background utama halaman */
+.bg-background,
+body,
+.container-fluid {
+    background-color: #ffffff !important;
+}
+
+/* Warna aksen: tombol, badge, border, dsb */
+.bg-accent,
+.btn-primary,
+.badge-primary {
+    background-color: #7886C7 !important;
+    border-color: #7886C7 !important;
+}
+
+.sidebar .nav-link,
+.sidebar .sidebar-heading,
+.sidebar .sidebar-brand-text {
+    color: #fff !important;
+}
+/* Ubah warna font judul card */
+.card-header h6 {
+    color: #7886C7 !important; 
+}
+
+.logo-footer {
+    height: 40px;
+    width: 40px;
+    margin-right: 10px;
+    object-fit: contain;
+}
