@@ -6,6 +6,6 @@ class Kopikeluar extends BaseController
 {
     public function index()
     {
-        return view('kopikeluar');
+        return view('admin_komersial/kopi/kopikeluar');
     }
 }

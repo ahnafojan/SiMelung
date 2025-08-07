@@ -16,12 +16,12 @@ class Petani extends BaseController
     public function index()
     {
         $data['petani'] = $this->petaniModel->findAll();
-        return view('petani/index', $data);
+        return view('admin_komerisal/petani/index', $data);
     }
 
     public function create()
     {
-        return view('petani/create');
+        return view('admin_komersial/petani/create');
     }
 
     public function store()
@@ -33,13 +33,13 @@ class Petani extends BaseController
             'no_hp'   => $this->request->getPost('no_hp'),
         ]);
 
-        return redirect()->to('/petani');
+        return redirect()->to('admin_komersial/petani');
     }
 
     public function edit($id)
     {
         $data['petani'] = $this->petaniModel->find($id);
-        return view('petani/edit', $data);
+        return view('admin_komerisal/petani/edit', $data);
     }
 
     public function update($id)
@@ -51,12 +51,12 @@ class Petani extends BaseController
             'no_hp'   => $this->request->getPost('no_hp'),
         ]);
 
-        return redirect()->to('/petani');
+        return redirect()->to('admin_komersial/petani');
     }
 
     public function delete($id)
     {
         $this->petaniModel->delete($id);
-        return redirect()->to('/petani');
+        return redirect()->to('admin_komersial/petani');
     }
 }

@@ -6,6 +6,6 @@ class umkm extends BaseController
 {
     public function index()
     {
-        return view('umkm/index');
+        return view('admin_umkm/umkm/index');
     }
 }

@@ -6,6 +6,6 @@ class Kopimasuk extends BaseController
 {
     public function index()
     {
-        return view('kopimasuk');
+        return view('admin_komersial/kopi/kopimasuk');
     }
 }

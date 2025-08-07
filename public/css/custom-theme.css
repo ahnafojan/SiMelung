@@ -46,3 +46,10 @@ body,
     margin-right: 10px;
     object-fit: contain;
 }
+ .nav-link.no-hover:hover {
+        background-color: transparent !important;
+        color: inherit !important;
+        text-decoration: none;
+    }
+
+

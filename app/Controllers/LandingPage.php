@@ -6,6 +6,6 @@ class LandingPage extends BaseController
 {
     public function index()
     {
-        return view('landing_page/landingpage');
+        return view('landing/landing_page');
     }
 }
