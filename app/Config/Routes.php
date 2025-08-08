@@ -31,3 +31,18 @@ $routes->post('petani/store', 'Petani::store');
 $routes->get('petani/edit/(:num)', 'Petani::edit/$1');
 $routes->post('petani/update/(:num)', 'Petani::update/$1');
 $routes->get('petani/delete/(:num)', 'Petani::delete/$1');
+
+//routes untuk login
+$routes->get('/', 'AuthController::login'); // Jadikan login sebagai halaman utama
+$routes->get('/login', 'AuthController::login');
+$routes->post('/login/process', 'AuthController::processLogin');
+$routes->get('/logout', 'AuthController::logout');
+
+$routes->group('', ['filter' => 'auth'], function ($routes) {
+    $routes->get('desa/dashboard', 'DashboardController::desa');
+    $routes->get('bumdes/dashboard', 'DashboardController::bumdes');
+    $routes->get('keuangan/dashboard', 'DashboardController::keuangan');
+    $routes->get('umkm/dashboard', 'DashboardController::umkm');
+    $routes->get('broker/dashboard', 'DashboardController::broker');
+    $routes->get('pariwisata/dashboard', 'DashboardController::pariwisata');
+});
