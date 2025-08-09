@@ -9,7 +9,7 @@
     <div id="wrapper">
 
         <!-- Sidebar -->
-        <?= $this->include(session()->get('sidebar') ?? 'partials/admin/sidebar/sidebar_super') ?>
+        <?= $this->include(session()->get('sidebar') ?? 'partials/admin/sidebar/sidebar_desa') ?>
 
         <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">

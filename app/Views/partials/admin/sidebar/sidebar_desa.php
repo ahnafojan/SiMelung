@@ -18,13 +18,6 @@
             <span>Dashboard</span>
         </a>
     </li>
-
-    <li class="nav-item">
-        <a class="nav-link fs-3" href="<?= site_url('Akunuser') ?>">
-            <i class="fas fa-users"></i>
-            <span>Manajemen Admin</span>
-        </a>
-    </li>
     <hr class="sidebar-divider">
     <div class="sidebar-heading">
         Report
@@ -32,9 +25,27 @@
 
     <!-- Nav Item - Laporan -->
     <li class="nav-item">
-        <a class="nav-link fs-3" href="<?= site_url('LaporanSuper') ?>">
+        <a class="nav-link fs-3" href="<?= site_url('LaporanArusKas') ?>">
             <i class="fas fa-fw fa-book fa-lg"></i>
-            <span>Laporan</span>
+            <span>Arus Kas</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link fs-3" href="<?= site_url('LaporanLabaRugi') ?>">
+            <i class="fas fa-fw fa-book fa-lg"></i>
+            <span>Laba Rugi</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link fs-3" href="<?= site_url('LaporanModal') ?>">
+            <i class="fas fa-fw fa-book fa-lg"></i>
+            <span>Perubahan Modal</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link fs-3" href="<?= site_url('LaporanNeraca') ?>">
+            <i class="fas fa-fw fa-book fa-lg"></i>
+            <span>Neraca</span>
         </a>
     </li>
 

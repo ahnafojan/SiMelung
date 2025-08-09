@@ -6,7 +6,8 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 //$routes->get('/', 'LandingPage::index');
-$routes->get('/', 'DashboardSuper::index');
+$routes->get('/', 'DashboardDesa::index');
+//$routes->get('/', 'DashboardBumdes::index');
 //$routes->get('/', 'DashboardAdminKomersial::index');
 //$routes->get('/', 'DashboardAdminUmkm::index');
 $routes->get('Log_aktivitas', 'Log_aktivitas::index');
@@ -14,8 +15,14 @@ $routes->get('Profile', 'Profile::index');
 $routes->get('Umkm', 'Umkm::index');
 $routes->get('Akunuser', 'Akunuser::index');
 
-//superadmin
-$routes->get('LaporanSuper', 'LaporanSuper::index');
+//Bumdes
+$routes->get('LaporanBumdes', 'LaporanBumdes::index');
+
+//desa
+$routes->get('LaporanArusKas', 'LaporanArusKas::index');
+$routes->get('LaporanLabaRugi', 'LaporanLabaRugi::index');
+$routes->get('LaporanModal', 'LaporanModal::index');
+$routes->get('LaporanNeraca', 'LaporanNeraca::index');
 
 //komersial
 $routes->get('Petani', 'Petani::index');

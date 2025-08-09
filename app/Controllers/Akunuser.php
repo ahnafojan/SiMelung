@@ -6,6 +6,6 @@ class Akunuser extends BaseController
 {
     public function index()
     {
-        return view('superadmin/akunuser/index');
+        return view('bumdes/akunuser/index');
     }
 }
