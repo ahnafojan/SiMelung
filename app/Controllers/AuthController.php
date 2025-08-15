@@ -11,20 +11,17 @@ class AuthController extends BaseController
 
     public function __construct()
     {
-        // Muat library helper dan session
         helper(['form']);
         $this->session = session();
     }
 
     public function login()
     {
-        // Tampilkan halaman login
         return view('login_view');
     }
 
     public function processLogin()
     {
-        // Validasi input
         $rules = [
             'username' => 'required',
             'password' => 'required'
@@ -41,42 +38,59 @@ class AuthController extends BaseController
         $user = $userModel->getUserByUsername($username);
 
         if ($user && password_verify($password, $user['password'])) {
-            // Jika login berhasil, set session
-            $sessionData = [
-                'user_id'    => $user['id'],
-                'username'   => $user['username'],
-                'role'       => $user['role'],
-                'logged_in'  => TRUE
-            ];
-            $this->session->set($sessionData);
+            // Ambil role pertama dari array roles
+            $defaultRole = $user['roles'][0] ?? null;
 
-            switch ($user['role']) {
-                case 'desa':
-                    return redirect()->to('/desa/dashboard');
-                case 'bumdes':
-                    return redirect()->to('/bumdes/dashboard');
-                case 'keuangan':
-                    return redirect()->to('/keuangan/dashboard');
-                case 'umkm':
-                    return redirect()->to('/umkm/dashboard');
-                case 'broker':
-                    return redirect()->to('/broker/dashboard');
-                case 'pariwisata':
-                    return redirect()->to('/pariwisata/dashboard');
-                default:
-                    return redirect()->to('/login');
+            if ($defaultRole) {
+                $this->setUserSession($user, $defaultRole);
+                session()->regenerate(); // pastikan ID session baru
+                session_write_close(); // simpan session
+                return redirect()->to('/dashboard/dashboard_' . $defaultRole);
+            } else {
+                $this->session->setFlashdata('error', 'Role pengguna tidak ditemukan.');
+                return redirect()->to('/login');
             }
         } else {
-            // Jika login gagal
             $this->session->setFlashdata('error', 'Username atau Password salah.');
             return redirect()->to('/login');
         }
     }
 
+    private function setUserSession($user, $role)
+    {
+        $this->session->set([
+            'user_id' => $user['user_id'] ?? $user['id'],
+            'username' => $user['username'],
+            'role' => $role,
+            'logged_in' => true
+        ]);
+    }
+
+    public function switchRole($role)
+    {
+        $userId = session()->get('user_id');
+
+        // Cek apakah role ini memang dimiliki user
+        $db = \Config\Database::connect();
+        $check = $db->table('user_roles')
+            ->where('user_id', $userId)
+            ->where('role', $role)
+            ->countAllResults();
+
+        if ($check > 0) {
+            session()->set('role', $role);
+            session()->setFlashdata('message', 'Role berhasil diganti menjadi: ' . ucfirst($role));
+
+            return redirect()->to('/dashboard/dashboard_' . strtolower($role));
+        } else {
+            session()->setFlashdata('error', 'Role tidak valid.');
+            return redirect()->back();
+        }
+    }
+
     public function logout()
     {
-        // Hapus session dan redirect ke halaman login
         $this->session->destroy();
-        return redirect()->to('/login');
+        return redirect()->to('/login')->with('message', 'Anda berhasil logout.');
     }
 }

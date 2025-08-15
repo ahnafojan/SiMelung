@@ -8,40 +8,19 @@ class UserSeeder extends Seeder
 {
     public function run()
     {
-        $data = [
-            [
-                'username' => 'desa',
-                'password' => password_hash('desa123', PASSWORD_DEFAULT),
-                'role' => 'desa',
-            ],
-            [
-                'username' => 'bumdes',
-                'password' => password_hash('bumdes123', PASSWORD_DEFAULT),
-                'role' => 'bumdes',
-            ],
-            [
-                'username' => 'keuangan',
-                'password' => password_hash('keuangan123', PASSWORD_DEFAULT),
-                'role' => 'keuangan',
-            ],
-            [
-                'username' => 'umkm',
-                'password' => password_hash('umkm123', PASSWORD_DEFAULT),
-                'role' => 'umkm',
-            ],
-            [
-                'username' => 'pariwisata',
-                'password' => password_hash('pariwisata123', PASSWORD_DEFAULT),
-                'role' => 'pariwisata',
-            ],
-            [
-                'username' => 'broker',
-                'password' => password_hash('broker123', PASSWORD_DEFAULT),
-                'role' => 'broker',
-            ],
-        ];
+        $password = password_hash('123456', PASSWORD_DEFAULT);
 
-        // Insert data into the users table
-        $this->db->table('users')->insertBatch($data);
+        // Insert User
+        $this->db->table('users')->insertBatch([
+            ['id' => 1, 'username' => 'syarif', 'password' => $password],
+            ['id' => 2, 'username' => 'alif',   'password' => $password],
+        ]);
+
+        // Insert Roles
+        $this->db->table('user_roles')->insertBatch([
+            ['user_id' => 1, 'role' => 'bumdes'],
+            ['user_id' => 1, 'role' => 'komersial'],
+            ['user_id' => 2, 'role' => 'desa'],
+        ]);
     }
 }

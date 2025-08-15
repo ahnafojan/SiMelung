@@ -1,91 +1,53 @@
 <?= $this->extend('layouts/main_layout_admin') ?>
 <?= $this->section('content') ?>
 
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Master Aset</h1>
-
-    <!-- Tombol Tambah Aset -->
-    <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#modalTambahAset">
-        Tambah Aset
-    </button>
-
-    <!-- Tabel Data Dummy -->
+<div class="container mt-4">
+    <h4 class="mb-4">Form Master Aset</h4>
+    <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
+    <?php endif; ?>
     <div class="card shadow">
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>No</th>
-                            <th>Kategori</th>
-                            <th>Kondisi</th>
-                            <th>Lokasi</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Dummy Data -->
-                        <tr>
-                            <td>1</td>
-                            <td>Produksi</td>
-                            <td>Baik</td>
-                            <td>Gudang 1</td>
-                            <td>
-                                <a href="#" class="btn btn-sm btn-warning" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="#" class="btn btn-sm btn-danger" title="Hapus" onclick="return confirm('Yakin ingin menghapus data ini?')">
-                                    <i class="fas fa-trash-alt"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        <!-- Tambahkan data lainnya sesuai kebutuhan -->
-                    </tbody>
-                </table>
-            </div>
+            <form action="<?= base_url('aset-komersial') ?>" method="post">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nama Barang / Aset</label>
+                        <input type="text" name="nama_aset" class="form-control" placeholder="Contoh: Mesin Penggiling Kopi" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Kode Aset</label>
+                        <input type="text" name="kode_aset" class="form-control" placeholder="Contoh: AST-001" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Nomor Urut Pendaftaran (NUP)</label>
+                        <input type="text" name="nup" class="form-control" placeholder="Contoh: 001">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Tahun Perolehan</label>
+                        <input type="number" name="tahun_perolehan" class="form-control" placeholder="2024">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Merk / Tipe</label>
+                        <input type="text" name="merk_type" class="form-control" placeholder="Contoh: Philips X100">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Nilai Perolehan (Rp)</label>
+                        <input type="number" name="nilai_perolehan" class="form-control" placeholder="Contoh: 15000000">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Keterangan</label>
+                        <input type="text" name="keterangan" class="form-control" placeholder="Contoh: Kondisi Baik">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Simpan
+                </button>
+            </form>
         </div>
-    </div>
-</div>
-
-<!-- ✅ Modal Tambah Aset -->
-<div class="modal fade" id="modalTambahAset" tabindex="-1" role="dialog" aria-labelledby="modalTambahAsetLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <form action="<?= site_url('aset/master/save') ?>" method="post">
-            <?= csrf_field() ?>
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTambahAsetLabel">Tambah Master Aset</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-
-                <div class="modal-body">
-                    <!-- Kategori -->
-                    <div class="form-group">
-                        <label for="kategori">Kategori Aset</label>
-                        <input type="text" name="kategori" class="form-control" required>
-                    </div>
-
-                    <!-- Kondisi -->
-                    <div class="form-group">
-                        <label for="kondisi">Kondisi Aset</label>
-                        <input type="text" name="kondisi" class="form-control" required>
-                    </div>
-
-                    <!-- Lokasi -->
-                    <div class="form-group">
-                        <label for="lokasi">Lokasi Aset</label>
-                        <input type="text" name="lokasi" class="form-control" required>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                </div>
-            </div>
-        </form>
     </div>
 </div>
 

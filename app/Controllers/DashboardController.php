@@ -8,12 +8,12 @@ class DashboardController extends BaseController
 {
     public function desa()
     {
-        return view('dashboard/desa_view');
+        return view('dashboard/dashboard_desa');
     }
 
     public function bumdes()
     {
-        return view('dashboard/bumdes_view');
+        return view('dashboard/dashboard_bumdes');
     }
 
     public function keuangan()
@@ -23,12 +23,12 @@ class DashboardController extends BaseController
 
     public function umkm()
     {
-        return view('dashboard/umkm_view');
+        return view('dashboard/dashboard_umkm');
     }
 
-    public function broker()
+    public function komersial()
     {
-        return view('dashboard/broker_view');
+        return view('dashboard/dashboard_komersial');
     }
     public function pariwisata()
     {

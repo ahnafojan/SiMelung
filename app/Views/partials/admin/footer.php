@@ -4,10 +4,11 @@
             <span>Copyright &copy; Simelung <?= date('Y') ?></span>
         </div>
         <div class="text-center mt-3">
-            <img src="<?= base_url('img/amikom.png') ?>" alt="Logo 2" class="logo-footer">
-            <img src="<?= base_url('img/BUMDESS.png') ?>" alt="Logo 1" class="logo-footer">
-            <img src="<?= base_url('img/DIKSTI.png') ?>" alt="Logo 3" class="logo-footer">
-            <img src="<?= base_url('img/logobms.png') ?>" alt="Logo 2" class="logo-footer">
+            <img src="<?= base_url('img/amikom.png') ?>" alt="amikom" class="logo-footer">
+            <img src="<?= base_url('img/BUMDESS.png') ?>" alt="bumdes" class="logo-footer">
+            <img src="<?= base_url('img/POKDARWIS.png') ?>" alt="pokdarwis" class="logo-footer">
+            <img src="<?= base_url('img/DIKSTI.png') ?>" alt="dikti" class="logo-footer">
+            <img src="<?= base_url('img/logobms.png') ?>" alt="bms" class="logo-footer">
         </div>
     </div>
 </footer>

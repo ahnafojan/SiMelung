@@ -2,11 +2,12 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Simelung | Login</title>
+    <link rel="icon" type="image/png" href="<?= base_url('img/nojdl.png') ?>" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <style>
         body {
             background-color: #f8f9fa;
@@ -14,6 +15,7 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            margin: 0;
         }
 
         .login-container {
@@ -99,8 +101,6 @@
             /* Warna ikon lebih soft */
         }
 
-        /* ============================================== */
-
         .form-check {
             margin-bottom: 15px;
         }
@@ -136,6 +136,45 @@
             text-decoration: none;
             font-weight: bold;
         }
+
+        /* ===== RESPONSIVE ===== */
+
+        /* Layar kecil (mobile) */
+        @media (max-width: 767px) {
+            .login-container {
+                flex-direction: column;
+                max-width: 100%;
+                margin: 20px;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .login-image {
+                height: 200px;
+                background-position: center;
+                background-size: cover;
+                flex: none;
+            }
+
+            .login-form {
+                padding: 20px;
+            }
+        }
+
+        /* Tablet (768px - 991px) */
+        @media (min-width: 768px) and (max-width: 991px) {
+            .login-container {
+                max-width: 700px;
+            }
+
+            .login-form {
+                padding: 30px;
+            }
+
+            .login-image {
+                height: auto;
+            }
+        }
     </style>
 </head>
 
@@ -146,7 +185,7 @@
             <h2>Hallo, Selamat Datang Kembali !</h2>
             <p class="tagline">Silahkan Masukan Username dan Password Anda</p>
 
-            <?php if (session()->getFlashdata('error')): ?>
+            <?php if (session()->getFlashdata('error')) : ?>
                 <div class="alert alert-danger" role="alert">
                     <?= session()->getFlashdata('error') ?>
                 </div>
@@ -155,52 +194,35 @@
             <form action="<?= base_url('/login/process') ?>" method="post">
                 <?= csrf_field() ?>
 
-                <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
+                <input type="text" class="form-control" id="username" name="username" placeholder="Username" required />
 
                 <div class="password-wrapper">
-                    <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Password" required />
                     <i class="bi bi-eye-slash-fill toggle-password-icon" id="togglePasswordIcon"></i>
                 </div>
 
-                <!-- <div class="d-flex justify-content-between mb-3">
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="remember">
-                        <label class="form-check-label" for="remember">Remember me</label>
-                    </div>
-                    <div class="forgot-password">
-                        <a href="#">Forgot Password?</a>
-                    </div>
-                </div> -->
-                <br><br>
-
+                <br /><br />
 
                 <button type="submit" class="btn btn-primary">Masuk</button>
-
             </form>
 
-            <!-- <div class="signup-link">
-                Don't have an account? <a href="#">Sign Up</a>
-            </div> -->
         </div>
-        <div class="login-image">
-        </div>
+        <div class="login-image"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Target elemen ikon yang baru
-        const togglePasswordIcon = document.querySelector('#togglePasswordIcon');
-        const password = document.querySelector('#password');
+        // Toggle show/hide password
+        const togglePasswordIcon = document.querySelector("#togglePasswordIcon");
+        const password = document.querySelector("#password");
 
-        togglePasswordIcon.addEventListener('click', function() {
-            // Toggle tipe input
-            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-            password.setAttribute('type', type);
+        togglePasswordIcon.addEventListener("click", function() {
+            const type = password.getAttribute("type") === "password" ? "text" : "password";
+            password.setAttribute("type", type);
 
-            // Toggle kelas ikon
-            this.classList.toggle('bi-eye-slash-fill');
-            this.classList.toggle('bi-eye-fill');
+            this.classList.toggle("bi-eye-slash-fill");
+            this.classList.toggle("bi-eye-fill");
         });
     </script>
 </body>

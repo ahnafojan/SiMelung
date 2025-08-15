@@ -17,12 +17,36 @@
         </div>
     </form>
 
-
+    <!-- Topbar Navbar -->
     <!-- Topbar profile -->
-    <a class="nav-link fs-3 no-hover" href="<?= site_url('Profile') ?>">
-        <span class="mr-2 d-none d-lg-inline text-gray-600 small">Admin</span>
-        <i class="fas fa-fw fa-user fa-lg"></i>
-    </a>
+    <li class="nav-item dropdown no-arrow d-flex align-items-center">
+        <a class="nav-link dropdown-toggle fs-3" href="#" id="userDropdown" role="button"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+                <?= session()->get('username') ?? 'Admin' ?>
+            </span>
+            <i class="fas fa-fw fa-user fa-lg"></i>
+        </a>
+
+        <!-- Menu Dropdown -->
+        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+            aria-labelledby="userDropdown">
+            <?php if (!empty($userRoles)): ?>
+                <?php foreach ($userRoles as $role): ?>
+                    <a class="dropdown-item" href="<?= site_url('switch-role/' . urlencode($role['role'])) ?>">
+                        <i class="fas fa-exchange-alt fa-sm fa-fw me-2 text-gray-400"></i>
+                        Ganti ke <?= ucfirst(esc($role['role'])) ?>
+                    </a>
+                <?php endforeach; ?>
+            <?php endif; ?>
+
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="<?= site_url('logout') ?>">
+                <i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>
+                Logout
+            </a>
+        </div>
+    </li>
 
 
 </nav>

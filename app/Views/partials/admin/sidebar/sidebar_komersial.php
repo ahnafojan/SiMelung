@@ -1,7 +1,7 @@
 <ul class="navbar-nav sidebar sidebar-dark accordion bg-main" id="accordionSidebar">
 
     <!-- Sidebar - Brand -->
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<?= site_url('/') ?>">
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<?= site_url('DashboardAdminKomersial') ?>">
         <div class="sidebar-brand-icon">
             <img src="<?= base_url('img/KKNLOGO.png') ?>" alt="Logo" width="60" height="60" style="object-fit: cover;">
         </div>
@@ -13,7 +13,7 @@
 
     <!-- Nav Item - Dashboard -->
     <li class="nav-item">
-        <a class="nav-link fs-3" href="<?= site_url('/') ?>">
+        <a class="nav-link fs-3" href="<?= site_url('DashboardAdminKomersial') ?>">
             <i class="fas fa-fw fa-tachometer-alt fa-lg"></i>
             <span>Dashboard</span>
         </a>
@@ -55,8 +55,8 @@
         </a>
         <div id="collapseAset" class="collapse" aria-labelledby="headingAset" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item fs-4" href="<?= site_url('AsetKomersial') ?>">Manajemen Aset</a>
-                <a class="collapse-item fs-4" href="<?= site_url('MasterAsetKomersial') ?>">Master Aset</a>
+                <a class="collapse-item fs-4" href="<?= site_url('AsetKomersial') ?>">Master Aset</a>
+                <a class="collapse-item fs-4" href="<?= site_url('ManajemenAsetKomersial') ?>">Manajemen Aset</a>
             </div>
         </div>
     </li>

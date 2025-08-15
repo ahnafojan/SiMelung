@@ -4,162 +4,236 @@
 
 <h1 class="h3 mb-4 text-gray-800">Laporan Rekap Kopi</h1>
 
-<!-- Filter Laporan Kopi -->
+<!-- Filter Laporan -->
 <div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+    <div class="card-header py-3">
         <h6 class="m-0 font-weight-bold text-primary">Filter Laporan</h6>
-        <div>
-            <button class="btn btn-sm btn-success">
-                <i class="fas fa-file-excel"></i> Export Excel
-            </button>
-            <button class="btn btn-sm btn-danger">
-                <i class="fas fa-file-pdf"></i> Export PDF
-            </button>
-        </div>
     </div>
     <div class="card-body">
-        <form class="row g-3">
-            <div class="form-group col-md-4">
-                <label for="periode" class="form-label">Periode</label>
-                <select id="periode" class="form-control">
-                    <option value="bulan">Bulanan</option>
-                    <option value="tahun">Tahunan</option>
-                </select>
+        <form action="<?= base_url('admin-komersial/laporan') ?>" method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="start_date" class="form-label">Dari Tanggal</label>
+                <input type="date" id="start_date" name="start_date" value="<?= esc($filter['start_date']) ?>" class="form-control">
             </div>
-            <div class="form-group col-md-4">
-                <label for="bulan" class="form-label">Bulan</label>
-                <input type="month" id="bulan" class="form-control">
+            <div class="col-md-3">
+                <label for="end_date" class="form-label">Sampai Tanggal</label>
+                <input type="date" id="end_date" name="end_date" value="<?= esc($filter['end_date']) ?>" class="form-control">
             </div>
-            <div class="form-group col-md-4">
+            <div class="col-md-3">
                 <label for="petani" class="form-label">Petani</label>
-                <select id="petani" class="form-control">
-                    <option value="">Semua Petani</option>
-                    <option value="1">Pak Ahmad</option>
-                    <option value="2">Bu Sari</option>
+                <select id="petani" name="petani" class="form-control">
+                    <option value="">-- Semua Petani --</option>
+                    <?php foreach ($petaniList as $p): ?>
+                        <option value="<?= $p['id'] ?>" <?= ($filter['petani'] == $p['id']) ? 'selected' : '' ?>>
+                            <?= esc($p['nama_petani']) ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <div class="d-flex w-100">
+                    <button type="submit" class="btn btn-primary mr-2" style="margin-right: 8px;">Tampilkan</button>
+                    <a href="<?= base_url('admin-komersial/laporan') ?>" class="btn btn-secondary">Reset</a>
+                </div>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Tabel Rekap Kopi -->
-<div class="card shadow mb-5">
-    <div class="card-header">
-        <h6 class="m-0 font-weight-bold text-primary">Rekap Data Kopi</h6>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped">
-                <thead class="thead-dark text-center">
-                    <tr>
-                        <th>No</th>
-                        <th>Petani</th>
-                        <th>Kopi Masuk (kg)</th>
-                        <th>Kopi Keluar (kg)</th>
-                        <th>Stok Akhir (kg)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="text-center">1</td>
-                        <td>Pak Ahmad</td>
-                        <td class="text-center">120</td>
-                        <td class="text-center">30</td>
-                        <td class="text-center">90</td>
-                    </tr>
-                    <tr>
-                        <td class="text-center">2</td>
-                        <td>Bu Sari</td>
-                        <td class="text-center">80</td>
-                        <td class="text-center">50</td>
-                        <td class="text-center">30</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Judul UMKM -->
-<h1 class="h3 mb-4 text-gray-800">Laporan UMKM Desa</h1>
-
-<!-- Filter UMKM -->
-<div class="card shadow mb-4">
+<!-- Tabel Laporan Rekap -->
+<div class="card shadow">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Filter UMKM</h6>
-        <div>
-            <button class="btn btn-sm btn-success">
-                <i class="fas fa-file-excel"></i> Export Excel
-            </button>
-            <button class="btn btn-sm btn-danger">
-                <i class="fas fa-file-pdf"></i> Export PDF
-            </button>
-        </div>
+        <h6 class="m-0 font-weight-bold text-primary">Rekap Data Kopi</h6>
+        <a href="<?= base_url('admin-komersial/laporan/export?' . http_build_query($filter)) ?>"
+            class="btn btn-success me-2">Export Excel</a>
+
+        <a href="<?= base_url('admin-komersial/laporan/export-pdf?' . http_build_query($filter)) ?>"
+            class="btn btn-danger">Export PDF</a>
+
     </div>
-    <div class="card-body">
-        <form class="row g-3">
-            <div class="form-group col-md-4">
-                <label for="kategori" class="form-label">Kategori</label>
-                <select id="kategori" class="form-control">
-                    <option value="">Semua</option>
-                    <option value="makanan">Makanan</option>
-                    <option value="kerajinan">Kerajinan</option>
-                    <option value="kopi">Kopi</option>
-                </select>
-            </div>
-            <div class="form-group col-md-4">
-                <label for="lokasi" class="form-label">Lokasi</label>
-                <select id="lokasi" class="form-control">
-                    <option value="">Semua Lokasi</option>
-                    <option value="balai">Balai Desa</option>
-                    <option value="pagubugan">Pagubugan</option>
-                </select>
-            </div>
-        </form>
+
+    <div class="card-body table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>No</th>
+                    <th>Nama Petani</th>
+                    <th>Total Masuk (Kg)</th>
+                    <th>Tanggal Masuk Terakhir</th>
+                    <th>Jumlah Transaksi</th>
+                    <th>Stok Akhir (Kg)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (!empty($rekap)): ?>
+                    <?php $no = 1 + ((($_GET['page'] ?? 1) - 1) * 10); ?>
+                    <?php foreach ($rekap as $r): ?>
+                        <tr>
+                            <td><?= $no++ ?></td>
+                            <td><?= esc($r['nama_petani']) ?></td>
+                            <td><?= number_format($r['total_masuk'], 2) ?></td>
+                            <td><?= esc($r['tanggal_terakhir']) ?></td>
+                            <td><?= $r['jumlah_transaksi'] ?></td>
+                            <td><?= number_format($r['stok_akhir'], 2) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="6" class="text-center">Tidak ada data untuk filter yang dipilih</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="5" class="text-end">Total Keluar (Global)</th>
+                    <th><?= number_format($totalKeluarGlobal, 2) ?></th>
+                </tr>
+            </tfoot>
+        </table>
     </div>
 </div>
 
-<!-- Tabel UMKM -->
+
+<!-- LAPORAN PETANI TERDAFTAR -->
+<h1 class="h3 mb-4 text-gray-800">Laporan Petani Terdaftar</h1>
 <div class="card shadow mb-5">
-    <div class="card-header">
-        <h6 class="m-0 font-weight-bold text-primary">Daftar UMKM Terdaftar</h6>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped">
-                <thead class="thead-dark text-center">
-                    <tr>
-                        <th>No</th>
-                        <th>Nama UMKM</th>
-                        <th>Kategori</th>
-                        <th>Pemilik</th>
-                        <th>Alamat</th>
-                        <th>Kontak</th>
-                        <th>Deskripsi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="text-center">1</td>
-                        <td>Lung Coffe</td>
-                        <td>Kopi</td>
-                        <td>Bu Siti</td>
-                        <td>Balai Desa</td>
-                        <td>081234567890</td>
-                        <td>Produksi kopi kemasan sachet lokal desa</td>
-                    </tr>
-                    <tr>
-                        <td class="text-center">2</td>
-                        <td>Kriya Melung</td>
-                        <td>Kerajinan</td>
-                        <td>Siti Aminah</td>
-                        <td>Pagubugan</td>
-                        <td>085612345678</td>
-                        <td>Kerajinan tangan dari bambu dan rotan</td>
-                    </tr>
-                </tbody>
-            </table>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Daftar Petani</h6>
+        <div>
+            <button class="btn btn-sm btn-success"><i class="fas fa-file-excel"></i> Export Excel</button>
+            <button class="btn btn-sm btn-danger"><i class="fas fa-file-pdf"></i> Export PDF</button>
         </div>
+    </div>
+    <div class="card-body table-responsive">
+        <div class="mb-3">
+            <label>Tampilkan</label>
+            <select class="form-control d-inline-block w-auto">
+                <option>10</option>
+                <option>25</option>
+                <option>50</option>
+            </select>
+            <span>data per halaman</span>
+        </div>
+        <table class="table table-bordered table-striped text-center">
+            <thead class="thead-dark">
+                <tr>
+                    <th>No</th>
+                    <th>Nama</th>
+                    <th>Alamat</th>
+                    <th>No HP</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Pak Ahmad</td>
+                    <td>Desa Melung</td>
+                    <td>081234567890</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Bu Sari</td>
+                    <td>Pagubugan</td>
+                    <td>085612345678</td>
+                </tr>
+            </tbody>
+        </table>
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li class="page-item disabled"><a class="page-link">Previous</a></li>
+                <li class="page-item active"><a class="page-link">1</a></li>
+                <li class="page-item"><a class="page-link">2</a></li>
+                <li class="page-item"><a class="page-link">Next</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- LAPORAN ASET PRODUKSI -->
+<h1 class="h3 mb-4 text-gray-800">Laporan Aset Produksi</h1>
+<div class="card shadow mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Daftar Aset</h6>
+        <div>
+            <button class="btn btn-sm btn-success"><i class="fas fa-file-excel"></i> Export Excel</button>
+            <button class="btn btn-sm btn-danger"><i class="fas fa-file-pdf"></i> Export PDF</button>
+        </div>
+    </div>
+    <div class="card-body table-responsive">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label>Filter Tahun Perolehan</label>
+                <select class="form-control">
+                    <option>Semua Tahun</option>
+                    <option>2025</option>
+                    <option>2024</option>
+                    <option>2023</option>
+                    <option>2022</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label>Tampilkan</label>
+                <select class="form-control">
+                    <option>10</option>
+                    <option>25</option>
+                    <option>50</option>
+                </select>
+            </div>
+        </div>
+        <table class="table table-bordered table-striped text-center">
+            <thead class="thead-dark">
+                <tr>
+                    <th>No</th>
+                    <th>Nama Barang / Aset</th>
+                    <th>Kode Aset</th>
+                    <th>Nomor Urut Pendaftaran (NUP)</th>
+                    <th>Tahun Perolehan</th>
+                    <th>Merk / Tipe</th>
+                    <th>Nilai Perolehan (Rp)</th>
+                    <th>Keterangan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Mesin Penggiling Kopi</td>
+                    <td>AST-001</td>
+                    <td>001</td>
+                    <td>2023</td>
+                    <td>Philips X100</td>
+                    <td>15.000.000</td>
+                    <td>Baik</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Timbangan Digital</td>
+                    <td>AST-002</td>
+                    <td>002</td>
+                    <td>2024</td>
+                    <td>Tanita 5kg</td>
+                    <td>2.500.000</td>
+                    <td>Baik</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>Mesin Sangrai</td>
+                    <td>AST-003</td>
+                    <td>003</td>
+                    <td>2022</td>
+                    <td>Hario SR50</td>
+                    <td>20.000.000</td>
+                    <td>Sangat Baik</td>
+                </tr>
+            </tbody>
+        </table>
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li class="page-item disabled"><a class="page-link">Previous</a></li>
+                <li class="page-item active"><a class="page-link">1</a></li>
+                <li class="page-item"><a class="page-link">2</a></li>
+                <li class="page-item"><a class="page-link">Next</a></li>
+            </ul>
+        </nav>
     </div>
 </div>
 

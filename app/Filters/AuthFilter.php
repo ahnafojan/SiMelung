@@ -19,6 +19,14 @@ class AuthFilter implements FilterInterface
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
-        // Tidak melakukan apa-apa setelah request
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/login');
+        }
+
+        // Cegah cache halaman setelah login
+        $response = service('response');
+        $response->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->setHeader('Pragma', 'no-cache')
+            ->setHeader('Expires', 'Thu, 01 Jan 1970 00:00:00 GMT');
     }
 }
