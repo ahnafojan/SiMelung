@@ -5,11 +5,21 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-//$routes->get('/', 'LandingPage::index');
+$routes->get('/', 'LandingPage::index');
 $routes->get('/', 'DashboardDesa::index');
-//$routes->get('/', 'DashboardBumdes::index');
-//$routes->get('/', 'DashboardAdminKomersial::index');
-//$routes->get('/', 'DashboardAdminUmkm::index');
+$routes->get('/', 'DashboardBumdes::index');
+$routes->get('/', 'DashboardAdminKomersial::index');
+$routes->get('/', 'DashboardAdminUmkm::index');
+
+$routes->get('/', 'LandingPage::index');
+$routes->get('/', 'Dashboard::index');
+$routes->get('Petani', 'Petani::index');
+$routes->get('Kopimasuk', 'Kopimasuk::index');
+$routes->get('Kopikeluar', 'Kopikeluar::index');
+$routes->get('Aset', 'Aset::index');
+$routes->get('MasterAset', 'MasterAset::index');
+$routes->get('Laporan', 'Laporan::index');
+
 $routes->get('Log_aktivitas', 'Log_aktivitas::index');
 $routes->get('Profile', 'Profile::index');
 $routes->get('Umkm', 'Umkm::index');
@@ -31,13 +41,27 @@ $routes->get('AsetKomersial', 'AsetKomersial::index');
 $routes->get('Kopimasuk', 'Kopimasuk::index');
 $routes->get('Kopikeluar', 'Kopikeluar::index');
 $routes->get('MasterAsetKomersial', 'MasterAsetKomersial::index');
-/*petani*/
+
+/* Petani */
 $routes->get('petani', 'Petani::index');
 $routes->get('petani/create', 'Petani::create');
 $routes->post('petani/store', 'Petani::store');
 $routes->get('petani/edit/(:num)', 'Petani::edit/$1');
 $routes->post('petani/update/(:num)', 'Petani::update/$1');
 $routes->get('petani/delete/(:num)', 'Petani::delete/$1');
+
+//Pariwisata //
+
+$routes->get('pariwisata', 'Pariwisata::index');
+$routes->get('pariwisata/create', 'Pariwisata::create');
+$routes->post('pariwisata/store', 'Pariwisata::store');
+$routes->get('pariwisata/edit/(:num)', 'Pariwisata::edit/$1');
+$routes->post('pariwisata/update/(:num)', 'Pariwisata::update/$1');
+$routes->get('pariwisata/delete/(:num)', 'Pariwisata::delete/$1');
+
+
+
+
 
 //routes untuk login
 $routes->get('/', 'AuthController::login'); // Jadikan login sebagai halaman utama
