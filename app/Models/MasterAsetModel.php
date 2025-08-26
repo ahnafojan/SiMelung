@@ -18,6 +18,9 @@ class MasterAsetModel extends Model
         'tahun_perolehan',
         'merk_type',
         'nilai_perolehan',
-        'keterangan'
+        'keterangan',
+        'metode_pengadaan',
+        'sumber_pengadaan',
+        'foto'
     ];
 }

@@ -4,223 +4,281 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>Simelung | Login</title>
+    <title>SiMelung | Login</title>
     <link rel="icon" type="image/png" href="<?= base_url('img/nojdl.png') ?>" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
         body {
-            background-color: #f8f9fa;
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             margin: 0;
+            padding: 20px;
         }
 
-        .login-container {
+        .login-wrapper {
             background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border-radius: 1.5rem;
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
             overflow: hidden;
             display: flex;
-            max-width: 900px;
+            max-width: 950px;
             width: 100%;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            /* Penting untuk posisi tombol Kembali */
         }
 
-        .login-form {
-            padding: 40px;
+        .login-wrapper:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.25);
+        }
+
+        .login-content {
+            padding: 3rem;
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-image-container {
+            flex: 1;
+            background: #e6eff7;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .login-image {
-            flex: 1;
-            background-image: url('<?= base_url('img/login_illustration.svg') ?>');
-            background-size: cover;
-            background-position: center;
-            background-color: #e8e9f1;
+            width: 90%;
+            height: auto;
+            object-fit: contain;
+            animation: fadeIn 1s ease-out;
         }
 
         .logo {
+            width: 80px;
+            margin-bottom: 0.5rem;
+            animation: pulse 1s infinite alternate;
+        }
+
+        /* Tombol Kembali yang baru */
+        .btn-back {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
             color: #2D336B;
-            font-weight: bold;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
+            transform: translateX(-5px);
         }
 
-        h2 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2rem;
+        .title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #2D336B;
+            margin-bottom: 0.5rem;
         }
 
-        .tagline {
-            color: #777;
-            margin-bottom: 30px;
+        .subtitle {
             font-size: 1rem;
+            color: #6c757d;
+            margin-bottom: 2rem;
         }
 
-        /* === PERUBAHAN UTAMA PADA STYLING TEXTBOX === */
+        .form-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .input-group-password {
+            position: relative;
+        }
+
         .form-control {
-            border: none;
-            /* Hapus border default */
-            background-color: #f0f4fa;
-            /* Warna latar kebiruan seperti contoh */
-            border-radius: 8px;
-            padding: 14px 20px;
-            /* Padding agar lebih tebal */
-            font-size: 1rem;
-            margin-bottom: 20px;
-            /* Jarak antar textbox */
+            border: 1px solid #ced4da;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            width: 100%;
         }
 
         .form-control:focus {
-            background-color: #f0f4fa;
-            box-shadow: 0 0 0 2px rgba(45, 51, 107, 0.2);
-            /* Efek focus shadow */
+            border-color: #2D336B;
+            box-shadow: 0 0 0 4px rgba(45, 51, 107, 0.15);
+            background-color: #fff;
         }
 
-        /* Penyesuaian padding kanan untuk input password agar teks tidak menimpa ikon */
-        #password {
-            padding-right: 50px;
-        }
-
-        /* === STYLING BARU UNTUK WRAPPER DAN IKON MATA === */
-        .password-wrapper {
-            position: relative;
-            margin-bottom: 20px;
+        .form-control-password {
+            padding-right: 3rem;
         }
 
         .toggle-password-icon {
             position: absolute;
             top: 50%;
-            right: 20px;
+            right: 1rem;
             transform: translateY(-50%);
             cursor: pointer;
-            color: #888;
-            /* Warna ikon lebih soft */
+            color: #adb5bd;
+            transition: color 0.2s;
         }
 
-        .form-check {
-            margin-bottom: 15px;
-        }
-
-        .forgot-password a {
-            color: #2D336B;
-            text-decoration: none;
-            font-size: 0.9rem;
+        .toggle-password-icon:hover {
+            color: #6c757d;
         }
 
         .btn-primary {
             background-color: #2D336B;
-            border-color: #2D336B;
-            border-radius: 8px;
-            padding: 12px 20px;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem;
             font-size: 1rem;
-            width: 100%;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
         .btn-primary:hover {
             background-color: #21264E;
-            border-color: #21264E;
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
 
-        .signup-link {
-            margin-top: 20px;
-            text-align: center;
+        .alert {
+            border-radius: 0.75rem;
             font-size: 0.9rem;
+            padding: 1rem;
+            animation: slideIn 0.5s ease-out;
         }
 
-        .signup-link a {
-            color: #2D336B;
-            text-decoration: none;
-            font-weight: bold;
+        /* Keyframe Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
-        /* ===== RESPONSIVE ===== */
+        @keyframes pulse {
+            from {
+                transform: scale(1);
+            }
 
-        /* Layar kecil (mobile) */
+            to {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
         @media (max-width: 767px) {
-            .login-container {
+            .login-wrapper {
                 flex-direction: column;
-                max-width: 100%;
-                margin: 20px;
+                max-width: 450px;
                 box-shadow: none;
-                border-radius: 0;
             }
 
-            .login-image {
-                height: 200px;
-                background-position: center;
-                background-size: cover;
-                flex: none;
+            .login-wrapper:hover {
+                transform: none;
+                box-shadow: none;
             }
 
-            .login-form {
-                padding: 20px;
-            }
-        }
-
-        /* Tablet (768px - 991px) */
-        @media (min-width: 768px) and (max-width: 991px) {
-            .login-container {
-                max-width: 700px;
+            .login-image-container {
+                display: none;
             }
 
-            .login-form {
-                padding: 30px;
-            }
-
-            .login-image {
-                height: auto;
+            .login-content {
+                padding: 2rem;
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="login-container">
-        <div class="login-form">
-            <div class="logo">SiMelung</div>
-            <h2>Hallo, Selamat Datang Kembali !</h2>
-            <p class="tagline">Silahkan Masukan Username dan Password Anda</p>
+    <div class="login-wrapper">
+        <a href="<?= base_url('/') ?>" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Kembali
+        </a>
+        <div class="login-content">
+            <div class="text-center mb-4">
+                <img src="<?= base_url('img/nojdl.png') ?>" alt="Logo SiMelung" class="logo">
+            </div>
+            <div class="text-start mb-4">
+                <h1 class="title">Hallo, Selamat Datang Kembali !</h1>
+                <p class="subtitle">Silahkan Masukan Username dan Password Anda</p>
+            </div>
 
             <?php if (session()->getFlashdata('error')) : ?>
-                <div class="alert alert-danger" role="alert">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <?= session()->getFlashdata('error') ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             <?php endif; ?>
 
             <form action="<?= base_url('/login/process') ?>" method="post">
                 <?= csrf_field() ?>
-
-                <input type="text" class="form-control" id="username" name="username" placeholder="Username" required />
-
-                <div class="password-wrapper">
-                    <input type="password" class="form-control" id="password" name="password" placeholder="Password" required />
-                    <i class="bi bi-eye-slash-fill toggle-password-icon" id="togglePasswordIcon"></i>
+                <div class="mb-3">
+                    <label for="username" class="form-label d-block text-start">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Username" required />
                 </div>
-
-                <br /><br />
-
-                <button type="submit" class="btn btn-primary">Masuk</button>
+                <div class="mb-4">
+                    <label for="password" class="form-label d-block text-start">Password</label>
+                    <div class="input-group-password">
+                        <input type="password" class="form-control form-control-password" id="password" name="password" placeholder="Password" required />
+                        <i class="bi bi-eye-slash-fill toggle-password-icon" id="togglePasswordIcon"></i>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Masuk</button>
             </form>
-
         </div>
-        <div class="login-image"></div>
+        <div class="login-image-container d-none d-md-flex">
+            <img src="<?= base_url('img/login_illustration.svg') ?>" alt="Login Illustration" class="login-image">
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        // Toggle show/hide password
         const togglePasswordIcon = document.querySelector("#togglePasswordIcon");
         const password = document.querySelector("#password");
 
         togglePasswordIcon.addEventListener("click", function() {
             const type = password.getAttribute("type") === "password" ? "text" : "password";
             password.setAttribute("type", type);
-
             this.classList.toggle("bi-eye-slash-fill");
             this.classList.toggle("bi-eye-fill");
         });

@@ -11,83 +11,121 @@ class DashboardAdminKomersial extends BaseController
 {
     public function index()
     {
+        // ================== Cek Session ==================
         $userId = session()->get('user_id');
         if (!$userId) {
             return redirect()->to('/login');
         }
 
+        // ================== Load Model ==================
         $kopiMasukModel  = new KopiMasukModel();
         $kopiKeluarModel = new KopiKeluarModel();
-        $petaniModel = new PetaniModel();
-        $asetModel = new AsetKomersialModel();
+        $petaniModel     = new PetaniModel();
+        $asetModel       = new AsetKomersialModel();
 
+        // ================== Ambil Filter ==================
+        $bulan = (int) ($this->request->getGet('bulan') ?? date('m'));
+        $tahun = (int) ($this->request->getGet('tahun') ?? date('Y'));
 
-        // Hitung total kopi masuk
-        $totalMasuk = $kopiMasukModel
-            ->selectSum('jumlah')->first()['jumlah'] ?? 0;
-
-        // Hitung total kopi keluar
-        $totalKeluar = $kopiKeluarModel->selectSum('jumlah')->first()['jumlah'] ?? 0;
-
-        // Hitung stok bersih
-        $stokBersih = $totalMasuk - $totalKeluar;
-
-        //total petani
+        // ================== Hitung Total ==================
+        $totalMasuk  = (int) ($kopiMasukModel->selectSum('jumlah')->first()['jumlah'] ?? 0);
+        $totalKeluar = (int) ($kopiKeluarModel->selectSum('jumlah')->first()['jumlah'] ?? 0);
+        $stokBersih  = $totalMasuk - $totalKeluar;
         $totalPetani = $petaniModel->countAll();
-        //total aset
-        $totalAset = $asetModel->countAll();
+        $totalAset   = $asetModel->countAll();
 
-        // Data Grafik Bulan Ini
-        $bulanIni = date('m');
-        $tahunIni = date('Y');
-
-        // Data kopi masuk per tanggal
+        // ================== Data Grafik Masuk ==================
         $kopiMasuk = $kopiMasukModel
             ->select("DATE(tanggal) as tgl, SUM(jumlah) as total")
-            ->where('MONTH(tanggal)', $bulanIni)
-            ->where('YEAR(tanggal)', $tahunIni)
+            ->where('MONTH(tanggal)', $bulan)
+            ->where('YEAR(tanggal)', $tahun)
             ->groupBy('DATE(tanggal)')
             ->orderBy('tanggal', 'ASC')
             ->findAll();
 
-        // Data kopi keluar per tanggal
+        // ================== Data Grafik Keluar ==================
         $kopiKeluar = $kopiKeluarModel
             ->select("DATE(tanggal) as tgl, SUM(jumlah) as total")
-            ->where('MONTH(tanggal)', $bulanIni)
-            ->where('YEAR(tanggal)', $tahunIni)
+            ->where('MONTH(tanggal)', $bulan)
+            ->where('YEAR(tanggal)', $tahun)
             ->groupBy('DATE(tanggal)')
             ->orderBy('tanggal', 'ASC')
             ->findAll();
 
-        // Gabungkan tanggal dari masuk & keluar
+        // ================== Gabungkan Data ==================
         $tanggalList = [];
         foreach ($kopiMasuk as $row) {
-            $tanggalList[$row['tgl']] = ['masuk' => $row['total'], 'keluar' => 0];
+            $tanggalList[$row['tgl']] = [
+                'masuk' => (int) $row['total'],
+                'keluar' => 0
+            ];
         }
         foreach ($kopiKeluar as $row) {
             if (!isset($tanggalList[$row['tgl']])) {
-                $tanggalList[$row['tgl']] = ['masuk' => 0, 'keluar' => $row['total']];
+                $tanggalList[$row['tgl']] = [
+                    'masuk' => 0,
+                    'keluar' => (int) $row['total']
+                ];
             } else {
-                $tanggalList[$row['tgl']]['keluar'] = $row['total'];
+                $tanggalList[$row['tgl']]['keluar'] = (int) $row['total'];
             }
         }
 
-        ksort($tanggalList); // Urutkan berdasarkan tanggal
+        ksort($tanggalList);
 
         $labels     = array_keys($tanggalList);
         $dataMasuk  = array_column($tanggalList, 'masuk');
         $dataKeluar = array_column($tanggalList, 'keluar');
 
-        // Kirim ke view
+        // ================== Data Distribusi Stok per Jenis Kopi ==================
+        $stokPerJenis = $kopiMasukModel
+            ->select('jenis_pohon.nama_jenis, SUM(kopi_masuk.jumlah) as total')
+            ->join('petani_pohon', 'petani_pohon.id = kopi_masuk.petani_pohon_id', 'left')
+            ->join('jenis_pohon', 'jenis_pohon.id = petani_pohon.jenis_pohon_id', 'left')
+            ->groupBy('jenis_pohon.nama_jenis')
+            ->findAll();
+
+
+        // Pisahkan label & data
+        $jenisLabels = [];
+        $jenisTotals = [];
+        foreach ($stokPerJenis as $row) {
+            $jenisLabels[] = $row['nama_jenis'] ?? 'Tidak Diketahui';
+            $jenisTotals[] = (int) $row['total'];
+        }
+
+
+        // ================== Dropdown Tahun Dinamis ==================
+        $startYear = 2020;
+
+        $maxMasuk  = $kopiMasukModel->selectMax('tanggal')->first()['tanggal'] ?? null;
+        $maxKeluar = $kopiKeluarModel->selectMax('tanggal')->first()['tanggal'] ?? null;
+
+        $maxYearDb = max(
+            $maxMasuk ? date('Y', strtotime($maxMasuk)) : date('Y'),
+            $maxKeluar ? date('Y', strtotime($maxKeluar)) : date('Y')
+        );
+
+        $currentYear = date('Y');
+        $endYear     = max($currentYear, $maxYearDb);
+
+        $years = range($startYear, $endYear);
+
+        // ================== Kirim Data ke View ==================
         $data = [
-            'stokBersih'  => $stokBersih,
-            'totalMasuk'  => $totalMasuk,
-            'totalKeluar' => $totalKeluar,
-            'totalPetani' => $totalPetani,
-            'totalAset'   => $totalAset,
-            'labels'      => json_encode($labels),
-            'dataMasuk'   => json_encode($dataMasuk),
-            'dataKeluar'  => json_encode($dataKeluar)
+            'stokBersih'   => $stokBersih,
+            'totalMasuk'   => $totalMasuk,
+            'totalKeluar'  => $totalKeluar,
+            'totalPetani'  => $totalPetani,
+            'totalAset'    => $totalAset,
+            'labels'       => json_encode($labels),
+            'dataMasuk'    => json_encode($dataMasuk),
+            'dataKeluar'   => json_encode($dataKeluar),
+            'years'        => $years,
+            'bulan'        => $bulan,
+            'tahun'        => $tahun,
+            'jenisLabels'  => json_encode($jenisLabels),
+            'jenisTotals'  => json_encode($jenisTotals),
         ];
 
         return view('dashboard/dashboard_komersial', $data);

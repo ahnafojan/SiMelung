@@ -52,4 +52,68 @@ body,
         text-decoration: none;
     }
 
+    /* Menambahkan background soft untuk keseluruhan halaman */
+    body {
+        background-color: #f8f9fa;
+    }
 
+    /* Kustomisasi card untuk desain minimalis */
+    .card {
+        border: none;
+        border-radius: 0.75rem;
+        /* Sudut lebih tumpul */
+    }
+
+    /* Header tabel yang clean */
+    .table thead th {
+        background-color: #f1f3f5;
+        /* Warna header abu-abu muda */
+        color: #495057;
+        text-align: center;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    /* Tombol kembali yang lebih subtle */
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6c757d;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+
+    .btn-back:hover {
+        color: #343a40;
+        text-decoration: none;
+    }
+
+    /* Judul yang tegas */
+    .page-title {
+        font-weight: 700;
+        color: #343a40;
+    }
+
+    .page-subtitle {
+        color: #6c757d;
+        font-size: 1rem;
+    }
+ .card-hover-light:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .card-header.bg-white {
+        background-color: #f8f9fc !important;
+    }
+
+    .form-control-sm {
+        height: calc(1.5rem + .5rem + 2px);
+    }
+    
