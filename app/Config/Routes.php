@@ -141,6 +141,11 @@ $routes->group('laporanpariwisata', ['filter' => 'auth'], function($routes) {
     $routes->get('exportPDF', 'LaporanPariwisata::exportPDF');
 });
 
+//pariwisata
+$routes->get('pariwisata', 'PariwisataController::index');
+$routes->get('pariwisata/create', 'PariwisataController::create');
+$routes->post('pariwisata/save', 'PariwisataController::save');
+
 
 
 // Auth
