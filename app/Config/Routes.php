@@ -59,6 +59,11 @@ $routes->get('pariwisata/edit/(:num)', 'Pariwisata::edit/$1');
 $routes->post('pariwisata/update/(:num)', 'Pariwisata::update/$1');
 $routes->get('pariwisata/delete/(:num)', 'Pariwisata::delete/$1');
 
+//pariwisata
+$routes->get('pariwisata', 'PariwisataController::index');
+$routes->get('pariwisata/create', 'PariwisataController::create');
+$routes->post('pariwisata/save', 'PariwisataController::save');
+
 
 
 
