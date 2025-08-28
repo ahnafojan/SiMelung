@@ -139,12 +139,23 @@ if (empty($petani['foto']) || !file_exists($fotoPath)) {
                                             <td><?= esc(number_format($row['luas_lahan'], 2, ',', '.')) ?></td>
                                             <td><?= esc(number_format($row['jumlah_pohon'], 0, ',', '.')) ?></td>
                                             <td>
-                                                <button class="btn btn-danger btn-sm btn-delete-pohon"
-                                                    data-id="<?= esc($row['id']) ?>"
-                                                    data-nama="<?= esc($row['nama_jenis']) ?>"
-                                                    data-toggle="modal" data-target="#modalHapusPohon">
-                                                    <i class="fas fa-trash-alt"></i> Hapus
-                                                </button>
+                                                <?php if ($row['can_delete']): ?>
+                                                    <!-- Tombol Hapus Asli jika ada izin -->
+                                                    <button class="btn btn-danger btn-sm btn-delete-pohon"
+                                                        data-id="<?= esc($row['id']) ?>"
+                                                        data-nama="<?= esc($row['nama_jenis']) ?>"
+                                                        data-toggle="modal" data-target="#modalHapusPohon">
+                                                        <i class="fas fa-trash-alt"></i> Hapus
+                                                    </button>
+                                                <?php else: ?>
+                                                    <!-- Tombol Minta Izin jika tidak ada izin -->
+                                                    <button class="btn btn-outline-danger btn-sm btn-request-access"
+                                                        data-pohon-id="<?= esc($row['id']) ?>"
+                                                        data-action-type="delete"
+                                                        title="Minta Izin Hapus">
+                                                        <i class="fas fa-lock"></i> Minta Izin
+                                                    </button>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -192,12 +203,57 @@ if (empty($petani['foto']) || !file_exists($fotoPath)) {
     </div>
 </div>
 <script>
-    $(function() {
-        // Event klik tombol hapus pohon
+    $(document).ready(function() {
+        // Event untuk tombol Minta Izin yang baru
+        $('.btn-request-access').on('click', function() {
+            const button = $(this);
+            const pohonId = button.data('pohon-id');
+            const action = button.data('action-type');
+
+            button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+            $.ajax({
+                url: "<?= site_url('petanipohon/requestAccess') ?>",
+                method: "POST",
+                data: {
+                    pohon_id: pohonId,
+                    action_type: action,
+                    '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: response.message
+                        });
+                        button.removeClass('btn-outline-danger').addClass('btn-secondary disabled')
+                            .html('<i class="fas fa-clock"></i>');
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: response.message
+                        });
+                        button.prop('disabled', false).html('<i class="fas fa-lock"></i> Minta Izin');
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Terjadi kesalahan koneksi.'
+                    });
+                    button.prop('disabled', false).html('<i class="fas fa-lock"></i> Minta Izin');
+                }
+            });
+        });
+
+        // Event untuk tombol Hapus yang sudah ada (untuk membuka modal)
         $('.btn-delete-pohon').click(function() {
             const id = $(this).data('id');
             const nama = $(this).data('nama');
-
             $('#hapusPohonId').val(id);
             $('#hapusPohonNama').text(nama);
             $('#modalHapusPohon').modal('show');

@@ -116,4 +116,61 @@ body,
     .form-control-sm {
         height: calc(1.5rem + .5rem + 2px);
     }
+    /* Custom Button Styles for Export & Navigation */
+.btn-icon-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1rem; /* Sedikit lebih tinggi untuk sentuhan mobile */
+    border-radius: 0.375rem;
+    font-weight: 600;
+    text-decoration: none; /* Menghilangkan underline secara default */
+    transition: all 0.2s ease-in-out;
+    white-space: nowrap;
+    border: none;
+}
+
+/* 1. Menghilangkan underline saat hover, focus, atau active */
+.btn-icon-text:hover,
+.btn-icon-text:focus,
+.btn-icon-text:active {
+    text-decoration: none;
+    color: #fff;
+}
+
+/* Specific Export Button Colors */
+.btn-success-modern-export {
+    background-color: #198754;
+    color: #fff;
+}
+.btn-success-modern-export:hover {
+    background-color: #157347;
+}
+
+.btn-danger-modern-export {
+    background-color: #dc3545;
+    color: #fff;
+}
+.btn-danger-modern-export:hover {
+    background-color: #bb2d3b;
+}
+
+/* Secondary Button for "Kembali" */
+.modern-btn.btn-secondary-modern {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    background-color: #6c757d;
+    color: #fff;
+    border: 1px solid #6c757d;
+    text-decoration: none;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+.modern-btn.btn-secondary-modern:hover {
+    background-color: #5c636a;
+    border-color: #565e64;
+    color: #fff;
+}
     

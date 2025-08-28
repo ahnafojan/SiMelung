@@ -1,5 +1,4 @@
-<nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-
+<nav class="navbar navbar-expand navbar-light bg-light topbar mb-4 static-top shadow-sm border-bottom" style="padding-top: 1.2rem; padding-bottom: 1.2rem;">
     <!-- Sidebar Toggle (Topbar) -->
     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
         <i class="fa fa-bars"></i>

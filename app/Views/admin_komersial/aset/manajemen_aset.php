@@ -57,26 +57,44 @@
 
                                     <td class="text-muted fst-italic"><?= esc($a['keterangan']) ?: 'Tidak ada keterangan' ?></td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-warning mx-1 btn-edit-aset"
-                                            data-id="<?= $a['id_aset'] ?>"
-                                            data-nama_aset="<?= esc($a['nama_aset']) ?>"
-                                            data-kode_aset="<?= esc($a['kode_aset']) ?>"
-                                            data-nup="<?= esc($a['nup']) ?>"
-                                            data-tahun_perolehan="<?= esc($a['tahun_perolehan']) ?>"
-                                            data-merk_type="<?= esc($a['merk_type']) ?>"
-                                            data-nilai_perolehan="<?= esc($a['nilai_perolehan']) ?>"
-                                            data-keterangan="<?= esc($a['keterangan']) ?>"
-                                            data-metode_pengadaan="<?= esc($a['metode_pengadaan']) ?>"
-                                            data-sumber_pengadaan="<?= esc($a['sumber_pengadaan']) ?>"
+                                        <div class="btn-group">
+                                            <?php if ($a['can_edit']): ?>
+                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-edit-aset"
+                                                    data-id="<?= $a['id_aset'] ?>"
+                                                    data-nama_aset="<?= esc($a['nama_aset']) ?>"
+                                                    data-kode_aset="<?= esc($a['kode_aset']) ?>"
+                                                    data-nup="<?= esc($a['nup']) ?>"
+                                                    data-tahun_perolehan="<?= esc($a['tahun_perolehan']) ?>"
+                                                    data-merk_type="<?= esc($a['merk_type']) ?>"
+                                                    data-nilai_perolehan="<?= esc($a['nilai_perolehan']) ?>"
+                                                    data-keterangan="<?= esc($a['keterangan']) ?>"
+                                                    data-metode_pengadaan="<?= esc($a['metode_pengadaan']) ?>"
+                                                    data-sumber_pengadaan="<?= esc($a['sumber_pengadaan']) ?>"
+                                                    data-bs-toggle="modal" data-bs-target="#modalEditAset">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            <?php else: ?>
+                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-request-access"
+                                                    data-aset-id="<?= $a['id_aset'] ?>"
+                                                    data-action-type="edit" title="Minta Izin Edit">
+                                                    <i class="fas fa-lock"></i>
+                                                </button>
+                                            <?php endif; ?>
 
-                                            data-bs-toggle="modal" data-bs-target="#modalEditAset">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger mx-1"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#deleteModal<?= $a['id_aset'] ?>">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                            <?php if ($a['can_delete']): ?>
+                                                <button class="btn btn-sm btn-outline-danger mx-1"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteModal<?= $a['id_aset'] ?>">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            <?php else: ?>
+                                                <button class="btn btn-sm btn-outline-danger mx-1 btn-request-access"
+                                                    data-aset-id="<?= $a['id_aset'] ?>"
+                                                    data-action-type="delete" title="Minta Izin Hapus">
+                                                    <i class="fas fa-lock"></i>
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
                                 </tr>
 
@@ -210,6 +228,50 @@
             $('#editMetodePengadaan').val($(this).data('metode_pengadaan'));
             $('#editSumberPengadaan').val($(this).data('sumber_pengadaan'));
 
+        });
+    });
+    $('.btn-request-access').on('click', function() {
+        const button = $(this);
+        const asetId = button.data('aset-id');
+        const action = button.data('action-type');
+
+        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: "<?= site_url('ManajemenAsetKomersial/requestAccess') ?>",
+            method: "POST",
+            data: {
+                aset_id: asetId,
+                action_type: action,
+                '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+            },
+            dataType: "json",
+            success: function(response) {
+                if (response.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: response.message
+                    });
+                    button.removeClass('btn-outline-warning btn-outline-danger').addClass('btn-secondary disabled')
+                        .html('<i class="fas fa-clock"></i>');
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: response.message
+                    });
+                    button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Terjadi kesalahan koneksi.'
+                });
+                button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+            }
         });
     });
 </script>

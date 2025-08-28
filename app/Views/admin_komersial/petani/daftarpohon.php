@@ -2,17 +2,11 @@
 <?= $this->section('content') ?>
 
 <style>
-    /*
-     * Gaya Kustom untuk Tampilan Modern & Minimalis
-     * Diterapkan untuk meningkatkan pengalaman visual halaman master data.
-    */
-
-    /* Latar belakang halaman yang lembut */
+    /* Gaya Kustom untuk Tampilan Modern & Minimalis */
     body {
         background-color: #f8f9fa;
     }
 
-    /* Judul halaman yang lebih menonjol */
     .page-title {
         font-weight: 700;
         color: #343a40;
@@ -23,17 +17,13 @@
         font-size: 1rem;
     }
 
-    /* Kustomisasi card */
     .card {
         border: none;
         border-radius: 0.75rem;
-        /* Sudut lebih tumpul */
     }
 
-    /* Header tabel yang bersih */
     .table thead th {
         background-color: #f1f3f5;
-        /* Warna header abu-abu muda */
         color: #495057;
         border-bottom: 2px solid #dee2e6;
         font-weight: 600;
@@ -100,13 +90,60 @@
                                             <td class="text-center"><?= $i + 1 ?></td>
                                             <td><?= esc($row['nama_jenis']) ?></td>
                                             <td class="text-center">
-                                                <a href="<?= site_url('jenispohon/delete/' . $row['id']) ?>"
-                                                    class="btn btn-danger btn-sm"
-                                                    onclick="return confirm('Anda yakin ingin menghapus data ini?')">
-                                                    <i class="fas fa-trash-alt"></i> Hapus
-                                                </a>
+                                                <div class="btn-group">
+                                                    <!-- Tombol Edit Dinamis -->
+                                                    <?php if ($row['can_edit']): ?>
+                                                        <button class="btn btn-warning btn-sm btn-edit" data-id="<?= $row['id'] ?>" data-nama="<?= esc($row['nama_jenis']) ?>" title="Edit">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <button class="btn btn-sm btn-outline-warning btn-request-access"
+                                                            data-jenispohon-id="<?= $row['id'] ?>"
+                                                            data-action-type="edit" title="Minta Izin Edit">
+                                                            <i class="fas fa-lock"></i>
+                                                        </button>
+                                                    <?php endif; ?>
+
+                                                    <!-- Tombol Hapus Dinamis -->
+                                                    <?php if ($row['can_delete']): ?>
+                                                        <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#modalHapusJenisPohon<?= $row['id'] ?>" title="Hapus">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <button class="btn btn-sm btn-outline-danger btn-request-access"
+                                                            data-jenispohon-id="<?= $row['id'] ?>"
+                                                            data-action-type="delete" title="Minta Izin Hapus">
+                                                            <i class="fas fa-lock"></i>
+                                                        </button>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                         </tr>
+
+                                        <!-- Modal Hapus untuk setiap baris -->
+                                        <div class="modal fade" id="modalHapusJenisPohon<?= $row['id'] ?>" tabindex="-1" role="dialog">
+                                            <div class="modal-dialog" role="document">
+                                                <form action="<?= site_url('jenispohon/delete/' . $row['id']) ?>" method="post">
+                                                    <?= csrf_field() ?>
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-danger text-white">
+                                                            <h5 class="modal-title">Konfirmasi Hapus</h5>
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>Apakah Anda yakin ingin menghapus jenis pohon <strong><?= esc($row['nama_jenis']) ?></strong>?</p>
+                                                            <p class="text-danger small">Tindakan ini tidak dapat diurungkan.</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                                                            <button type="submit" class="btn btn-danger">Ya, Hapus</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
@@ -123,5 +160,107 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Form Edit Data (Satu untuk semua) -->
+<div class="modal fade" id="modalEditJenisPohon" tabindex="-1" role="dialog" aria-labelledby="modalEditLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <form id="formEditJenisPohon" action="" method="post">
+            <?= csrf_field() ?>
+            <div class="modal-content shadow">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title" id="modalEditLabel">Form Edit Jenis Pohon</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_id" name="id">
+                    <div class="form-group">
+                        <label for="edit_nama_jenis" class="font-weight-bold">Nama Jenis Pohon</label>
+                        <input type="text" id="edit_nama_jenis" name="nama_jenis" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning">Update</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- =============================================================================== -->
+<!-- SCRIPT DITEMPATKAN DI SINI SESUAI STRUKTUR ANDA -->
+<!-- =============================================================================== -->
+<script>
+    $(document).ready(function() {
+
+        // --- BLOK UNTUK MEMPERBAIKI TOMBOL BATAL & X PADA MODAL EDIT ---
+        $('#modalEditJenisPohon').on('click', '[data-dismiss="modal"]', function() {
+            $('#modalEditJenisPohon').modal('hide');
+        });
+        // -----------------------------------------------------------
+
+        // Event handler untuk tombol edit
+        $('.btn-edit').on('click', function() {
+            const id = $(this).data('id');
+            const nama = $(this).data('nama');
+
+            // Isi form modal edit
+            $('#edit_id').val(id);
+            $('#edit_nama_jenis').val(nama);
+
+            // Atur action form
+            $('#formEditJenisPohon').attr('action', `<?= site_url('jenispohon/update') ?>/${id}`);
+
+            // Tampilkan modal
+            $('#modalEditJenisPohon').modal('show');
+        });
+    });
+    $('.btn-request-access').on('click', function() {
+        const button = $(this);
+        const jenisPohonId = button.data('jenispohon-id');
+        const action = button.data('action-type');
+
+        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: "<?= site_url('jenispohon/requestAccess') ?>",
+            method: "POST",
+            data: {
+                jenispohon_id: jenisPohonId,
+                action_type: action,
+                '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+            },
+            dataType: "json",
+            success: function(response) {
+                if (response.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: response.message
+                    });
+                    button.removeClass('btn-outline-warning btn-outline-danger').addClass('btn-secondary disabled')
+                        .html('<i class="fas fa-clock"></i>');
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: response.message
+                    });
+                    button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Terjadi kesalahan koneksi.'
+                });
+                button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+            }
+        });
+    });
+</script>
 
 <?= $this->endSection() ?>

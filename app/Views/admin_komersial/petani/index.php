@@ -105,25 +105,44 @@
                                 </td>
                                 <td>
                                     <div class="btn-group">
-                                        <button class="btn btn-warning btn-sm btn-edit-petani"
-                                            data-toggle="modal" data-target="#modalEditPetani"
-                                            data-id="<?= esc($row['id']) ?>"
-                                            data-user_id="<?= esc($row['user_id']) ?>"
-                                            data-nama="<?= esc($row['nama']) ?>"
-                                            data-alamat="<?= esc($row['alamat']) ?>"
-                                            data-no_hp="<?= esc($row['no_hp']) ?>"
-                                            data-usia="<?= esc($row['usia']) ?>"
-                                            data-tempat_lahir="<?= esc($row['tempat_lahir']) ?>"
-                                            data-tanggal_lahir="<?= esc($row['tanggal_lahir']) ?>"
-                                            data-foto="<?= esc($row['foto']) ?>"
-                                            title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
+                                        <?php if ($row['can_edit']): ?>
+                                            <button class="btn btn-warning btn-sm btn-edit-petani"
+                                                data-toggle="modal" data-target="#modalEditPetani"
+                                                data-id="<?= esc($row['id']) ?>"
+                                                data-user_id="<?= esc($row['user_id']) ?>"
+                                                data-nama="<?= esc($row['nama']) ?>"
+                                                data-alamat="<?= esc($row['alamat']) ?>"
+                                                data-no_hp="<?= esc($row['no_hp']) ?>"
+                                                data-usia="<?= esc($row['usia']) ?>"
+                                                data-tempat_lahir="<?= esc($row['tempat_lahir']) ?>"
+                                                data-tanggal_lahir="<?= esc($row['tanggal_lahir']) ?>"
+                                                data-foto="<?= esc($row['foto']) ?>"
+                                                title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        <?php else: ?>
+                                            <button class="btn btn-outline-warning btn-sm btn-request-access"
+                                                data-petani-id="<?= esc($row['id']) ?>"
+                                                data-action-type="edit" title="Minta Izin Edit">
+                                                <i class="fas fa-lock"></i>
+                                            </button>
+                                        <?php endif; ?>
 
+                                        <?php if ($row['can_delete']): ?>
+                                            <button class="btn btn-danger btn-sm btn-delete-petani"
+                                                data-id="<?= esc($row['id']) ?>"
+                                                data-nama="<?= esc($row['nama']) ?>"
+                                                data-toggle="modal" data-target="#modalHapusPetani" title="Hapus">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        <?php else: ?>
+                                            <button class="btn btn-outline-danger btn-sm btn-request-access"
+                                                data-petani-id="<?= esc($row['id']) ?>"
+                                                data-action-type="delete" title="Minta Izin Hapus">
+                                                <i class="fas fa-lock"></i>
+                                            </button>
+                                        <?php endif; ?>
 
-                                        <button class="btn btn-danger btn-sm btn-delete-petani" data-id="<?= esc($row['id']) ?>" data-nama="<?= esc($row['nama']) ?>" data-toggle="modal" data-target="#modalHapusPetani">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
                                         <a href="<?= site_url('petanipohon/index/' . $row['user_id']) ?>"
                                             class="btn btn-success btn-sm" title="Detail Pohon">
                                             <i class="fas fa-seedling"></i>
@@ -163,16 +182,44 @@
                         <p class="mb-1"><strong>TTL:</strong> <?= esc($row['tempat_lahir'] . ', ' . $row['tanggal_lahir']) ?></p>
 
                         <div class="mt-2">
-                            <button class="btn btn-warning btn-sm btn-edit-petani"
-                                data-toggle="modal" data-target="#modalEditPetani"
-                                data-id="<?= esc($row['id']) ?>"
-                                title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm btn-delete-petani"
-                                data-id="<?= esc($row['id']) ?>" data-nama="<?= esc($row['nama']) ?>" data-toggle="modal" data-target="#modalHapusPetani">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <?php if ($row['can_edit']): ?>
+                                <button class="btn btn-warning btn-sm btn-edit-petani"
+                                    data-toggle="modal" data-target="#modalEditPetani"
+                                    data-id="<?= esc($row['id']) ?>"
+                                    data-user_id="<?= esc($row['user_id']) ?>"
+                                    data-nama="<?= esc($row['nama']) ?>"
+                                    data-alamat="<?= esc($row['alamat']) ?>"
+                                    data-no_hp="<?= esc($row['no_hp']) ?>"
+                                    data-usia="<?= esc($row['usia']) ?>"
+                                    data-tempat_lahir="<?= esc($row['tempat_lahir']) ?>"
+                                    data-tanggal_lahir="<?= esc($row['tanggal_lahir']) ?>"
+                                    data-foto="<?= esc($row['foto']) ?>"
+                                    title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            <?php else: ?>
+                                <button class="btn btn-outline-warning btn-sm btn-request-access"
+                                    data-petani-id="<?= esc($row['id']) ?>"
+                                    data-action-type="edit" title="Minta Izin Edit">
+                                    <i class="fas fa-lock"></i>
+                                </button>
+                            <?php endif; ?>
+
+                            <?php if ($row['can_delete']): ?>
+                                <button class="btn btn-danger btn-sm btn-delete-petani"
+                                    data-id="<?= esc($row['id']) ?>"
+                                    data-nama="<?= esc($row['nama']) ?>"
+                                    data-toggle="modal" data-target="#modalHapusPetani" title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            <?php else: ?>
+                                <button class="btn btn-outline-danger btn-sm btn-request-access"
+                                    data-petani-id="<?= esc($row['id']) ?>"
+                                    data-action-type="delete" title="Minta Izin Hapus">
+                                    <i class="fas fa-lock"></i>
+                                </button>
+                            <?php endif; ?>
+
                             <a href="<?= site_url('petanipohon/index/' . $row['user_id']) ?>"
                                 class="btn btn-success btn-sm" title="Detail Pohon">
                                 <i class="fas fa-seedling"></i>
@@ -331,6 +378,110 @@
                 reader.readAsDataURL(file);
             }
         });
+    });
+</script>
+<script>
+    $(document).ready(function() {
+
+        // -----------------------------------------------------------
+        // FUNGSI UNTUK MEMBUKA MODAL EDIT PETANI (dari kode lama Anda)
+        // -----------------------------------------------------------
+        $('.btn-edit-petani').click(function() {
+            let id = $(this).data('id');
+            let user_id = $(this).data('user_id');
+            let nama = $(this).data('nama');
+            let alamat = $(this).data('alamat');
+            let no_hp = $(this).data('no_hp');
+            let usia = $(this).data('usia');
+            let tempat_lahir = $(this).data('tempat_lahir');
+            let tanggal_lahir = $(this).data('tanggal_lahir');
+            let foto = $(this).data('foto');
+
+            $('#editPetaniId').val(id);
+            $('#editUserId').val(user_id);
+            $('#editNama').val(nama);
+            $('#editAlamat').val(alamat);
+            $('#editNoHp').val(no_hp);
+            $('#editUsia').val(usia);
+            $('#editTempatLahir').val(tempat_lahir);
+            $('#editTanggalLahir').val(tanggal_lahir);
+
+            if (foto) {
+                $('#previewFotoEdit').attr('src', '<?= base_url("uploads/foto_petani") ?>/' + foto);
+            } else {
+                $('#previewFotoEdit').attr('src', 'https://via.placeholder.com/80');
+            }
+        });
+
+        // -----------------------------------------------------------
+        // FUNGSI UNTUK MEMBUKA MODAL HAPUS PETANI (dari kode lama Anda)
+        // -----------------------------------------------------------
+        $('.btn-delete-petani').click(function() {
+            const id = $(this).data('id');
+            const nama = $(this).data('nama');
+            $('#hapusPetaniNama').text(nama);
+            $('#hapusPetaniId').val(id);
+            $('#modalHapusPetani').modal('show');
+        });
+
+
+        // -----------------------------------------------------------
+        // FUNGSI BARU: MINTA IZIN AKSES (Request Access)
+        // -----------------------------------------------------------
+        $('.btn-request-access').on('click', function() {
+            const button = $(this);
+            const petaniId = button.data('petani-id');
+            const action = button.data('action-type');
+
+            button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+            $.ajax({
+                url: "<?= site_url('petani/requestAccess') ?>",
+                method: "POST",
+                data: {
+                    petani_id: petaniId,
+                    action_type: action,
+                    '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: response.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        // ==========================================================
+                        // INI BAGIAN PENTINGNYA: Mengubah tombol jadi ikon jam
+                        // ==========================================================
+                        button.removeClass('btn-outline-warning btn-outline-danger')
+                            .addClass('btn-secondary disabled')
+                            .html('<i class="fas fa-clock"></i>');
+                        // ==========================================================
+
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: response.message,
+                        });
+                        button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Terjadi kesalahan koneksi. Silakan coba lagi.',
+                    });
+                    button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                }
+            });
+        });
+
     });
 </script>
 <?= $this->endSection() ?>

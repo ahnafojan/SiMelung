@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <!-- CSS Template SB Admin -->
-<link href="<?= base_url('path/to/sb-admin-2.min.css') ?>" rel="stylesheet">
+<link href="<?= base_url('path/to/sb-admin-2.css') ?>" rel="stylesheet">
 <!-- Font Awesome -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 <!-- CSS Kustom Anda (WAJIB setelah SB Admin) -->

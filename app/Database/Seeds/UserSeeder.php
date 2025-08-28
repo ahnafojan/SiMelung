@@ -12,14 +12,11 @@ class UserSeeder extends Seeder
 
         // Insert User
         $this->db->table('users')->insertBatch([
-            ['id' => 1, 'username' => 'syarif', 'password' => $password],
             ['id' => 2, 'username' => 'alif',   'password' => $password],
         ]);
 
         // Insert Roles
         $this->db->table('user_roles')->insertBatch([
-            ['user_id' => 1, 'role' => 'bumdes'],
-            ['user_id' => 1, 'role' => 'komersial'],
             ['user_id' => 2, 'role' => 'desa'],
         ]);
     }

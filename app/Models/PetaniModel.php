@@ -6,6 +6,7 @@ use CodeIgniter\Model;
 
 class PetaniModel extends Model
 {
+
     protected $table = 'petani';
     protected $primaryKey = 'id';
     protected $allowedFields = [

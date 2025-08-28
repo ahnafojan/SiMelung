@@ -116,15 +116,31 @@
                                 <td><?= esc($k['jumlah']) ?> Kg</td>
                                 <td><?= esc($k['keterangan']) ?></td>
                                 <td>
-                                    <!-- Tombol Edit -->
-                                    <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modalEditKopi<?= $k['id'] ?>">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
+                                    <div class="btn-group">
+                                        <?php if ($k['can_edit']): ?>
+                                            <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modalEditKopi<?= $k['id'] ?>">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        <?php else: ?>
+                                            <button class="btn btn-sm btn-outline-warning btn-request-access"
+                                                data-kopimasuk-id="<?= $k['id'] ?>"
+                                                data-action-type="edit" title="Minta Izin Edit">
+                                                <i class="fas fa-lock"></i>
+                                            </button>
+                                        <?php endif; ?>
 
-                                    <!-- Tombol Hapus -->
-                                    <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalHapusKopi<?= $k['id'] ?>">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                        <?php if ($k['can_delete']): ?>
+                                            <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalHapusKopi<?= $k['id'] ?>">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        <?php else: ?>
+                                            <button class="btn btn-sm btn-outline-danger btn-request-access"
+                                                data-kopimasuk-id="<?= $k['id'] ?>"
+                                                data-action-type="delete" title="Minta Izin Hapus">
+                                                <i class="fas fa-lock"></i>
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
 
@@ -291,6 +307,57 @@
             } else {
                 $jenisPohon.html('<option value="">-- Pilih Jenis Pohon --</option>').prop('disabled', true);
             }
+        });
+    });
+</script>
+<script>
+    $(document).ready(function() {
+        // ... (script Anda yang sudah ada untuk dropdown biarkan saja)
+
+        // SCRIPT BARU UNTUK PERMINTAAN IZIN
+        $('.btn-request-access').on('click', function() {
+            const button = $(this);
+            const kopiMasukId = button.data('kopimasuk-id');
+            const action = button.data('action-type');
+
+            button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+            $.ajax({
+                url: "<?= site_url('kopi-masuk/requestAccess') ?>",
+                method: "POST",
+                data: {
+                    kopimasuk_id: kopiMasukId,
+                    action_type: action,
+                    '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: response.message
+                        });
+                        button.removeClass('btn-outline-warning btn-outline-danger').addClass('btn-secondary disabled')
+                            .html('<i class="fas fa-clock"></i>');
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: response.message
+                        });
+                        button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Terjadi kesalahan koneksi.'
+                    });
+                    button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                }
+            });
         });
     });
 </script>

@@ -7,7 +7,11 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'LandingPage::index');
 $routes->get('DashboardDesa', 'DashboardDesa::index');
+//BUMDES
 $routes->get('DashboardBumdes', 'DashboardBumdes::index');
+
+
+$routes->get('PersetujuanKomersial', 'PersetujuanKomersial::index');
 
 //Komersial)
 $routes->get('dashboard', 'DashboardAdminKomersial::index');
@@ -45,6 +49,14 @@ $routes->group('petani', function ($routes) {
     $routes->post('delete', 'Petani::delete'); // ID akan diambil dari form data
     $routes->get('edit/(:num)', 'Petani::edit/$1');
 });
+//permissiom
+$routes->post('persetujuanKomersial/respond', 'PersetujuanKomersial::respond');
+$routes->post('petani/requestAccess', 'Petani::requestAccess');
+$routes->post('kopi-masuk/requestAccess', 'KopiMasuk::requestAccess');
+$routes->post('petanipohon/requestAccess', 'PetaniPohon::requestAccess');
+$routes->post('kopikeluar/requestAccess', 'KopiKeluar::requestAccess');
+$routes->post('jenispohon/requestAccess', 'JenisPohon::requestAccess');
+$routes->post('ManajemenAsetKomersial/requestAccess', 'ManajemenAsetKomersial::requestAccess');
 
 $routes->group('petanipohon', function ($routes) {
     $routes->get('(:segment)', 'PetaniPohon::index/$1');
@@ -59,7 +71,8 @@ $routes->group('petanipohon', function ($routes) {
 $routes->group('jenispohon', function ($routes) {
     $routes->get('/', 'JenisPohon::index');
     $routes->post('store', 'JenisPohon::store');
-    $routes->get('delete/(:num)', 'JenisPohon::delete/$1');
+    $routes->post('update/(:num)', 'JenisPohon::update/$1'); // Rute untuk update
+    $routes->post('delete/(:num)', 'JenisPohon::delete/$1'); // Disarankan POST untuk delete
 });
 
 
@@ -74,6 +87,7 @@ $routes->post('kopi-masuk/delete/(:num)', 'KopiMasuk::delete/$1');
 // app/Config/Routes.php
 $routes->get('get-jenis-pohon/(:any)', 'KopiMasuk::getJenisPohon/$1');
 $routes->get('stok-kopi', 'KopiMasuk::stok');
+
 
 
 
@@ -115,18 +129,27 @@ $routes->group('admin-komersial/laporan', ['namespace' => 'App\Controllers'], fu
     $routes->get('/', 'LaporanKomersial::index');
 });
 // Redirect untuk URL yang lebih singkat (tetap seperti sebelumnya)
-$routes->get('laporankomersial', function () {
-    return redirect()->to(site_url('admin-komersial/laporan'));
-});
-$routes->get('LaporanKomersial', function () {
-    return redirect()->to(site_url('admin-komersial/laporan'));
-});
+// Rute untuk Halaman Utama Laporan (Dashboard)
+$routes->get('admin-komersial/laporan', 'LaporanKomersial::index');
+// Rute untuk Laporan Rekap Kopi
+$routes->get('admin-komersial/laporan/kopi', 'KomersialRekapKopi::index');
+
+// Rute untuk Laporan Rekap Petani
+$routes->get('admin-komersial/laporan/petani', 'KomersialRekapPetani::index');
+$routes->get('admin-komersial/laporan-petani/export/excel', 'ExportLaporanKomersial::excelPetani');
+$routes->get('admin-komersial/laporan-petani/export/pdf', 'ExportLaporanKomersial::pdfPetani');
+
+// Rute untuk Laporan Rekap Aset
+$routes->get('admin-komersial/laporan/aset', 'KomersialRekapAset::index');
+$routes->get('admin-komersial/export/aset/excel', 'ExportLaporanKomersial::excelAset');
+$routes->get('admin-komersial/export/aset/pdf', 'ExportLaporanKomersial::pdfAset');
+
 // Ekspor Kopi Masuk
 $routes->get('admin-komersial/export/masuk/excel', 'ExportLaporanKomersial::excelMasuk');
-$routes->get('admin-komersial/export/masuk/pdf', 'ExportLaporanKomersial::pdfMasuk');
+$routes->get('admin-komersial/export/masuk/pdf', 'ExportLaporanKomersial::exportRekapMasukPdf');
 
 // Ekspor Kopi Keluar
-$routes->get('admin-komersial/export/keluar/excel', 'ExportLaporanKomersial::excelKeluar');
+$routes->get('admin-komersial/export/keluar/excel', 'ExportLaporanKomersial::exportRekapKeluarExcel');
 $routes->get('admin-komersial/export/keluar/pdf', 'ExportLaporanKomersial::pdfKeluar');
 
 // Ekspor Stok
@@ -139,18 +162,6 @@ $routes->get('admin-komersial/export/petani/pdf', 'ExportLaporanKomersial::pdfPe
 // Ekspor Laporan Aset (Rute Baru)
 $routes->get('admin-komersial/export/aset/excel', 'ExportLaporanKomersial::excelAset');
 $routes->get('admin-komersial/export/aset/pdf', 'ExportLaporanKomersial::pdfAset');
-
-
-
-
-
-
-
-
-
-
-
-
 
 //role
 $routes->get('/choose-role', 'AuthController::chooseRole', ['filter' => 'auth']);

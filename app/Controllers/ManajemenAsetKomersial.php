@@ -4,24 +4,38 @@ namespace App\Controllers;
 
 use App\Models\AsetKomersialModel;
 use CodeIgniter\Controller;
+use App\Models\PermissionRequestModel;
 
 class ManajemenAsetKomersial extends Controller
 {
     protected $asetModel;
+    protected $permissionModel;
 
     public function __construct()
     {
         $this->asetModel = new AsetKomersialModel();
+        $this->permissionModel = new PermissionRequestModel(); // 3. Inisialisasi model
+        helper(['date']);
     }
 
     public function index()
     {
         $data['asets'] = $this->asetModel->findAll();
+        if (!empty($data['asets'])) {
+            foreach ($data['asets'] as &$aset) {
+                $aset['can_edit'] = $this->hasActivePermission($aset['id_aset'], 'edit');
+                $aset['can_delete'] = $this->hasActivePermission($aset['id_aset'], 'delete');
+            }
+        }
         return view('admin_komersial/aset/manajemen_aset', $data);
     }
 
     public function update($id)
     {
+        if (!$this->hasActivePermission($id, 'edit')) {
+            session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengedit data ini.');
+            return redirect()->to(site_url('/ManajemenAsetKomersial'));
+        }
         try {
             $aset = $this->asetModel->find($id);
             if (!$aset) {
@@ -65,6 +79,10 @@ class ManajemenAsetKomersial extends Controller
 
     public function delete($id)
     {
+        if (!$this->hasActivePermission($id, 'delete')) {
+            session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk menghapus data ini.');
+            return redirect()->to(site_url('/ManajemenAsetKomersial'));
+        }
         try {
             $aset = $this->asetModel->find($id);
             if (!$aset) {
@@ -83,5 +101,60 @@ class ManajemenAsetKomersial extends Controller
         }
 
         return redirect()->to(site_url('/ManajemenAsetKomersial'));
+    }
+    public function requestAccess()
+    {
+        if ($this->request->isAJAX()) {
+            $asetId = $this->request->getPost('aset_id');
+            $action = $this->request->getPost('action_type');
+            $requesterId = session()->get('user_id');
+
+            if (empty($requesterId)) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Sesi tidak valid.'])->setStatusCode(401);
+            }
+
+            $existing = $this->permissionModel->where([
+                'requester_id' => $requesterId,
+                'target_id'    => $asetId,
+                'action_type'  => $action,
+                'target_type'  => 'aset',
+                'status'       => 'pending'
+            ])->first();
+
+            if ($existing) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Anda sudah memiliki permintaan yang sama.']);
+            }
+
+            $this->permissionModel->save([
+                'requester_id' => $requesterId,
+                'target_id'    => $asetId,
+                'target_type'  => 'aset',
+                'action_type'  => $action,
+                'status'       => 'pending',
+            ]);
+
+            return $this->response->setJSON(['status' => 'success', 'message' => 'Permintaan izin berhasil dikirim.']);
+        }
+        return redirect()->back();
+    }
+
+    // 8. [FUNGSI BARU] Helper untuk mengecek izin aktif
+    private function hasActivePermission($asetId, $action)
+    {
+        $requesterId = session()->get('user_id');
+        if (empty($requesterId)) {
+            return false;
+        }
+
+        $permission = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $asetId,
+            'target_type'  => 'aset',
+            'action_type'  => $action,
+            'status'       => 'approved',
+            'expires_at >' => date('Y-m-d H:i:s')
+        ])->first();
+
+        return $permission ? true : false;
     }
 }
