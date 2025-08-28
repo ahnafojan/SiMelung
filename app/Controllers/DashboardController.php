@@ -32,6 +32,6 @@ class DashboardController extends BaseController
     }
     public function pariwisata()
     {
-        return view('dashboard/pariwisata_view');
+        return view('dashboard/dashboard_pariwisata');
     }
 }

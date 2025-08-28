@@ -8,7 +8,8 @@ class PariwisataSeeder extends Seeder
 {
     public function run()
     {
-        $data = [
+        // Data tabel pariwisata
+        $pariwisataData = [
             [
                 'nama'       => 'Kolam Renang Sawah Indah',
                 'lokasi'     => 'Desa Melung, Banyumas, Jawa Tengah',
@@ -35,7 +36,50 @@ class PariwisataSeeder extends Seeder
             ],
         ];
 
-        // Masukkan data ke tabel pariwisata
-        $this->db->table('pariwisata')->insertBatch($data);
+        // Insert data ke tabel pariwisata
+        $this->db->table('pariwisata')->insertBatch($pariwisataData);
+
+        // Data tabel aset_pariwisata
+        $asetData = [
+            [
+                'nama_pariwisata'   => 'Air Terjun Melung',
+                'nama_aset'         => 'Gazebo',
+                'kode_aset'         => 'AS001',
+                'nup'               => '001',
+                'tahun_perolehan'   => 2022,
+                'nilai_perolehan'   => 15000000,
+                'keterangan'        => 'Gazebo untuk pengunjung beristirahat',
+                'metode_pengadaan'  => 'Pembelian',
+                'sumber_pengadaan'  => 'Dana Desa',
+                'foto_aset'         => 'gazebo.jpg',
+            ],
+            [
+                'nama_pariwisata'   => 'Bukit Melung',
+                'nama_aset'         => 'Spot Foto',
+                'kode_aset'         => 'AS002',
+                'nup'               => '002',
+                'tahun_perolehan'   => 2021,
+                'nilai_perolehan'   => 5000000,
+                'keterangan'        => 'Dek kayu untuk spot foto',
+                'metode_pengadaan'  => 'Swadaya Masyarakat',
+                'sumber_pengadaan'  => 'Gotong Royong',
+                'foto_aset'         => 'spotfoto.jpg',
+            ],
+            [
+                'nama_pariwisata'   => 'Kolam Renang Desa',
+                'nama_aset'         => 'Kursi & Meja',
+                'kode_aset'         => 'AS003',
+                'nup'               => '003',
+                'tahun_perolehan'   => 2023,
+                'nilai_perolehan'   => 8000000,
+                'keterangan'        => 'Fasilitas kursi untuk pengunjung kolam',
+                'metode_pengadaan'  => 'Hibah',
+                'sumber_pengadaan'  => 'CSR',
+                'foto_aset'         => 'kursi.jpg',
+            ],
+        ];
+
+        // Insert data ke tabel aset_pariwisata
+        $this->db->table('aset_pariwisata')->insertBatch($asetData);
     }
 }
