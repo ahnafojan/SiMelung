@@ -13,7 +13,7 @@
 
     <!-- Nav Item - Dashboard -->
     <li class="nav-item">
-        <a class="nav-link fs-3" href="<?= site_url('DashboardDesa') ?>">
+        <a class="nav-link fs-3" href="<?= site_url('dashboard/dashboard_desa') ?>">
             <i class="fas fa-fw fa-tachometer-alt fa-lg"></i>
             <span>Dashboard</span>
         </a>

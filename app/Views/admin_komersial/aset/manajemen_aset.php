@@ -25,7 +25,7 @@
                             <th>Tahun & Merek</th>
                             <th>Nilai Perolehan</th>
                             <th>Pengadaan</th>
-                            <th>Keterangan</th>
+                            <th>Kondisi</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -39,7 +39,6 @@
                                             <img src="<?= base_url('uploads/foto_aset/' . $a['foto']) ?>" alt="<?= esc($a['nama_aset']) ?>" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">
                                         </a>
                                     </td>
-
                                     <td><?= esc($a['nama_aset']) ?></td>
                                     <td>
                                         <span class="fw-bold d-block"><?= esc($a['kode_aset']) ?></span>
@@ -54,43 +53,34 @@
                                         <span class="d-block"><?= esc($a['metode_pengadaan']) ?></span>
                                         <small class="text-muted"><?= esc($a['sumber_pengadaan']) ?></small>
                                     </td>
-
-                                    <td class="text-muted fst-italic"><?= esc($a['keterangan']) ?: 'Tidak ada keterangan' ?></td>
+                                    <td>
+                                        <?php
+                                        $kondisi = esc($a['keterangan']);
+                                        $badgeClass = 'bg-secondary';
+                                        if ($kondisi == 'Baik') $badgeClass = 'bg-success';
+                                        if ($kondisi == 'Perlu Perawatan' || $kondisi == 'Dalam Perbaikan') $badgeClass = 'bg-warning text-dark';
+                                        if ($kondisi == 'Rusak') $badgeClass = 'bg-danger';
+                                        ?>
+                                        <span class="badge <?= $badgeClass ?>"><?= $kondisi ?: 'N/A' ?></span>
+                                    </td>
                                     <td class="text-center">
                                         <div class="btn-group">
-                                            <?php if ($a['can_edit']): ?>
-                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-edit-aset"
-                                                    data-id="<?= $a['id_aset'] ?>"
-                                                    data-nama_aset="<?= esc($a['nama_aset']) ?>"
-                                                    data-kode_aset="<?= esc($a['kode_aset']) ?>"
-                                                    data-nup="<?= esc($a['nup']) ?>"
-                                                    data-tahun_perolehan="<?= esc($a['tahun_perolehan']) ?>"
-                                                    data-merk_type="<?= esc($a['merk_type']) ?>"
-                                                    data-nilai_perolehan="<?= esc($a['nilai_perolehan']) ?>"
-                                                    data-keterangan="<?= esc($a['keterangan']) ?>"
-                                                    data-metode_pengadaan="<?= esc($a['metode_pengadaan']) ?>"
-                                                    data-sumber_pengadaan="<?= esc($a['sumber_pengadaan']) ?>"
-                                                    data-bs-toggle="modal" data-bs-target="#modalEditAset">
+                                            <?php if ($a['can_edit']) : ?>
+                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-edit-aset" data-id="<?= $a['id_aset'] ?>" data-nama_aset="<?= esc($a['nama_aset']) ?>" data-kode_aset="<?= esc($a['kode_aset']) ?>" data-nup="<?= esc($a['nup']) ?>" data-tahun_perolehan="<?= esc($a['tahun_perolehan']) ?>" data-merk_type="<?= esc($a['merk_type']) ?>" data-nilai_perolehan="<?= esc($a['nilai_perolehan']) ?>" data-keterangan="<?= esc($a['keterangan']) ?>" data-metode_pengadaan="<?= esc($a['metode_pengadaan']) ?>" data-sumber_pengadaan="<?= esc($a['sumber_pengadaan']) ?>" data-bs-toggle="modal" data-bs-target="#modalEditAset">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
-                                            <?php else: ?>
-                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-request-access"
-                                                    data-aset-id="<?= $a['id_aset'] ?>"
-                                                    data-action-type="edit" title="Minta Izin Edit">
+                                            <?php else : ?>
+                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-request-access" data-aset-id="<?= $a['id_aset'] ?>" data-action-type="edit" title="Minta Izin Edit">
                                                     <i class="fas fa-lock"></i>
                                                 </button>
                                             <?php endif; ?>
 
-                                            <?php if ($a['can_delete']): ?>
-                                                <button class="btn btn-sm btn-outline-danger mx-1"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#deleteModal<?= $a['id_aset'] ?>">
+                                            <?php if ($a['can_delete']) : ?>
+                                                <button class="btn btn-sm btn-outline-danger mx-1" data-bs-toggle="modal" data-bs-target="#deleteModal<?= $a['id_aset'] ?>">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                            <?php else: ?>
-                                                <button class="btn btn-sm btn-outline-danger mx-1 btn-request-access"
-                                                    data-aset-id="<?= $a['id_aset'] ?>"
-                                                    data-action-type="delete" title="Minta Izin Hapus">
+                                            <?php else : ?>
+                                                <button class="btn btn-sm btn-outline-danger mx-1 btn-request-access" data-aset-id="<?= $a['id_aset'] ?>" data-action-type="delete" title="Minta Izin Hapus">
                                                     <i class="fas fa-lock"></i>
                                                 </button>
                                             <?php endif; ?>
@@ -98,12 +88,13 @@
                                     </td>
                                 </tr>
 
+                                <!-- Modal Hapus untuk setiap item -->
                                 <div class="modal fade" id="deleteModal<?= $a['id_aset'] ?>" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header bg-danger text-white">
                                                 <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
                                                 Apakah Anda yakin ingin menghapus aset <strong><?= esc($a['nama_aset']) ?></strong>?
@@ -135,13 +126,17 @@
     </div>
 </div>
 
+<!-- ============================================ -->
+<!-- ▼▼▼ MODAL EDIT DENGAN DROPDOWN ▼▼▼ -->
+<!-- ============================================ -->
 <div class="modal fade" id="modalEditAset" tabindex="-1" aria-labelledby="modalEditAsetLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <form id="formEditAset" method="post" enctype="multipart/form-data">
             <?= csrf_field() ?>
+            <!-- <input type="hidden" name="_method" value="PUT"> --> <!-- Method Spoofing DIHAPUS agar cocok dengan route POST -->
             <div class="modal-content shadow">
-                <div class="modal-header bg-warning text-white">
-                    <h5 class="modal-title" id="modalEditAsetLabel">Edit Data Aset</h5>
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title text-dark" id="modalEditAsetLabel">Edit Data Aset</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -149,37 +144,53 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Nama Barang / Aset</label>
-                            <input type="text" name="nama_aset" id="editNamaAset" class="form-control" required>
+                            <label for="editKategoriAset" class="form-label">Kategori Aset <span class="text-danger">*</span></label>
+                            <select name="kategori_aset" id="editKategoriAset" class="form-select" required>
+                                <option value="">-- Pilih Kategori --</option>
+                                <?php foreach ($kategoriAset as $kategori) : ?>
+                                    <option value="<?= esc($kategori) ?>"><?= esc($kategori) ?></option>
+                                <?php endforeach; ?>
+                                <option value="Lainnya">Lainnya...</option>
+                            </select>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Kode Aset</label>
+                        <div class="col-md-6" id="container_edit_nama_aset_lainnya" style="display: none;">
+                            <label for="editNamaAsetLainnya" class="form-label">Nama Aset Lainnya <span class="text-danger">*</span></label>
+                            <input type="text" name="nama_aset_lainnya" id="editNamaAsetLainnya" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editKodeAset" class="form-label">Kode Aset <span class="text-danger">*</span></label>
                             <input type="text" name="kode_aset" id="editKodeAset" class="form-control" required>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">NUP</label>
+                        <div class="col-md-6">
+                            <label for="editNup" class="form-label">Nomor Urut Pendaftaran (NUP)</label>
                             <input type="text" name="nup" id="editNup" class="form-control">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Tahun Perolehan</label>
-                            <input type="number" name="tahun_perolehan" id="editTahunPerolehan" class="form-control">
+                            <label for="editTahunPerolehan" class="form-label">Tahun Perolehan</label>
+                            <input type="number" name="tahun_perolehan" id="editTahunPerolehan" class="form-control" placeholder="Contoh: 2024">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Merk / Tipe</label>
+                            <label for="editMerkType" class="form-label">Merk / Tipe</label>
                             <input type="text" name="merk_type" id="editMerkType" class="form-control">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Nilai Perolehan (Rp)</label>
+                            <label for="editNilaiPerolehan" class="form-label">Nilai Perolehan (Rp)</label>
                             <input type="number" name="nilai_perolehan" id="editNilaiPerolehan" class="form-control">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Keterangan</label>
-                            <input type="text" name="keterangan" id="editKeterangan" class="form-control">
+                            <label for="editKeterangan" class="form-label">Kondisi Aset <span class="text-danger">*</span></label>
+                            <select name="keterangan" id="editKeterangan" class="form-select" required>
+                                <option value="">-- Pilih Kondisi --</option>
+                                <option value="Baik">Baik</option>
+                                <option value="Perlu Perawatan">Perlu Perawatan</option>
+                                <option value="Dalam Perbaikan">Dalam Perbaikan</option>
+                                <option value="Rusak">Rusak</option>
+                            </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Metode Pengadaan</label>
+                            <label for="editMetodePengadaan" class="form-label">Metode Pengadaan</label>
                             <select name="metode_pengadaan" id="editMetodePengadaan" class="form-select" required>
-                                <option value="">-- Pilih Jenis Pengadaan --</option>
+                                <option value="">-- Pilih --</option>
                                 <option value="Hibah">Hibah</option>
                                 <option value="Pembelian">Pembelian</option>
                                 <option value="Penyewaan">Penyewaan</option>
@@ -190,15 +201,14 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Sumber Pengadaan</label>
+                            <label for="editSumberPengadaan" class="form-label">Sumber Pengadaan</label>
                             <input type="text" name="sumber_pengadaan" id="editSumberPengadaan" class="form-control" required>
                         </div>
                         <div class="col-md-12 mt-3">
-                            <label class="form-label">Foto Aset (opsional)</label>
-                            <input type="file" name="foto" id="editFoto" class="form-control" accept="image/*">
+                            <label class="form-label">Ganti Foto Aset (opsional)</label>
+                            <input type="file" name="foto" class="form-control" accept="image/*">
                             <small class="text-muted">Kosongkan jika tidak ingin mengubah foto.</small>
                         </div>
-
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -210,68 +220,127 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Mengirim data PHP ke JavaScript -->
 <script>
-    $(function() {
-        $('.btn-edit-aset').click(function() {
-            let id = $(this).data('id');
-            $('#formEditAset').attr('action', '<?= site_url('ManajemenAsetKomersial/update') ?>/' + id);
+    const kategoriAsetList = <?= json_encode($kategoriAset ?? []) ?>;
+</script>
 
-            $('#editIdAset').val(id);
-            $('#editNamaAset').val($(this).data('nama_aset'));
-            $('#editKodeAset').val($(this).data('kode_aset'));
-            $('#editNup').val($(this).data('nup'));
-            $('#editTahunPerolehan').val($(this).data('tahun_perolehan'));
-            $('#editMerkType').val($(this).data('merk_type'));
-            $('#editNilaiPerolehan').val($(this).data('nilai_perolehan'));
-            $('#editKeterangan').val($(this).data('keterangan'));
-            $('#editMetodePengadaan').val($(this).data('metode_pengadaan'));
-            $('#editSumberPengadaan').val($(this).data('sumber_pengadaan'));
+<!-- ============================================ -->
+<!-- ▼▼▼ JAVASCRIPT BARU UNTUK MODAL EDIT ▼▼▼ -->
+<!-- ============================================ -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Menangani logika modal edit
+        document.querySelectorAll('.btn-edit-aset').forEach(button => {
+            button.addEventListener('click', function() {
+                const form = document.getElementById('formEditAset');
+                const data = this.dataset;
 
-        });
-    });
-    $('.btn-request-access').on('click', function() {
-        const button = $(this);
-        const asetId = button.data('aset-id');
-        const action = button.data('action-type');
+                // 1. Set action form secara dinamis
+                form.action = `<?= site_url('ManajemenAsetKomersial/update') ?>/${data.id}`;
 
-        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+                // 2. Isi semua field input standar
+                document.getElementById('editIdAset').value = data.id;
+                document.getElementById('editKodeAset').value = data.kode_aset;
+                document.getElementById('editNup').value = data.nup;
+                document.getElementById('editTahunPerolehan').value = data.tahun_perolehan;
+                document.getElementById('editMerkType').value = data.merk_type;
+                document.getElementById('editNilaiPerolehan').value = data.nilai_perolehan;
+                document.getElementById('editMetodePengadaan').value = data.metode_pengadaan;
+                document.getElementById('editSumberPengadaan').value = data.sumber_pengadaan;
 
-        $.ajax({
-            url: "<?= site_url('ManajemenAsetKomersial/requestAccess') ?>",
-            method: "POST",
-            data: {
-                aset_id: asetId,
-                action_type: action,
-                '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
-            },
-            dataType: "json",
-            success: function(response) {
-                if (response.status === 'success') {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: response.message
-                    });
-                    button.removeClass('btn-outline-warning btn-outline-danger').addClass('btn-secondary disabled')
-                        .html('<i class="fas fa-clock"></i>');
+                // 3. Set value untuk dropdown Kondisi
+                document.getElementById('editKeterangan').value = data.keterangan;
+
+                // 4. Logika cerdas untuk dropdown Kategori Aset
+                const namaAset = data.nama_aset;
+                const kategoriSelect = document.getElementById('editKategoriAset');
+                const lainnyaContainer = document.getElementById('container_edit_nama_aset_lainnya');
+                const lainnyaInput = document.getElementById('editNamaAsetLainnya');
+
+                if (kategoriAsetList.includes(namaAset)) {
+                    // Jika nama aset ada di daftar standar
+                    kategoriSelect.value = namaAset;
+                    lainnyaContainer.style.display = 'none';
+                    lainnyaInput.removeAttribute('required');
+                    lainnyaInput.value = '';
                 } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: response.message
-                    });
-                    button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                    // Jika nama aset adalah custom dari "Lainnya"
+                    kategoriSelect.value = 'Lainnya';
+                    lainnyaContainer.style.display = 'block';
+                    lainnyaInput.setAttribute('required', 'required');
+                    lainnyaInput.value = namaAset;
                 }
-            },
-            error: function() {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Terjadi kesalahan koneksi.'
-                });
-                button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+            });
+        });
+
+        // Menangani perubahan pada dropdown Kategori di dalam modal
+        document.getElementById('editKategoriAset').addEventListener('change', function() {
+            const lainnyaContainer = document.getElementById('container_edit_nama_aset_lainnya');
+            const lainnyaInput = document.getElementById('editNamaAsetLainnya');
+            if (this.value === 'Lainnya') {
+                lainnyaContainer.style.display = 'block';
+                lainnyaInput.setAttribute('required', 'required');
+            } else {
+                lainnyaContainer.style.display = 'none';
+                lainnyaInput.removeAttribute('required');
+                lainnyaInput.value = '';
             }
+        });
+
+        // Menangani AJAX untuk tombol "Minta Izin"
+        document.querySelectorAll('.btn-request-access').forEach(button => {
+            button.addEventListener('click', function() {
+                const btn = this;
+                const asetId = btn.dataset.asetId;
+                const action = btn.dataset.actionType;
+
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                fetch("<?= site_url('ManajemenAsetKomersial/requestAccess') ?>", {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: new URLSearchParams({
+                            'aset_id': asetId,
+                            'action_type': action,
+                            '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: data.message
+                            });
+                            btn.classList.remove('btn-outline-warning', 'btn-outline-danger');
+                            btn.classList.add('btn-secondary', 'disabled');
+                            btn.innerHTML = '<i class="fas fa-clock"></i>';
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: data.message
+                            });
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-lock"></i>';
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Terjadi kesalahan koneksi.'
+                        });
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-lock"></i>';
+                    });
+            });
         });
     });
 </script>

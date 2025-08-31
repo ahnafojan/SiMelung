@@ -22,7 +22,7 @@ use Psr\Log\LoggerInterface;
 abstract class BaseController extends Controller
 {
     protected $request;
-    protected $helpers = [];
+    protected $helpers = ['url'];
     protected $session;
     protected $userRoles = [];
 

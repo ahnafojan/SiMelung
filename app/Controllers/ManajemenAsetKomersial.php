@@ -3,8 +3,8 @@
 namespace App\Controllers;
 
 use App\Models\AsetKomersialModel;
-use CodeIgniter\Controller;
 use App\Models\PermissionRequestModel;
+use CodeIgniter\Controller;
 
 class ManajemenAsetKomersial extends Controller
 {
@@ -14,15 +14,30 @@ class ManajemenAsetKomersial extends Controller
     public function __construct()
     {
         $this->asetModel = new AsetKomersialModel();
-        $this->permissionModel = new PermissionRequestModel(); // 3. Inisialisasi model
+        $this->permissionModel = new PermissionRequestModel();
         helper(['date']);
     }
 
+    /**
+     * Menampilkan daftar aset dan mengirimkan data untuk dropdown modal.
+     */
     public function index()
     {
+        // Daftar kategori aset untuk dropdown di modal edit.
+        // Pastikan daftar ini sama dengan yang ada di controller form Tambah Aset.
+        $data['kategoriAset'] = [
+            'Mesin Giling',
+            'Mesin Pengupas Kopi',
+            'Mesin Pengering Kopi',
+            'Gudang Penyimpanan',
+            'Kendaraan Operasional',
+            'Peralatan Pertanian',
+        ];
+
         $data['asets'] = $this->asetModel->findAll();
         if (!empty($data['asets'])) {
             foreach ($data['asets'] as &$aset) {
+                // Logika hak akses Anda
                 $aset['can_edit'] = $this->hasActivePermission($aset['id_aset'], 'edit');
                 $aset['can_delete'] = $this->hasActivePermission($aset['id_aset'], 'delete');
             }
@@ -30,17 +45,36 @@ class ManajemenAsetKomersial extends Controller
         return view('admin_komersial/aset/manajemen_aset', $data);
     }
 
+    /**
+     * Memperbarui data aset dari form modal edit.
+     */
     public function update($id)
     {
         if (!$this->hasActivePermission($id, 'edit')) {
             session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengedit data ini.');
             return redirect()->to(site_url('/ManajemenAsetKomersial'));
         }
+
         try {
             $aset = $this->asetModel->find($id);
             if (!$aset) {
                 throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Data tidak ditemukan');
             }
+
+            // --- LOGIKA BARU UNTUK DROPDOWN NAMA ASET ---
+            $kategoriDipilih = $this->request->getPost('kategori_aset');
+            $namaAsetFinal = $kategoriDipilih;
+
+            if ($kategoriDipilih === 'Lainnya') {
+                $namaAsetLainnya = $this->request->getPost('nama_aset_lainnya');
+                // Validasi: pastikan nama lainnya tidak kosong
+                if (empty($namaAsetLainnya)) {
+                    session()->setFlashdata('error', 'Nama Aset Lainnya wajib diisi jika kategori "Lainnya" dipilih.');
+                    return redirect()->back();
+                }
+                $namaAsetFinal = $namaAsetLainnya;
+            }
+            // --- AKHIR LOGIKA BARU ---
 
             // Handle foto baru
             $fotoFile = $this->request->getFile('foto');
@@ -50,20 +84,19 @@ class ManajemenAsetKomersial extends Controller
                 $fotoName = $fotoFile->getRandomName();
                 $fotoFile->move(FCPATH . 'uploads/foto_aset', $fotoName);
 
-                // Hapus foto lama jika ada
                 if (!empty($aset['foto']) && file_exists(FCPATH . 'uploads/foto_aset/' . $aset['foto'])) {
                     unlink(FCPATH . 'uploads/foto_aset/' . $aset['foto']);
                 }
             }
 
             $this->asetModel->update($id, [
-                'nama_aset'        => $this->request->getPost('nama_aset'),
+                'nama_aset'        => $namaAsetFinal, // Menggunakan nama aset final
                 'kode_aset'        => $this->request->getPost('kode_aset'),
                 'nup'              => $this->request->getPost('nup'),
                 'tahun_perolehan'  => $this->request->getPost('tahun_perolehan'),
                 'merk_type'        => $this->request->getPost('merk_type'),
                 'nilai_perolehan'  => $this->request->getPost('nilai_perolehan'),
-                'keterangan'       => $this->request->getPost('keterangan'),
+                'keterangan'       => $this->request->getPost('keterangan'), // Sudah benar dari dropdown kondisi
                 'metode_pengadaan' => $this->request->getPost('metode_pengadaan'),
                 'sumber_pengadaan' => $this->request->getPost('sumber_pengadaan'),
                 'foto'             => $fotoName,
@@ -89,7 +122,6 @@ class ManajemenAsetKomersial extends Controller
                 throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Data tidak ditemukan');
             }
 
-            // Hapus foto dari server
             if (!empty($aset['foto']) && file_exists(FCPATH . 'uploads/foto_aset/' . $aset['foto'])) {
                 unlink(FCPATH . 'uploads/foto_aset/' . $aset['foto']);
             }
@@ -102,6 +134,7 @@ class ManajemenAsetKomersial extends Controller
 
         return redirect()->to(site_url('/ManajemenAsetKomersial'));
     }
+
     public function requestAccess()
     {
         if ($this->request->isAJAX()) {

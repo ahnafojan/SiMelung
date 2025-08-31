@@ -5,10 +5,10 @@
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <div>
-            <h1 class="h3 page-title">Laporan Aset Produksi</h1>
-            <p class="mb-0 page-subtitle">Detail Aset Produksi Bumdes melung.</p>
+            <h1 class="h3 page-title">Laporan Aset Produksi Bumdes</h1>
+            <p class="mb-0 page-subtitle">Detail Aset Produksi Bumdes Melung.</p>
         </div>
-        <a href="<?= base_url('admin-komersial/laporan') ?>" class="btn btn-sm btn-outline-secondary shadow-sm">
+        <a href="<?= base_url('bumdes/laporan') ?>" class="btn btn-sm btn-outline-secondary shadow-sm">
             <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
         </a>
     </div>
@@ -44,12 +44,9 @@
                             <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-nilai-aset">
                                 <?php
                                 $totalNilai = 0;
-                                // Note: This initial calculation might differ from the filtered total.
-                                // The AJAX response will provide the accurate filtered total.
-                                foreach ($aset as $item) {
-                                    $totalNilai += $item['nilai_perolehan'];
-                                }
-                                echo number_format($totalNilai, 0, ',', '.');
+                                // Kalkulasi total nilai awal dari semua aset (sebelum filter)
+                                $allAset = (new \App\Models\AsetKomersialModel())->findAll();
+                                echo number_format(array_sum(array_column($allAset, 'nilai_perolehan')), 0, ',', '.');
                                 ?>
                             </div>
                         </div>
@@ -142,7 +139,7 @@
                                     <option value="semua" <?= ($filterTahun == 'semua') ? 'selected' : '' ?>>
                                         Semua Tahun
                                     </option>
-                                    <?php foreach ($daftarTahun as $th): ?>
+                                    <?php foreach ($daftarTahun as $th) : ?>
                                         <option value="<?= $th['tahun_perolehan'] ?>" <?= ($filterTahun == $th['tahun_perolehan']) ? 'selected' : '' ?>>
                                             <?= esc($th['tahun_perolehan']) ?>
                                         </option>
@@ -163,7 +160,7 @@
                             </div>
 
                             <div class="col-lg-2 col-md-12 mb-3">
-                                <a href="<?= current_url() ?>" class="btn btn-outline-secondary btn-sm d-block">
+                                <a href="<?= site_url('bumdes/laporan/aset') ?>" class="btn btn-outline-secondary btn-sm d-block">
                                     <i class="fas fa-redo mr-1"></i>
                                     Reset
                                 </a>
@@ -174,7 +171,8 @@
             </div>
 
             <div id="aset-data-container">
-                <?= $this->include('admin_komersial/laporan/_aset_table_partial', ['aset' => $aset, 'pagerAset' => $pagerAset]) ?>
+                <!-- DIUBAH: Path view partial disesuaikan ke 'bumdes' -->
+                <?= $this->include('bumdes/laporan/_aset_table_partial', ['aset' => $aset, 'pagerAset' => $pagerAset]) ?>
             </div>
         </div>
     </div>
@@ -211,8 +209,9 @@
         const exportExcelBtn = document.getElementById('export-excel-btn');
         const exportPdfBtn = document.getElementById('export-pdf-btn');
 
-        const baseUrl = "<?= site_url('admin-komersial/laporan/aset') ?>";
-        const baseExportUrl = "<?= site_url('admin-komersial/export/aset') ?>";
+        // DIUBAH: URL disesuaikan ke 'bumdes'
+        const baseUrl = "<?= site_url('bumdes/laporan/aset') ?>";
+        const baseExportUrl = "<?= site_url('bumdes/export/aset') ?>";
 
         async function fetchData(url = null) {
             // Show loading effect
@@ -246,7 +245,7 @@
 
                 // Update stats in the header
                 document.getElementById('total-aset-count').textContent = data.stats.total_aset;
-                document.getElementById('total-nilai-aset').textContent = data.stats.total_nilai;
+                document.getElementById('total-nilai-aset').textContent = 'Rp ' + data.stats.total_nilai;
                 document.getElementById('filter-aktif-display').textContent = data.stats.filter_aktif;
                 document.getElementById('per-page-display').textContent = data.stats.per_page;
 

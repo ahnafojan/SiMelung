@@ -55,10 +55,37 @@ class PetaniPohon extends BaseController
     }
 
     // Simpan pohon baru (fungsi ini tidak diubah)
+    // Simpan pohon baru
     public function store()
     {
-        // ... (kode store Anda tetap sama)
+        $validation = \Config\Services::validation();
+        $validation->setRules([
+            'user_id'        => 'required',
+            'jenis_pohon_id' => 'required|integer',
+            'luas_lahan'     => 'required|decimal',
+            'jumlah_pohon'   => 'required|integer',
+        ]);
+
+        if (!$validation->withRequest($this->request)->run()) {
+            return redirect()->back()
+                ->with('errors', $validation->getErrors())
+                ->withInput();
+        }
+
+        $data = [
+            'user_id'        => $this->request->getPost('user_id'),
+            'jenis_pohon_id' => $this->request->getPost('jenis_pohon_id'),
+            'luas_lahan'     => $this->request->getPost('luas_lahan'),
+            'jumlah_pohon'   => $this->request->getPost('jumlah_pohon'),
+        ];
+
+        $this->petaniPohonModel->save($data);
+
+        return redirect()->to('/petanipohon/' . $data['user_id'])
+            ->with('success', 'Data pohon berhasil ditambahkan');
     }
+
+
 
     // Hapus data pohon (fungsi ini dimodifikasi)
     public function delete()

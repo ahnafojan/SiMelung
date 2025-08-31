@@ -7,8 +7,11 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'LandingPage::index');
 $routes->get('DashboardDesa', 'DashboardDesa::index');
+$routes->get('dashboard/dashboard_desa', 'DashboardDesa::index');
 //BUMDES
 $routes->get('DashboardBumdes', 'DashboardBumdes::index');
+$routes->get('dashboard', 'DashboardBumdes::index');
+$routes->get('dashboard/dashboard_bumdes', 'DashboardBumdes::index');
 
 
 $routes->get('PersetujuanKomersial', 'PersetujuanKomersial::index');
@@ -23,7 +26,48 @@ $routes->get('Log_aktivitas', 'Log_aktivitas::index');
 $routes->get('Profile', 'Profile::index');
 
 //Bumdes
-$routes->get('LaporanBumdes', 'LaporanBumdes::index');
+$routes->group('bumdes', ['namespace' => 'App\Controllers'], function ($routes) {
+    $routes->group('laporan', function ($routes) {
+        $routes->get('/', 'LaporanBumdes::index');
+        $routes->get('kopi', 'BumdesRekapKopi::index');
+        $routes->get('petani', 'BumdesRekapPetani::index');
+        $routes->get('aset', 'BumdesRekapAset::index');
+        $routes->get('pariwisata', 'BumdesRekapPariwisata::index');
+        $routes->get('umkm', 'BumdesRekapUmkm::index');
+    });
+
+    /**
+     * ----------------------------------------------------------------
+     * Ekspor Laporan Bumdes
+     * ----------------------------------------------------------------
+     */
+    $routes->group('export', function ($routes) {
+        // Rute Ekspor Petani
+        $routes->group('petani', function ($routes) {
+            $routes->get('pdf', 'ExportLaporanBumdes::pdfPetani');
+            $routes->get('excel', 'ExportLaporanBumdes::excelPetani');
+        });
+
+        // Rute Ekspor Laporan Kopi
+        $routes->group('kopi', function ($routes) {
+            $routes->get('masuk/excel', 'ExportLaporanBumdes::excelMasuk');
+            $routes->get('masuk/pdf', 'ExportLaporanBumdes::exportRekapMasukPdf');
+            $routes->get('keluar/excel', 'ExportLaporanBumdes::exportRekapKeluarExcel');
+            $routes->get('keluar/pdf', 'ExportLaporanBumdes::pdfKeluar');
+            $routes->get('stok/excel', 'ExportLaporanBumdes::excelStok');
+            $routes->get('stok/pdf', 'ExportLaporanBumdes::pdfStok');
+        });
+
+        // Rute Ekspor Laporan Aset (YANG HILANG)
+        $routes->group('aset', function ($routes) {
+            $routes->get('excel', 'ExportLaporanBumdes::excelAset');
+            $routes->get('pdf', 'ExportLaporanBumdes::pdfAset');
+        });
+    });
+});
+$routes->get('/pengaturan', 'Pengaturan::index');
+$routes->post('/pengaturan/update', 'Pengaturan::update');
+
 
 //desa
 $routes->get('LaporanArusKas', 'LaporanArusKas::index');
@@ -124,12 +168,10 @@ $routes->post('AsetKomersial', 'AsetKomersial::store');
 $routes->post('ManajemenAsetKomersial/update/(:num)', 'ManajemenAsetKomersial::update/$1');
 $routes->get('ManajemenAsetKomersial/delete/(:num)', 'ManajemenAsetKomersial::delete/$1');
 
-//laporan komersial
+//LAPORAN KOMERSIAL
 $routes->group('admin-komersial/laporan', ['namespace' => 'App\Controllers'], function ($routes) {
     $routes->get('/', 'LaporanKomersial::index');
 });
-// Redirect untuk URL yang lebih singkat (tetap seperti sebelumnya)
-// Rute untuk Halaman Utama Laporan (Dashboard)
 $routes->get('admin-komersial/laporan', 'LaporanKomersial::index');
 // Rute untuk Laporan Rekap Kopi
 $routes->get('admin-komersial/laporan/kopi', 'KomersialRekapKopi::index');
@@ -162,13 +204,12 @@ $routes->get('admin-komersial/export/petani/pdf', 'ExportLaporanKomersial::pdfPe
 // Ekspor Laporan Aset (Rute Baru)
 $routes->get('admin-komersial/export/aset/excel', 'ExportLaporanKomersial::excelAset');
 $routes->get('admin-komersial/export/aset/pdf', 'ExportLaporanKomersial::pdfAset');
+//END
 
 //role
 $routes->get('/choose-role', 'AuthController::chooseRole', ['filter' => 'auth']);
 $routes->post('/set-role', 'AuthController::setRole', ['filter' => 'auth']);
 $routes->get('/switch-role/(:any)', 'AuthController::switchRole/$1', ['filter' => 'auth']);
-
-
 
 //routes untuk login
 //$routes->get('/', 'AuthController::login'); // Jadikan login sebagai halaman utama

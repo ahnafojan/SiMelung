@@ -10,7 +10,7 @@
     <hr class="sidebar-divider my-0">
 
     <li class="nav-item">
-        <a class="nav-link fs-3" href="<?= site_url('DashboardBumdes') ?>">
+        <a class="nav-link fs-3" href="<?= site_url('dashboard/dashboard_bumdes') ?>">
             <i class="fas fa-fw fa-tachometer-alt fa-lg"></i>
             <span>Dashboard</span>
         </a>
@@ -37,10 +37,25 @@
     </div>
 
     <li class="nav-item">
-        <a class="nav-link fs-3" href="<?= site_url('LaporanBumdes') ?>">
+        <!-- Menggunakan path 'bumdes/laporan' yang sesuai dengan file Routes.php -->
+        <a class="nav-link fs-3" href="<?= site_url('bumdes/laporan') ?>">
             <i class="fas fa-fw fa-book fa-lg"></i>
             <span>Laporan</span>
         </a>
     </li>
+    <li class="nav-item">
+        <!-- URL disesuaikan dengan rute '/pengaturan' -->
+        <a class="nav-link fs-3" href="<?= site_url('pengaturan') ?>">
+            <!-- Ikon 'fa-cog' lebih cocok untuk pengaturan -->
+            <i class="fas fa-fw fa-cog fa-lg"></i>
+            <span>Pengaturan Export</span>
+        </a>
+    </li>
+    <hr class="sidebar-divider d-none d-md-block">
+
+    <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
+
 
 </ul>

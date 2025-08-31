@@ -173,4 +173,93 @@ body,
     border-color: #565e64;
     color: #fff;
 }
+.text-purple {
+        color: #6f42c1 !important;
+    }
+
+    /* Background color purple */
+    .bg-purple {
+        background-color: #6f42c1 !important;
+    }
+
+    /* Border color purple */
+    .border-purple {
+        border-color: #6f42c1 !important;
+    }
+
+    /* Button purple */
+    .btn-purple {
+        background-color: #6f42c1;
+        border-color: #6f42c1;
+        color: #fff;
+    }
+
+    .btn-purple:hover {
+        background-color: #5a359a;
+        border-color: #5a359a;
+        color: #fff;
+    }
+
+    /* Outline button purple */
+    .btn-outline-purple {
+        color: #6f42c1;
+        border-color: #6f42c1;
+    }
+
+    .btn-outline-purple:hover {
+        background-color: #6f42c1;
+        border-color: #6f42c1;
+        color: #fff;
+    }
+
+    /* Purple variations untuk berbagai kebutuhan */
+    .text-purple-light {
+        color: #8e6bb8 !important;
+    }
+
+    .text-purple-dark {
+        color: #5a359a !important;
+    }
+
+    .bg-purple-light {
+        background-color: #8e6bb8 !important;
+    }
+
+    .bg-purple-dark {
+        background-color: #5a359a !important;
+    }
+
+    /* Purple dengan opacity untuk background */
+    .bg-purple-10 {
+        background-color: rgba(111, 66, 193, 0.1) !important;
+    }
+
+    .bg-purple-25 {
+        background-color: rgba(111, 66, 193, 0.25) !important;
+    }
+
+    .bg-purple-50 {
+        background-color: rgba(111, 66, 193, 0.5) !important;
+    }
+
+    /* Card hover effect dengan purple */
+    .card-hover-purple:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.75rem 1.5rem rgba(111, 66, 193, 0.15) !important;
+        transition: all 0.3s ease;
+    }
+
+    /* Alert purple */
+    .alert-purple {
+        color: #4a2c70;
+        background-color: #f3f0ff;
+        border-color: #d4c7f0;
+    }
+
+    /* Badge purple */
+    .badge-purple {
+        background-color: #6f42c1;
+        color: #fff;
+    }
+
     

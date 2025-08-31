@@ -46,3 +46,101 @@
         });
     </script>
 <?php endif; ?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const labels = <?= $labels ?? '[]' ?>;
+        const dataMasuk = <?= $dataMasuk ?? '[]' ?>;
+        const dataKeluar = <?= $dataKeluar ?? '[]' ?>;
+        const jenisLabels = <?= $jenisLabels ?? '[]' ?>;
+        const jenisTotals = <?= $jenisTotals ?? '[]' ?>;
+
+        // Line Chart - Kopi Masuk & Keluar
+        if (document.getElementById('kopiChart')) {
+            const ctx = document.getElementById('kopiChart').getContext('2d');
+            const chartKopi = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Kopi Masuk',
+                        data: dataMasuk,
+                        borderColor: '#4bc0c0',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#4bc0c0',
+                    }, {
+                        label: 'Kopi Keluar',
+                        data: dataKeluar,
+                        borderColor: '#ff6384',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#ff6384',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Jumlah (Kg)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Doughnut Chart - Jenis Kopi
+        if (document.getElementById('jenisKopiChart')) {
+            const ctxJenis = document.getElementById('jenisKopiChart').getContext('2d');
+            const chartJenis = new Chart(ctxJenis, {
+                type: 'doughnut',
+                data: {
+                    labels: jenisLabels,
+                    datasets: [{
+                        data: jenisTotals,
+                        backgroundColor: ['#4bc0c0', '#ff6384', '#ffcd56', '#36a2eb', '#9966ff'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    let value = context.raw || 0;
+                                    return label + ': ' + value.toLocaleString('id-ID') + ' Kg';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>

@@ -7,13 +7,12 @@
             </div>
             <div class="col-lg-4 mb-4">
                 <h5 class="font-weight-bold mb-3">Kontak Kami</h5>
-                <p class="mb-2">
-                    <i class="fas fa-map-marker-alt mr-2"></i>
-                    Desa Melung, Kecamatan Limpung, Kabupaten Batang
+                <p class="mb-2 d-flex align-items-start">
+                    <i class="fas fa-map-marker-alt mr-2" style="margin-top: 3px;"></i> <span>Desa Melung, Kecamatan Kedungbanteng, Kabupaten Banyumas, Jawa Tengah</span>
                 </p>
                 <p class="mb-2">
                     <i class="fas fa-envelope mr-2"></i>
-                    bumdes.melung@gmail.com
+                    bumdesmelung@gmail.com
                 </p>
                 <p class="mb-2">
                     <i class="fas fa-phone mr-2"></i>

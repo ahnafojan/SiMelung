@@ -226,7 +226,6 @@
     </div>
 </section>
 
-<!-- Petani Section with Cards -->
 <section id="petani" class="py-5 bg-mountain-mist scroll-section">
     <div class="container">
         <div class="row">
@@ -234,11 +233,14 @@
                 <div class="section-header fade-up">
                     <span class="section-subtitle text-coffee-medium">Mitra Terbaik</span>
                     <h2 class="section-title text-mountain-dark">Daftar Petani Kami</h2>
-                    <p class="section-description text-muted">Para petani kopi berpengalaman yang menjadi tulang punggung produksi</p>
+                    <p class="section-description text-muted">
+                        Para petani kopi berpengalaman yang menjadi tulang punggung produksi
+                    </p>
                 </div>
             </div>
         </div>
-        <!-- Tabel untuk layar medium ke atas -->
+
+        <!-- Versi Desktop -->
         <div class="d-none d-md-block">
             <div class="table-container fade-up">
                 <div class="table-responsive">
@@ -248,190 +250,157 @@
                                 <th>Profil</th>
                                 <th>Nama Petani</th>
                                 <th>Jenis Komoditas</th>
-                                <th>Luas Lahan</th>
+                                <th>Total Lahan</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>
-                                    <div class="farmer-avatar">
-                                        <img src="<?= base_url('img/p1.png') ?>" alt="Petani 1">
-                                        <div class="avatar-ring"></div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="farmer-info">
-                                        <div class="farmer-name">Bapak Sutrisno</div>
-                                        <div class="farmer-experience">15 tahun pengalaman</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="commodity-tag coffee-robusta">
-                                        <i class="fas fa-coffee mr-1"></i>Kopi Robusta
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="land-area">
-                                        <span class="area-number">2.5</span>
-                                        <span class="area-unit">Ha</span>
-                                    </div>
-                                </td>
-                                <td><span class="status-badge active">Aktif</span></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="farmer-avatar">
-                                        <img src="<?= base_url('img/p2.png') ?>" alt="Petani 2">
-                                        <div class="avatar-ring"></div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="farmer-info">
-                                        <div class="farmer-name">Ibu Siti Nurhaliza</div>
-                                        <div class="farmer-experience">12 tahun pengalaman</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="commodity-tag coffee-arabica">
-                                        <i class="fas fa-coffee mr-1"></i>Kopi Arabika
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="land-area">
-                                        <span class="area-number">1.8</span>
-                                        <span class="area-unit">Ha</span>
-                                    </div>
-                                </td>
-                                <td><span class="status-badge active">Aktif</span></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="farmer-avatar">
-                                        <img src="<?= base_url('img/p3.png') ?>" alt="Petani 3">
-                                        <div class="avatar-ring"></div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="farmer-info">
-                                        <div class="farmer-name">Bapak Joko Santoso</div>
-                                        <div class="farmer-experience">20 tahun pengalaman</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="commodity-tag coffee-robusta">
-                                        <i class="fas fa-coffee mr-1"></i>Kopi Robusta
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="land-area">
-                                        <span class="area-number">3.2</span>
-                                        <span class="area-unit">Ha</span>
-                                    </div>
-                                </td>
-                                <td><span class="status-badge active">Aktif</span></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="farmer-avatar">
-                                        <img src="<?= base_url('img/p4.png') ?>" alt="Petani 4">
-                                        <div class="avatar-ring"></div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="farmer-info">
-                                        <div class="farmer-name">Ibu Ratna Dewi</div>
-                                        <div class="farmer-experience">8 tahun pengalaman</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="commodity-tag coffee-arabica">
-                                        <i class="fas fa-coffee mr-1"></i>Kopi Arabika
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="land-area">
-                                        <span class="area-number">1.5</span>
-                                        <span class="area-unit">Ha</span>
-                                    </div>
-                                </td>
-                                <td><span class="status-badge pending">Dalam Proses</span></td>
-                            </tr>
+                            <?php if (!empty($petani_list)) : ?>
+                                <?php foreach ($petani_list as $petani) : ?>
+                                    <tr>
+                                        <td>
+                                            <div class="farmer-avatar">
+                                                <img src="<?= base_url('uploads/foto_petani/' . esc($petani['foto'], 'attr')) ?>"
+                                                    alt="<?= esc($petani['nama']) ?>">
+                                                <div class="avatar-ring"></div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="farmer-info">
+                                                <div class="farmer-name"><?= esc($petani['nama']) ?></div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="commodity-tag coffee-robusta">
+                                                <i class="fas fa-coffee mr-1"></i>
+                                                <?= esc($petani['jenis_pohon_list'] ?: 'Belum ada data') ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="land-area">
+                                                <span class="area-number"><?= number_format($petani['total_lahan'], 1) ?></span>
+                                                <span class="area-unit">(m²)</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge active">Aktif</span>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else : ?>
+                                <tr>
+                                    <td colspan="5" class="text-center">Belum ada data petani.</td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Custom Pagination Desktop -->
+                <div class="pagination-wrapper fade-up mt-4">
+                    <!-- Per Page Selector -->
+                    <form method="get" class="per-page-selector">
+                        <label class="per-page-label">
+                            <i class="fas fa-list-ul mr-2"></i>
+                            Tampilkan
+                        </label>
+                        <div class="dropdown-container">
+                            <select name="per_page" class="per-page-select" onchange="this.form.submit()">
+                                <option value="10" <?= ($perPage == 10 ? 'selected' : '') ?>>10</option>
+                                <option value="25" <?= ($perPage == 25 ? 'selected' : '') ?>>25</option>
+                                <option value="100" <?= ($perPage == 100 ? 'selected' : '') ?>>100</option>
+                            </select>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </div>
+                        <span class="per-page-suffix">data per halaman</span>
+                    </form>
+
+                    <!-- Pagination Navigation -->
+                    <nav class="pagination-nav" aria-label="Navigasi Halaman">
+                        <?= $pager->links('default', 'custom_pagination_template') ?>
+                    </nav>
+
+                    <!-- Page Info -->
+                    <div class="page-info">
+                        <span class="info-text">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <?php
+                            $currentPerPage = isset($perPage) ? $perPage : 25;
+                            $currentPage = isset($pager) ? $pager->getCurrentPage() : 1;
+                            $totalItems = isset($pager) ? $pager->getTotal() : 0;
+                            $startItem = (($currentPage - 1) * $currentPerPage) + 1;
+                            $endItem = min($currentPage * $currentPerPage, $totalItems);
+                            ?>
+                            Menampilkan <?= $startItem ?>-<?= $endItem ?> dari <?= $totalItems ?> total petani
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
-        <!-- Card list untuk layar kecil -->
+
+        <!-- Versi Mobile -->
         <div class="d-block d-md-none">
             <div class="row">
-                <?php
-                $petani = [
-                    [
-                        'img' => 'p1.png',
-                        'nama' => 'Bapak Sutrisno',
-                        'jenis' => 'Kopi Robusta',
-                        'luas' => '2.5 Ha',
-                        'experience' => '15 tahun',
-                        'status' => ['Aktif', 'success']
-                    ],
-                    [
-                        'img' => 'p2.png',
-                        'nama' => 'Ibu Siti Nurhaliza',
-                        'jenis' => 'Kopi Arabika',
-                        'luas' => '1.8 Ha',
-                        'experience' => '12 tahun',
-                        'status' => ['Aktif', 'success']
-                    ],
-                    [
-                        'img' => 'p3.png',
-                        'nama' => 'Bapak Joko Santoso',
-                        'jenis' => 'Kopi Robusta',
-                        'luas' => '3.2 Ha',
-                        'experience' => '20 tahun',
-                        'status' => ['Aktif', 'success']
-                    ],
-                    [
-                        'img' => 'p4.png',
-                        'nama' => 'Ibu Ratna Dewi',
-                        'jenis' => 'Kopi Arabika',
-                        'luas' => '1.5 Ha',
-                        'experience' => '8 tahun',
-                        'status' => ['Dalam Proses', 'warning']
-                    ],
-                ];
-                foreach ($petani as $index => $p): ?>
-                    <div class="col-12 mb-3">
-                        <div class="farmer-card-mobile fade-up" data-delay="<?= ($index + 1) * 100 ?>">
-                            <div class="farmer-header">
-                                <div class="farmer-avatar-mobile">
-                                    <img src="<?= base_url('img/' . $p['img']) ?>" alt="<?= $p['nama'] ?>">
-                                    <div class="avatar-ring-mobile"></div>
+                <?php if (!empty($petani_list)) : ?>
+                    <?php foreach ($petani_list as $index => $petani) : ?>
+                        <div class="col-12 mb-3">
+                            <div class="farmer-card-mobile fade-up" data-delay="<?= ($index + 1) * 100 ?>">
+                                <div class="farmer-header">
+                                    <div class="farmer-avatar-mobile">
+                                        <img src="<?= base_url('uploads/foto_petani/' . esc($petani['foto'], 'attr')) ?>"
+                                            alt="<?= esc($petani['nama']) ?>">
+                                        <div class="avatar-ring-mobile"></div>
+                                    </div>
+                                    <div class="farmer-details">
+                                        <div class="farmer-name-mobile"><?= esc($petani['nama']) ?></div>
+                                    </div>
+                                    <span class="status-badge-mobile success">Aktif</span>
                                 </div>
-                                <div class="farmer-details">
-                                    <div class="farmer-name-mobile"><?= $p['nama'] ?></div>
-                                    <div class="farmer-meta"><?= $p['experience'] ?> pengalaman</div>
-                                </div>
-                                <span class="status-badge-mobile <?= $p['status'][1] ?>"><?= $p['status'][0] ?></span>
-                            </div>
-                            <div class="farmer-stats">
-                                <div class="stat-item">
-                                    <i class="fas fa-coffee"></i>
-                                    <span><?= $p['jenis'] ?></span>
-                                </div>
-                                <div class="stat-item">
-                                    <i class="fas fa-map"></i>
-                                    <span><?= $p['luas'] ?></span>
+                                <div class="farmer-stats">
+                                    <div class="stat-item">
+                                        <i class="fas fa-coffee"></i>
+                                        <span><?= esc($petani['jenis_pohon_list'] ?: 'N/A') ?></span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <i class="fas fa-map"></i>
+                                        <span><?= number_format($petani['total_lahan'], 1) ?> (m²)</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <div class="col-12 text-center">
+                        <p>Belum ada data petani.</p>
                     </div>
-                <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+
+            <!-- Custom Pagination Mobile -->
+            <div class="pagination-mobile fade-up mt-4">
+                <!-- Custom Mobile Pagination -->
+                <?= $pager->links('default', 'mobile_pagination_template') ?>
+
+                <form method="get" class="mobile-per-page">
+                    <?php
+                    $currentPerPage = isset($perPage) ? $perPage : 25;
+                    ?>
+                    <select name="per_page" class="mobile-per-page-select" onchange="this.form.submit()">
+                        <option value="10" <?= ($currentPerPage == 10 ? 'selected' : '') ?>>10 data</option>
+                        <option value="25" <?= ($currentPerPage == 25 ? 'selected' : '') ?>>25 data</option>
+                        <option value="100" <?= ($currentPerPage == 100 ? 'selected' : '') ?>>100 data</option>
+                    </select>
+                    <!-- Preserve other GET parameters -->
+                    <?php foreach ($_GET as $key => $value) : ?>
+                        <?php if ($key !== 'per_page' && $key !== 'page') : ?>
+                            <input type="hidden" name="<?= esc($key) ?>" value="<?= esc($value) ?>">
+                        <?php endif ?>
+                    <?php endforeach ?>
+                </form>
             </div>
         </div>
     </div>
 </section>
-
 <!-- Grafik Section -->
 <section id="grafik" class="py-5 bg-white scroll-section">
     <div class="container">
@@ -469,6 +438,7 @@
 </section>
 
 <!-- Aset Section with Icons -->
+<!-- Aset Section with Icons -->
 <section id="aset" class="py-5 bg-mountain-mist scroll-section">
     <div class="container">
         <div class="row">
@@ -480,94 +450,46 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="asset-card fade-up" data-delay="100">
-                    <div class="asset-icon-container">
-                        <div class="asset-icon bg-gradient-primary">
-                            <i class="fas fa-cogs"></i>
+        <div class="row justify-content-center">
+
+            <?php if (!empty($aset_summary)) : ?>
+                <?php foreach ($aset_summary as $index => $aset) : ?>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="asset-card fade-up" data-delay="<?= ($index + 1) * 100 ?>">
+                            <div class="asset-icon-container">
+                                <!-- WARNA IKON DINAMIS -->
+                                <div class="asset-icon <?= esc($aset['color_class']) ?>">
+                                    <i class="<?= esc($aset['icon']) ?>"></i>
+                                </div>
+                                <div class="asset-decoration"></div>
+                            </div>
+                            <div class="asset-content">
+                                <h5 class="asset-title"><?= esc($aset['nama']) ?></h5>
+                                <div class="asset-count">
+                                    <span class="count-number"><?= esc($aset['jumlah']) ?></span>
+                                    <span class="count-unit"><?= esc($aset['unit']) ?></span>
+                                </div>
+                                <div class="asset-status">
+                                    <span class="status-indicator <?= esc($aset['status_class']) ?>"></span>
+                                    <span class="status-text"><?= esc($aset['status']) ?></span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="asset-decoration"></div>
                     </div>
-                    <div class="asset-content">
-                        <h5 class="asset-title">Mesin Giling</h5>
-                        <div class="asset-count">
-                            <span class="count-number">3</span>
-                            <span class="count-unit">Unit</span>
-                        </div>
-                        <div class="asset-status">
-                            <span class="status-indicator good"></span>
-                            <span class="status-text">Kondisi Baik</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="asset-card fade-up" data-delay="200">
-                    <div class="asset-icon-container">
-                        <div class="asset-icon bg-gradient-success">
-                            <i class="fas fa-warehouse"></i>
-                        </div>
-                        <div class="asset-decoration"></div>
-                    </div>
-                    <div class="asset-content">
-                        <h5 class="asset-title">Gudang Penyimpanan</h5>
-                        <div class="asset-count">
-                            <span class="count-number">2</span>
-                            <span class="count-unit">Unit</span>
-                        </div>
-                        <div class="asset-status">
-                            <span class="status-indicator good"></span>
-                            <span class="status-text">Kondisi Baik</span>
-                        </div>
+                <?php endforeach; ?>
+            <?php else : ?>
+                <div class="col-12 text-center fade-up">
+                    <div class="alert alert-light" role="alert">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Informasi aset produksi belum tersedia saat ini.
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="asset-card fade-up" data-delay="300">
-                    <div class="asset-icon-container">
-                        <div class="asset-icon bg-gradient-warning">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                        <div class="asset-decoration"></div>
-                    </div>
-                    <div class="asset-content">
-                        <h5 class="asset-title">Kendaraan Operasional</h5>
-                        <div class="asset-count">
-                            <span class="count-number">4</span>
-                            <span class="count-unit">Unit</span>
-                        </div>
-                        <div class="asset-status">
-                            <span class="status-indicator maintenance"></span>
-                            <span class="status-text">Dalam Perawatan</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="asset-card fade-up" data-delay="400">
-                    <div class="asset-icon-container">
-                        <div class="asset-icon bg-gradient-nature">
-                            <i class="fas fa-tools"></i>
-                        </div>
-                        <div class="asset-decoration"></div>
-                    </div>
-                    <div class="asset-content">
-                        <h5 class="asset-title">Peralatan Pertanian</h5>
-                        <div class="asset-count">
-                            <span class="count-number">15</span>
-                            <span class="count-unit">Set</span>
-                        </div>
-                        <div class="asset-status">
-                            <span class="status-indicator good"></span>
-                            <span class="status-text">Kondisi Baik</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <?php endif; ?>
+
         </div>
     </div>
 </section>
+
 <!-- Mitra & Partner Section -->
 <section id="mitra" class="py-5 bg-white scroll-section">
     <div class="container">
@@ -640,6 +562,30 @@
 </section>
 
 <style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--mountain-primary), var(--mountain-dark));
+    }
+
+    .bg-gradient-success {
+        background: linear-gradient(135deg, var(--nature-green), #219a52);
+    }
+
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+    }
+
+    .bg-gradient-nature {
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+    }
+
+    .bg-gradient-coffee {
+        background: var(--gradient-coffee);
+    }
+
+    .bg-gradient-info {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+    }
+
     /* Mitra Carousel Styles */
     .mitra-carousel {
         position: relative;
@@ -985,6 +931,717 @@
         60% {
             transform: translateX(-50%) translateY(-5px);
         }
+    }
+
+    /* ===============================================
+   CUSTOM PAGINATION STYLES - BUMDES MELUNG
+   =============================================== */
+
+    /* Main Pagination Wrapper */
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        padding: 1.5rem 2rem;
+        border-radius: 20px;
+        box-shadow: 0 8px 25px var(--soft-shadow);
+        border: 1px solid rgba(212, 165, 116, 0.1);
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .pagination-wrapper::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-coffee);
+        z-index: 1;
+    }
+
+    /* Per Page Selector Styles */
+    .per-page-selector {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .per-page-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--mountain-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        letter-spacing: 0.3px;
+    }
+
+    .dropdown-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .per-page-select {
+        appearance: none;
+        background: var(--gradient-coffee);
+        color: white;
+        border: none;
+        padding: 10px 40px 10px 16px;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
+        min-width: 70px;
+    }
+
+    .per-page-select:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(212, 165, 116, 0.4);
+    }
+
+    .per-page-select:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .dropdown-icon {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: white;
+        font-size: 0.8rem;
+        pointer-events: none;
+        transition: transform 0.3s ease;
+    }
+
+    .per-page-select:hover+.dropdown-icon {
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    .per-page-suffix {
+        font-size: 0.9rem;
+        color: var(--mountain-light);
+        font-weight: 500;
+    }
+
+    /* Pagination Navigation Styles */
+    .pagination-nav {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+    }
+
+    /* Override default Bootstrap pagination */
+    .pagination {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        list-style: none;
+    }
+
+    .page-item {
+        display: flex;
+    }
+
+    .page-link {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        border-radius: 12px !important;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--mountain-primary) !important;
+        background: var(--mountain-mist) !important;
+        border: 2px solid transparent !important;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .page-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: var(--gradient-coffee);
+        transition: left 0.3s ease;
+        z-index: -1;
+    }
+
+    .page-link:hover {
+        color: white !important;
+        border-color: var(--coffee-gold) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(212, 165, 116, 0.3);
+        text-decoration: none;
+    }
+
+    .page-link:hover::before {
+        left: 0;
+    }
+
+    .page-link:focus {
+        box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.3) !important;
+        z-index: 2;
+    }
+
+    /* Active Page Styles */
+    .page-item.active .page-link {
+        background: var(--gradient-coffee) !important;
+        color: white !important;
+        border-color: var(--coffee-gold) !important;
+        box-shadow: 0 6px 15px rgba(212, 165, 116, 0.4),
+            0 0 20px rgba(212, 165, 116, 0.2) !important;
+        transform: translateY(-2px);
+    }
+
+    .page-item.active .page-link::before {
+        display: none;
+    }
+
+    /* Disabled Page Styles */
+    .page-item.disabled .page-link {
+        opacity: 0.4 !important;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    .page-item.disabled .page-link:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    .page-item.disabled .page-link:hover::before {
+        left: -100%;
+    }
+
+    /* Previous/Next Button Styles */
+    .page-item:first-child .page-link,
+    .page-item:last-child .page-link {
+        width: auto;
+        padding: 0 1.2rem;
+        font-weight: 500;
+        font-size: 0.85rem;
+        border-radius: 25px !important;
+    }
+
+    /* Ellipsis Styles */
+    .page-item .page-link[disabled] {
+        background: transparent !important;
+        border: none !important;
+        color: var(--mountain-light) !important;
+        cursor: default;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+
+    .page-item .page-link[disabled]:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Page Info Styles */
+    .page-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .info-text {
+        font-size: 0.85rem;
+        color: var(--mountain-light);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        background: rgba(212, 165, 116, 0.05);
+        padding: 10px 16px;
+        border-radius: 25px;
+        border: 1px solid rgba(212, 165, 116, 0.1);
+        white-space: nowrap;
+    }
+
+    /* Mobile Pagination Styles */
+    .pagination-mobile {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 25px var(--soft-shadow);
+        border: 1px solid rgba(212, 165, 116, 0.1);
+        margin-top: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .pagination-mobile::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-coffee);
+        z-index: 1;
+    }
+
+    .mobile-pagination-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+
+    .mobile-page-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 15px;
+        border: 2px solid var(--coffee-gold);
+        background: white;
+        color: var(--coffee-medium);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .mobile-page-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: var(--gradient-coffee);
+        transition: left 0.3s ease;
+        z-index: -1;
+    }
+
+    .mobile-page-btn:hover:not(:disabled) {
+        color: white;
+        transform: scale(1.05);
+        box-shadow: 0 6px 15px rgba(212, 165, 116, 0.3);
+    }
+
+    .mobile-page-btn:hover:not(:disabled)::before {
+        left: 0;
+    }
+
+    .mobile-page-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none;
+        border-color: var(--mountain-light);
+        color: var(--mountain-light);
+    }
+
+    .mobile-page-btn:disabled:hover::before {
+        left: -100%;
+    }
+
+    .mobile-page-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--gradient-coffee);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .mobile-page-info::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .mobile-page-info:hover::after {
+        left: 100%;
+    }
+
+    .current-page {
+        font-size: 1.2rem;
+        font-weight: 800;
+        min-width: 20px;
+        text-align: center;
+    }
+
+    .page-separator {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    .total-pages {
+        font-size: 1.1rem;
+        font-weight: 700;
+        min-width: 20px;
+        text-align: center;
+    }
+
+    .mobile-per-page {
+        display: flex;
+        justify-content: center;
+    }
+
+    .mobile-per-page-select {
+        background: white;
+        border: 2px solid var(--coffee-gold);
+        color: var(--coffee-medium);
+        padding: 12px 20px;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23d4a574' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 14px center;
+        background-repeat: no-repeat;
+        background-size: 16px;
+        padding-right: 45px;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    .mobile-per-page-select:hover {
+        border-color: var(--coffee-medium);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(212, 165, 116, 0.2);
+    }
+
+    .mobile-per-page-select:focus {
+        outline: none;
+        border-color: var(--coffee-medium);
+        box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.2);
+        transform: translateY(-2px);
+    }
+
+    /* Loading State */
+    .pagination-loading .page-link,
+    .pagination-loading .per-page-select,
+    .pagination-loading .mobile-per-page-select,
+    .pagination-loading .mobile-page-btn {
+        pointer-events: none;
+        opacity: 0.6;
+        cursor: wait;
+    }
+
+    /* Enhanced Hover Effects */
+    .pagination-wrapper:hover {
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Ripple Effect Styles */
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(0);
+        animation: ripple-animation 0.6s linear;
+        pointer-events: none;
+    }
+
+    @keyframes ripple-animation {
+        to {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .pagination-wrapper {
+            padding: 1.5rem 1.5rem;
+            gap: 1.5rem;
+        }
+
+        .page-link {
+            width: 42px;
+            height: 42px;
+            font-size: 0.85rem;
+        }
+
+        .page-item:first-child .page-link,
+        .page-item:last-child .page-link {
+            padding: 0 1rem;
+            font-size: 0.8rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .pagination-wrapper {
+            flex-direction: column;
+            text-align: center;
+            gap: 1.5rem;
+            padding: 1.5rem 1rem;
+        }
+
+        .per-page-selector {
+            order: 2;
+            justify-content: center;
+        }
+
+        .pagination-nav {
+            order: 1;
+        }
+
+        .page-info {
+            order: 3;
+            justify-content: center;
+        }
+
+        .pagination {
+            gap: 0.25rem;
+        }
+
+        .page-link {
+            width: 40px;
+            height: 40px;
+            font-size: 0.85rem;
+            border-radius: 10px !important;
+        }
+
+        .page-item:first-child .page-link,
+        .page-item:last-child .page-link {
+            padding: 0 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 20px !important;
+        }
+
+        .per-page-selector {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .info-text {
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 8px 12px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .pagination-wrapper {
+            padding: 1rem 0.75rem;
+            border-radius: 15px;
+        }
+
+        .pagination {
+            gap: 0.2rem;
+        }
+
+        .page-link {
+            width: 35px;
+            height: 35px;
+            font-size: 0.8rem;
+            border-radius: 8px !important;
+        }
+
+        /* Hide text in prev/next buttons on very small screens */
+        .page-item:first-child .page-link span,
+        .page-item:last-child .page-link span {
+            display: none !important;
+        }
+
+        .page-item:first-child .page-link,
+        .page-item:last-child .page-link {
+            width: 35px;
+            padding: 0;
+            border-radius: 8px !important;
+        }
+
+        .per-page-select {
+            padding: 8px 32px 8px 12px;
+            font-size: 0.85rem;
+            border-radius: 20px;
+        }
+
+        .dropdown-icon {
+            right: 10px;
+            font-size: 0.7rem;
+        }
+
+        .per-page-label,
+        .per-page-suffix {
+            font-size: 0.8rem;
+        }
+
+        .info-text {
+            font-size: 0.75rem;
+            padding: 6px 10px;
+        }
+
+        /* Mobile pagination adjustments */
+        .mobile-page-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+        .mobile-page-info {
+            padding: 10px 20px;
+            gap: 0.5rem;
+        }
+
+        .current-page,
+        .total-pages {
+            font-size: 1.1rem;
+        }
+
+        .page-separator {
+            font-size: 0.85rem;
+        }
+
+        .mobile-per-page-select {
+            padding: 10px 16px;
+            padding-right: 40px;
+            font-size: 0.85rem;
+            min-width: 110px;
+        }
+    }
+
+    /* Animation Classes */
+    .fade-up {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s ease;
+    }
+
+    .fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Pagination Entrance Animation */
+    .pagination-wrapper {
+        animation: slideUpFade 0.8s ease-out;
+    }
+
+    @keyframes slideUpFade {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Enhanced Focus and Active States */
+    .page-link:active {
+        transform: translateY(-1px) scale(0.95) !important;
+    }
+
+    .mobile-page-btn:active {
+        transform: scale(0.95);
+    }
+
+    .per-page-select:active,
+    .mobile-per-page-select:active {
+        transform: translateY(-1px) scale(0.98);
+    }
+
+    /* Custom Scrollbar for Dropdowns */
+    .per-page-select option,
+    .mobile-per-page-select option {
+        background: white;
+        color: var(--mountain-dark);
+        padding: 8px;
+    }
+
+    /* High Contrast Mode Support */
+    @media (prefers-contrast: high) {
+        .pagination-wrapper {
+            border: 2px solid var(--mountain-dark);
+        }
+
+        .page-link {
+            border: 2px solid var(--mountain-primary) !important;
+        }
+
+        .per-page-select,
+        .mobile-per-page-select {
+            border: 2px solid var(--coffee-medium);
+        }
+    }
+
+    /* Mobile Simple Pagination Override */
+    .mobile-simple-pagination {
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .mobile-simple-pagination .pagination {
+        background: var(--gradient-coffee);
+        border-radius: 25px;
+        padding: 8px;
+        box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
+        gap: 4px;
+    }
+
+    .mobile-simple-pagination .page-item .page-link {
+        background: transparent !important;
+        border: none !important;
+        color: white !important;
+        width: 40px;
+        height: 40px;
+        border-radius: 20px !important;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-simple-pagination .page-item.active .page-link {
+        background: white !important;
+        color: var(--coffee-medium) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .mobile-simple-pagination .page-item.disabled .page-link {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .mobile-simple-pagination .page-item:not(.disabled) .page-link:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        transform: scale(1.05);
     }
 
     /* Section Headers */
@@ -2055,13 +2712,19 @@
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('grafikKopi');
         if (ctx) {
+            // Mengambil data dari variabel PHP yang dikirim controller
+            const chartLabels = <?= $chartLabels ?? '[]' ?>;
+            const dataKopiMasuk = <?= $chartKopiMasuk ?? '[]' ?>;
+            const dataKopiKeluar = <?= $chartKopiKeluar ?? '[]' ?>;
+            const chartYear = '<?= $chartYear ?? date('Y') ?>';
+
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+                    labels: chartLabels, // <-- DATA DINAMIS
                     datasets: [{
                         label: 'Kopi Masuk (kg)',
-                        data: [120, 140, 180, 130, 170, 160, 190, 175, 200, 185, 210, 195],
+                        data: dataKopiMasuk, // <-- DATA DINAMIS
                         borderColor: '#34495e',
                         backgroundColor: 'rgba(52, 73, 94, 0.1)',
                         tension: 0.4,
@@ -2074,7 +2737,7 @@
                         pointHoverRadius: 8
                     }, {
                         label: 'Kopi Keluar (kg)',
-                        data: [100, 130, 160, 110, 150, 140, 200, 155, 200, 165, 190, 175],
+                        data: dataKopiKeluar, // <-- DATA DINAMIS
                         borderColor: '#d4a574',
                         backgroundColor: 'rgba(212, 165, 116, 0.1)',
                         tension: 0.4,
@@ -2100,7 +2763,7 @@
                         },
                         title: {
                             display: true,
-                            text: 'Produksi Kopi Tahun 2025',
+                            text: 'Produksi Kopi Tahun ' + chartYear, // <-- JUDUL DINAMIS
                             font: {
                                 size: 18,
                                 weight: 'bold',
