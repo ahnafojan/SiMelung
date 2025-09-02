@@ -16,7 +16,7 @@
                 </p>
                 <p class="mb-2">
                     <i class="fas fa-phone mr-2"></i>
-                    +62 812-3456-7890
+                    +62 8820-0801-0365
                 </p>
             </div>
             <div class="col-lg-4 mb-4">
@@ -24,7 +24,7 @@
                 <div class="social-links">
                     <a href="#" class="text-light mr-3"><i class="fab fa-facebook-f"></i></a>
                     <a href="#" class="text-light mr-3"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="text-light mr-3"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.instagram.com/bumdes.melung?igsh=NXRhcHczMjg3Njd4" class="text-light mr-3"><i class="fab fa-instagram"></i></a>
                     <a href="#" class="text-light"><i class="fab fa-youtube"></i></a>
                 </div>
             </div>

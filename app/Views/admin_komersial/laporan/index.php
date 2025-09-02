@@ -9,9 +9,9 @@
         <p class="page-subtitle">Pilih jenis laporan yang ingin Anda lihat.</p>
     </div>
 
-    <!-- Enhanced Stats Cards -->
-    <div class="row g-4 mb-5">
-        <div class="col-xl-4 col-md-6">
+    <div class="row g-3 g-lg-4 mb-4">
+
+        <div class="col-12 col-md-6 col-xl-4">
             <div class="modern-stats-card">
                 <div class="card-glow"></div>
                 <div class="stats-content">
@@ -21,20 +21,18 @@
                             <i class="fas fa-coffee"></i>
                         </div>
                         <div class="stats-badge">
-                            <span class="badge-dot"></span>
+                            <span class="badge-dot active"></span>
                             <span class="badge-text">Aktif</span>
                         </div>
                     </div>
-
                     <div class="stats-main">
                         <div class="stats-number">
-                            <?= $totalStokKopi ?? 0 ?>
+                            <span class="counter" data-target="<?= $totalStokKopi ?? 0 ?>">0</span>
                             <span class="stats-unit">Kg</span>
                         </div>
                         <h3 class="stats-title">Total Stok Kopi Bumdes</h3>
                         <p class="stats-subtitle">Stok kopi tersedia saat ini</p>
                     </div>
-
                     <div class="stats-footer">
                         <div class="stats-indicator">
                             <div class="indicator-bar" data-percentage="30"></div>
@@ -47,7 +45,7 @@
             </div>
         </div>
 
-        <div class="col-xl-4 col-md-6">
+        <div class="col-12 col-md-6 col-xl-4">
             <div class="modern-stats-card">
                 <div class="card-glow"></div>
                 <div class="stats-content">
@@ -61,16 +59,14 @@
                             <span class="badge-text">Aktif</span>
                         </div>
                     </div>
-
                     <div class="stats-main">
                         <div class="stats-number">
-                            <?= count($petaniList) ?>
+                            <span class="counter" data-target="<?= count($petaniList) ?>">0</span>
                             <span class="stats-unit">Petani</span>
                         </div>
                         <h3 class="stats-title">Total Petani Terdaftar</h3>
                         <p class="stats-subtitle">Petani aktif dalam sistem</p>
                     </div>
-
                     <div class="stats-footer">
                         <div class="stats-indicator">
                             <div class="indicator-bar" data-percentage="50"></div>
@@ -83,7 +79,7 @@
             </div>
         </div>
 
-        <div class="col-xl-4 col-md-6">
+        <div class="col-12 col-md-6 col-xl-4">
             <div class="modern-stats-card">
                 <div class="card-glow"></div>
                 <div class="stats-content">
@@ -97,16 +93,14 @@
                             <span class="badge-text">Normal</span>
                         </div>
                     </div>
-
                     <div class="stats-main">
                         <div class="stats-number">
-                            <?= $totalAset ?? 0 ?>
+                            <span class="counter" data-target="<?= $totalAset ?? 0 ?>">0</span>
                             <span class="stats-unit">Unit</span>
                         </div>
                         <h3 class="stats-title">Total Aset Terdaftar</h3>
                         <p class="stats-subtitle">Aset produksi tersedia</p>
                     </div>
-
                     <div class="stats-footer">
                         <div class="stats-indicator">
                             <div class="indicator-bar" data-percentage="65"></div>
@@ -118,12 +112,12 @@
                 </div>
             </div>
         </div>
+
     </div>
 
-    <!-- Navigation Buttons Section -->
-    <div class="row g-4 mb-4 justify-content-center">
-        <div class="col-lg-4 col-md-6">
-            <a href="<?= base_url('admin-komersial/laporan/kopi') ?>" class="modern-card nav-card">
+    <div class="row g-3 g-lg-4 justify-content-center">
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="<?= base_url('admin-komersial/laporan/kopi') ?>" class="modern-card nav-card h-100">
                 <div class="nav-card-icon bg-primary-subtle text-primary">
                     <i class="fas fa-coffee"></i>
                 </div>
@@ -131,8 +125,8 @@
                 <p class="nav-card-subtitle">Rekapitulasi kopi masuk, keluar, dan stok.</p>
             </a>
         </div>
-        <div class="col-lg-4 col-md-6">
-            <a href="<?= base_url('admin-komersial/laporan/petani') ?>" class="modern-card nav-card">
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="<?= base_url('admin-komersial/laporan/petani') ?>" class="modern-card nav-card h-100">
                 <div class="nav-card-icon bg-success-subtle text-success">
                     <i class="fas fa-users"></i>
                 </div>
@@ -140,8 +134,8 @@
                 <p class="nav-card-subtitle">Data lengkap petani terdaftar.</p>
             </a>
         </div>
-        <div class="col-lg-4 col-md-6">
-            <a href="<?= base_url('admin-komersial/laporan/aset') ?>" class="modern-card nav-card">
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="<?= base_url('admin-komersial/laporan/aset') ?>" class="modern-card nav-card h-100">
                 <div class="nav-card-icon bg-warning-subtle text-warning">
                     <i class="fas fa-tools"></i>
                 </div>
@@ -152,7 +146,6 @@
     </div>
 </div>
 
-<!-- Toast Notifications -->
 <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055;">
     <div id="successToast" class="toast" role="alert">
         <div class="toast-header bg-success text-white">
@@ -163,5 +156,4 @@
         <div class="toast-body"></div>
     </div>
 </div>
-
 <?= $this->endSection() ?>

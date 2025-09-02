@@ -262,4 +262,52 @@ body,
         color: #fff;
     }
 
+
+
+    /* General Body and Layout */
+body {
+    overflow-x: hidden;
+    background-color: #f8f9fa;
+    font-family: 'Poppins', sans-serif;
+}
+
+#wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+/* --- Sidebar Styling --- */
+
+/* --- Content & Other Elements --- */
+#content-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* PENTING: Agar mengisi sisa ruang di sebelah sidebar */
+    width: 100%;
+    min-height: 100vh;
+    min-width: 0; /* PENTING: Agar bisa menyusut di layar kecil */
+    overflow-x: hidden; /* PENTING: Mencegah konten meluber ke samping */
+    transition: all 0.3s;
+}
+
+.main-content {
+    flex: 1;
+    padding: 2rem;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.main-footer {
+    background-color: #fff;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+
+
     
