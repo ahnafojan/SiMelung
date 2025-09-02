@@ -79,7 +79,7 @@
     </li>
     <li class="nav-item">
         <!-- URL disesuaikan dengan rute '/pengaturan' -->
-        <a class="nav-link fs-3" href="<?= site_url('pengaturan') ?>">
+        <a class="nav-link fs-3" href="<?= site_url('pengaturan/komersial') ?>">
             <!-- Ikon 'fa-cog' lebih cocok untuk pengaturan -->
             <i class="fas fa-fw fa-cog fa-lg"></i>
             <span>Pengaturan Export</span>

@@ -17,7 +17,7 @@ class AsetPariwisata extends BaseController
     public function index()
     {
         $data['asets'] = $this->asetModel->findAll();
-        return view('aset_pariwisata/index', $data);
+        return view('admin_pariwisata/aset_pariwisata', $data);
     }
 
     // Form tambah aset

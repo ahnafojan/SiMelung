@@ -65,8 +65,25 @@ $routes->group('bumdes', ['namespace' => 'App\Controllers'], function ($routes) 
         });
     });
 });
+//Pengaturan BUMDES
+
+
+
+//Pengaturan keuangan
 $routes->get('/pengaturan', 'Pengaturan::index');
 $routes->post('/pengaturan/update', 'Pengaturan::update');
+
+//Pengaturan Komersial
+$routes->get('/pengaturan/komersial', 'Pengaturan::komersial');       // Untuk menampilkan halaman form
+$routes->post('/pengaturan/komersial/update', 'Pengaturan::updateKomersial'); // Untuk menyimpan data form
+
+//Pengaturan Pariwisata
+
+
+
+//Pengaturan UMKM
+
+
 
 
 //desa
@@ -120,9 +137,6 @@ $routes->group('jenispohon', function ($routes) {
 });
 
 
-
-
-
 // kopi masuk
 $routes->get('kopi-masuk', 'KopiMasuk::index');
 $routes->post('kopi-masuk/create', 'KopiMasuk::store');
@@ -131,10 +145,6 @@ $routes->post('kopi-masuk/delete/(:num)', 'KopiMasuk::delete/$1');
 // app/Config/Routes.php
 $routes->get('get-jenis-pohon/(:any)', 'KopiMasuk::getJenisPohon/$1');
 $routes->get('stok-kopi', 'KopiMasuk::stok');
-
-
-
-
 
 
 //kopikeluar
@@ -146,16 +156,18 @@ $routes->post('kopikeluar/update/(:num)', 'KopiKeluar::update/$1'); // Update da
 $routes->post('kopikeluar/delete/(:num)', 'KopiKeluar::delete/$1'); // Hapus data
 $routes->get('kopikeluar/getJenisKopi/(:num)', 'KopiKeluar::getJenisKopi/$1');
 
-
-
-
-//umkm
+//ADMIN UMKM
 $routes->get('umkm', 'Umkm::index');
 $routes->get('Umkm', 'Umkm::index'); // tambahan biar U besar juga jalan// menampilkan daftar
 $routes->post('umkm/store', 'Umkm::store');    // tambah UMKM
 $routes->get('umkm/edit/(:num)', 'Umkm::edit/$1'); // form edit (bisa juga modal)
 $routes->post('umkm/update/(:num)', 'Umkm::update/$1'); // update
 $routes->get('umkm/delete/(:num)', 'Umkm::delete/$1');  // hapus
+
+
+
+
+
 
 // Routes Master Aset Komersial
 $routes->get('aset-komersial', 'AsetKomersial::index');

@@ -175,9 +175,21 @@ class ExportLaporanKomersial extends LaporanKomersial
         ?array $filter = null
     ) {
         $pengaturanModel = new PengaturanModel();
-        $ketua = $pengaturanModel->where('meta_key', 'ketua_bumdes')->first()['meta_value'] ?? 'NAMA KETUA';
-        $bendahara = $pengaturanModel->where('meta_key', 'bendahara_bumdes')->first()['meta_value'] ?? 'NAMA BENDAHARA';
-        $lokasi = $pengaturanModel->where('meta_key', 'lokasi_laporan')->first()['meta_value'] ?? 'LOKASI';
+
+        // --- PENYESUAIAN DIMULAI DI SINI ---
+
+        // 1. Ambil data nama Ketua BUMDES dari form
+        $namaKetua = $pengaturanModel->where('meta_key', 'ketua_komersial')->first()['meta_value'] ?? 'NAMA KETUA BUMDES';
+
+        // 2. Ambil data Admin Komersial dari form
+        $jabatanKanan = $pengaturanModel->where('meta_key', 'jabatan_kanan_komersial')->first()['meta_value'] ?? 'Admin Komersial';
+        $namaKanan = $pengaturanModel->where('meta_key', 'nama_kanan_komersial')->first()['meta_value'] ?? 'NAMA ADMIN';
+
+        // 3. Ambil lokasi dari form
+        $lokasi = $pengaturanModel->where('meta_key', 'lokasi_komersial')->first()['meta_value'] ?? 'LOKASI';
+
+        // --- AKHIR PENYESUAIAN ---
+
         $bulanIndonesia = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'];
 
         $endCol = count($headers);
@@ -243,14 +255,19 @@ class ExportLaporanKomersial extends LaporanKomersial
         $rowTtd = $currentRow + 2;
         $colTtdKanan = max(2, $endCol - 2);
         $colTtdKananStr = Coordinate::stringFromColumnIndex($colTtdKanan);
+
+        // --- PENYESUAIAN TANDA TANGAN ---
+        // TTD Kiri (Ketua BUMDES)
         $sheet->setCellValue('A' . $rowTtd, 'Mengetahui,');
-        $sheet->setCellValue('A' . ($rowTtd + 1), 'Ketua BUMDES');
-        $sheet->setCellValue('A' . ($rowTtd + 5), $ketua);
+        $sheet->setCellValue('A' . ($rowTtd + 1), 'Ketua BUMDES'); // Jabatan ditulis langsung
+        $sheet->setCellValue('A' . ($rowTtd + 5), $namaKetua); // Nama diambil dari variabel
         $sheet->getStyle('A' . ($rowTtd + 5))->getFont()->setBold(true)->setUnderline(true);
         $sheet->getStyle('A' . $rowTtd . ':A' . ($rowTtd + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // TTD Kanan (Admin Komersial)
         $sheet->mergeCells($colTtdKananStr . $rowTtd . ':' . $endColStr . $rowTtd)->setCellValue($colTtdKananStr . $rowTtd, $lokasi . ', ' . date('d ') . $bulanIndonesia[(int)date('n')] . date(' Y'));
-        $sheet->mergeCells($colTtdKananStr . ($rowTtd + 1) . ':' . $endColStr . ($rowTtd + 1))->setCellValue($colTtdKananStr . ($rowTtd + 1), 'Bendahara BUMDES');
-        $sheet->mergeCells($colTtdKananStr . ($rowTtd + 5) . ':' . $endColStr . ($rowTtd + 5))->setCellValue($colTtdKananStr . ($rowTtd + 5), $bendahara);
+        $sheet->mergeCells($colTtdKananStr . ($rowTtd + 1) . ':' . $endColStr . ($rowTtd + 1))->setCellValue($colTtdKananStr . ($rowTtd + 1), $jabatanKanan); // Jabatan dari variabel
+        $sheet->mergeCells($colTtdKananStr . ($rowTtd + 5) . ':' . $endColStr . ($rowTtd + 5))->setCellValue($colTtdKananStr . ($rowTtd + 5), $namaKanan); // Nama dari variabel
         $sheet->getStyle($colTtdKananStr . ($rowTtd + 5))->getFont()->setBold(true)->setUnderline(true);
         $sheet->getStyle($colTtdKananStr . $rowTtd . ':' . $endColStr . ($rowTtd + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
@@ -264,77 +281,6 @@ class ExportLaporanKomersial extends LaporanKomersial
         for ($i = 1; $i <= $endCol; $i++) {
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($i))->setAutoSize(true);
         }
-    }
-
-
-    public function exportRekapMasukPdf()
-    {
-        $filter = [
-            'start_date' => $this->request->getGet('start_date'),
-            'end_date'   => $this->request->getGet('end_date'),
-            'petani'     => $this->request->getGet('petani'),
-        ];
-
-        // Ambil data TANPA paginate
-        $rekapMasuk = $this->rekapService->getRekapKopiMasuk($filter);
-
-        // Render view ke HTML
-        $html = view('admin_komersial/laporan/_kopi_export_pdf', [
-            'title'    => 'Laporan Kopi Masuk per Petani',
-            'subtitle' => 'Periode: ' .
-                (($filter['start_date'] ?? '-') . ' s/d ' . ($filter['end_date'] ?? '-')),
-            'type'     => 'masuk',
-            'data'     => $rekapMasuk,
-            'filter'   => $filter,
-        ]);
-
-        // Generate PDF
-        return $this->generatePdf($html, 'laporan_kopi_masuk_' . date('YmdHis') . '.pdf');
-    }
-
-
-
-    /**
-     * Export PDF Laporan Kopi Keluar
-     */
-    public function pdfKeluar()
-    {
-        $filter = $this->request->getGet();
-        $rekapKeluar = $this->rekapService->getRekapKopiKeluar($filter);
-
-        $html = view('admin_komersial/laporan/_kopi_export_pdf', [
-            'title'    => 'Laporan Kopi Keluar',
-            'subtitle' => 'Periode: ' . ($filter['periode'] ?? date('d/m/Y')),
-            'type'     => 'keluar',
-            'data'     => $rekapKeluar
-        ]);
-
-        return $this->generatePdf($html, 'laporan_kopi_keluar_' . date('YmdHis') . '.pdf');
-    }
-
-    /**
-     * Export PDF Stok Akhir
-     */
-    public function pdfStok()
-    {
-        $filter = $this->request->getGet();
-
-        // 1. Buat instance dari controller yang logikanya sudah benar
-        $rekapKopiController = new \App\Controllers\KomersialRekapKopi();
-
-        // 2. Panggil method getStokAkhir yang sudah kita perbaiki sebelumnya.
-        $rekapStokData = $rekapKopiController->getStokAkhir($filter, null, null, false);
-        $rekapStok = is_array($rekapStokData) ? $rekapStokData : [];
-
-        // 3. Sisa kode untuk membuat PDF tetap sama
-        $html = view('admin_komersial/laporan/_kopi_export_pdf', [
-            'title'    => 'Laporan Stok Akhir Kopi',
-            'subtitle' => 'Periode: ' . (($filter['start_date'] ?? 'Semua') . ' s/d ' . ($filter['end_date'] ?? 'Sekarang')),
-            'type'     => 'stok',
-            'data'     => $rekapStok
-        ]);
-
-        return $this->generatePdf($html, 'laporan_stok_kopi_' . date('YmdHis') . '.pdf');
     }
 
     /**
@@ -352,44 +298,126 @@ class ExportLaporanKomersial extends LaporanKomersial
         $dompdf->stream($filename, ["Attachment" => true]);
         exit;
     }
+    private function _getSignatureData(): array
+    {
+        $pengaturanModel = new PengaturanModel();
+        return [
+            'namaKetua'    => $pengaturanModel->where('meta_key', 'ketua_komersial')->first()['meta_value'] ?? 'NAMA KETUA BUMDES',
+            'jabatanKanan' => $pengaturanModel->where('meta_key', 'jabatan_kanan_komersial')->first()['meta_value'] ?? 'Admin Komersial',
+            'namaKanan'    => $pengaturanModel->where('meta_key', 'nama_kanan_komersial')->first()['meta_value'] ?? 'NAMA ADMIN',
+            'lokasi'       => $pengaturanModel->where('meta_key', 'lokasi_komersial')->first()['meta_value'] ?? 'LOKASI',
+        ];
+    }
 
+    /**
+     * Mengambil data logo dan mengubahnya ke Base64.
+     */
+    private function _getLogoData(): array
+    {
+        $logoBase64 = '';
+
+        // GUNAKAN ROOTPATH UNTUK MEMBUAT PATH YANG PASTI BENAR
+        $pathToLogo = ROOTPATH . 'public/img/Bumdesfix.png';
+
+
+
+        if (file_exists($pathToLogo)) {
+            $logoType = pathinfo($pathToLogo, PATHINFO_EXTENSION);
+            $logoData = file_get_contents($pathToLogo);
+            $logoBase64 = 'data:image/' . $logoType . ';base64,' . base64_encode($logoData);
+        }
+
+        return ['logoBase64' => $logoBase64];
+    }
+
+    // --- SEMUA FUNGSI PDF YANG SUDAH DISESUAIKAN ---
+
+    public function exportRekapMasukPdf()
+    {
+        // ... (kode filter dan get data rekapMasuk) ...
+        $filter = [
+            'start_date' => $this->request->getGet('start_date'),
+            'end_date'   => $this->request->getGet('end_date'),
+            'petani'     => $this->request->getGet('petani'),
+        ];
+        $rekapMasuk = $this->rekapService->getRekapKopiMasuk($filter);
+
+        $data = [
+            'title'    => 'Laporan Kopi Masuk per Petani',
+            'subtitle' => 'Periode: ' . (($filter['start_date'] ?? '-') . ' s/d ' . ($filter['end_date'] ?? '-')),
+            'type'     => 'masuk',
+            'data'     => $rekapMasuk,
+        ];
+
+        $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
+        $html = view('admin_komersial/laporan/_kopi_export_pdf', $data);
+        return $this->generatePdf($html, 'laporan_kopi_masuk_' . date('YmdHis') . '.pdf');
+    }
+
+    public function pdfKeluar()
+    {
+        // ... (kode filter dan get data rekapKeluar) ...
+        $filter = $this->request->getGet();
+        $rekapKeluar = $this->rekapService->getRekapKopiKeluar($filter);
+
+        $data = [
+            'title'    => 'Laporan Kopi Keluar',
+            'subtitle' => 'Periode: ' . ($filter['periode'] ?? date('d/m/Y')),
+            'type'     => 'keluar',
+            'data'     => $rekapKeluar,
+        ];
+
+        $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
+        $html = view('admin_komersial/laporan/_kopi_export_pdf', $data);
+        return $this->generatePdf($html, 'laporan_kopi_keluar_' . date('YmdHis') . '.pdf');
+    }
+
+    public function pdfStok()
+    {
+        // ... (kode filter dan get data rekapStok) ...
+        $filter = $this->request->getGet();
+        $rekapKopiController = new \App\Controllers\KomersialRekapKopi();
+        $rekapStokData = $rekapKopiController->getStokAkhir($filter, null, null, false);
+        $rekapStok = is_array($rekapStokData) ? $rekapStokData : [];
+
+        $data = [
+            'title'    => 'Laporan Stok Akhir Kopi',
+            'subtitle' => 'Periode: ' . (($filter['start_date'] ?? 'Semua') . ' s/d ' . ($filter['end_date'] ?? 'Sekarang')),
+            'type'     => 'stok',
+            'data'     => $rekapStok,
+        ];
+
+        $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
+        $html = view('admin_komersial/laporan/_kopi_export_pdf', $data);
+        return $this->generatePdf($html, 'laporan_stok_kopi_' . date('YmdHis') . '.pdf');
+    }
 
     public function pdfPetani()
     {
-        // 1. Ambil filter dari URL
+        // ... (kode filter dan get data petaniData) ...
         $filters = [
             'search'     => $this->request->getGet('search') ?? '',
             'jenis_kopi' => $this->request->getGet('jenis_kopi') ?? '',
         ];
-
-        // 2. Panggil logika yang sama untuk mendapatkan data
-        $rekapPetaniController = new KomersialRekapPetani();
+        $rekapPetaniController = new \App\Controllers\KomersialRekapPetani();
         $petaniData = $rekapPetaniController->_getFilteredPetaniQuery($filters)->findAll();
 
-        // 3. Siapkan data untuk dikirim ke view PDF
         $data = [
             'title'      => 'Laporan Data Petani Terdaftar',
-            'petaniData' => $petaniData
+            'subtitle'   => 'Unit Usaha Komersial',
+            'petaniData' => $petaniData,
         ];
 
-        // 4. Render view ke dalam string HTML
+        $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
         $html = view('admin_komersial/laporan/_petani_export_pdf', $data);
-
-        // 5. Tentukan nama file
-        $filename = 'laporan_petani_' . date('YmdHis') . '.pdf';
-
-        // 6. Panggil helper function untuk membuat dan mengirim PDF
-        return $this->generatePdf($html, $filename);
+        return $this->generatePdf($html, 'laporan_petani_' . date('YmdHis') . '.pdf');
     }
 
-    /**
-     * Export data Aset ke format PDF.
-     */
     public function pdfAset()
     {
+        // ... (kode filter dan get data dataAset) ...
         $asetModel = new AsetKomersialModel();
         $filterTahun = $this->request->getGet('tahun_aset') ?? 'semua';
-
         $query = $asetModel;
         if ($filterTahun !== 'semua') {
             $query->where('tahun_perolehan', $filterTahun);
@@ -397,15 +425,13 @@ class ExportLaporanKomersial extends LaporanKomersial
         $dataAset = $query->orderBy('tahun_perolehan', 'DESC')->findAll();
 
         $data = [
-            'title'       => 'Laporan Aset Produksi',
-            'asetData'    => $dataAset,
-            'filterTahun' => $filterTahun
+            'title'    => 'Laporan Aset Produksi',
+            'subtitle' => 'Filter Tahun: ' . ($filterTahun == 'semua' ? 'Semua Tahun' : $filterTahun),
+            'asetData' => $dataAset,
         ];
 
+        $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
         $html = view('admin_komersial/laporan/_aset_export_pdf', $data);
-        $filename = 'laporan_aset_produksi_' . date('YmdHis') . '.pdf';
-
-        // Panggil helper function yang sudah ada
-        return $this->generatePdf($html, $filename);
+        return $this->generatePdf($html, 'laporan_aset_produksi_' . date('YmdHis') . '.pdf');
     }
 }

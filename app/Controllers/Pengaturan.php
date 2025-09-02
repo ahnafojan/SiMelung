@@ -41,4 +41,42 @@ class Pengaturan extends BaseController
 
         return redirect()->to('/pengaturan')->with('success', 'Pengaturan berhasil diperbarui.');
     }
+    // --- METHOD BARU UNTUK MENAMPILKAN FORM PENGATURAN KOMERSIAL ---
+    public function komersial()
+    {
+        $pengaturanModel = new PengaturanModel();
+
+        $data = [
+            'title' => 'Pengaturan Laporan Komersial',
+            'pengaturan' => $pengaturanModel->getAllAsArray() // Mengambil semua pengaturan
+        ];
+
+        // Memuat file view baru yang akan kita buat di langkah 3
+        return view('pengaturan/komersial', $data);
+    }
+
+    // --- METHOD BARU UNTUK MENYIMPAN DATA PENGATURAN KOMERSIAL ---
+    public function updateKomersial()
+    {
+        $pengaturanModel = new PengaturanModel();
+        $allPostData = $this->request->getPost();
+
+        foreach ($allPostData as $key => $value) {
+            // Skip field csrf_test_name
+            if ($key === 'csrf_test_name') {
+                continue;
+            }
+
+            // Cari berdasarkan meta_key, lalu update meta_value
+            // Ini akan mengupdate jika key sudah ada, atau membuat baru jika belum ada.
+            $pengaturanModel->where('meta_key', $key)->delete();
+            $pengaturanModel->insert([
+                'meta_key' => $key,
+                'meta_value' => $value
+            ]);
+        }
+
+        session()->setFlashdata('success', 'Pengaturan untuk laporan komersial berhasil diperbarui!');
+        return redirect()->to('/pengaturan/komersial');
+    }
 }
