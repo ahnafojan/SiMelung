@@ -2,8 +2,9 @@
 
 <?= $this->section('content') ?>
 <?php
+// Mengambil parameter GET yang ada untuk ditambahkan ke link pagination dan form 'per page'
 $queryParams = $_GET;
-unset($queryParams['page_masuk'], $queryParams['page_keluar'], $queryParams['page_stok'], $queryParams['page_petani'], $queryParams['page_aset']);
+unset($queryParams['page_masuk'], $queryParams['page_keluar'], $queryParams['page_stok']);
 ?>
 
 <!-- ================== FILTER ================== -->
@@ -13,9 +14,7 @@ unset($queryParams['page_masuk'], $queryParams['page_keluar'], $queryParams['pag
             <h1 class="h3 page-title">Laporan Rekap Kopi</h1>
             <p class="mb-0 page-subtitle">Detail Rekap Kopi Masuk/Keluar, dan Stok Kopi.</p>
         </div>
-        <a href="<?= base_url('admin-komersial/laporan') ?>" class="btn btn-sm btn-outline-secondary shadow-sm">
-            <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
-        </a>
+        <!-- Tombol Kembali mengarah ke laporan desa -->
     </div>
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex align-items-center">
@@ -24,7 +23,8 @@ unset($queryParams['page_masuk'], $queryParams['page_keluar'], $queryParams['pag
             </h6>
         </div>
         <div class="card-body">
-            <form id="filter-form" action="<?= base_url('admin-komersial/laporan/kopi') ?>" method="get">
+            <!-- Form action diubah ke current_url() agar selalu memfilter di halaman ini -->
+            <form id="filter-form" action="<?= current_url() ?>" method="get">
                 <div class="row g-3 align-items-end">
                     <div class="col-lg-3 col-md-6">
                         <label for="start_date" class="form-label">Dari Tanggal</label>
@@ -61,7 +61,8 @@ unset($queryParams['page_masuk'], $queryParams['page_keluar'], $queryParams['pag
                         <button type="submit" class="btn btn-primary w-100 mb-2">
                             <i class="fas fa-search mr-1"></i> Filter
                         </button>
-                        <a href="<?= base_url('admin-komersial/laporan/kopi') ?>" class="btn btn-outline-secondary w-100">
+                        <!-- Tombol Reset mengarah ke laporan kopi desa -->
+                        <a href="<?= base_url('DesaRekapKopi') ?>" class="btn btn-outline-secondary w-100">
                             <i class="fas fa-sync-alt"></i> Reset
                         </a>
                     </div>
@@ -72,28 +73,20 @@ unset($queryParams['page_masuk'], $queryParams['page_keluar'], $queryParams['pag
 
     <!-- ================== REKAP KOPI MASUK ================== -->
     <div class="card shadow mb-4">
-        <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+        <!-- Header kartu disederhanakan, tanpa tombol ekspor -->
+        <div class="card-header">
             <h6 class="m-0 font-weight-bold text-success">
                 <i class="fas fa-seedling mr-2"></i> Rekap Kopi Masuk per Petani
             </h6>
-            <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
-                <a href="<?= base_url('admin-komersial/export/masuk/excel?' . http_build_query($filter)) ?>" class="btn btn-sm btn-success">
-                    <i class="fas fa-file-excel"></i> Excel
-                </a>
-                <a href="<?= base_url('admin-komersial/export/masuk/pdf?' . http_build_query($filter)) ?>" class="btn btn-sm btn-danger">
-                    <i class="fas fa-file-pdf"></i> PDF
-                </a>
-            </div>
         </div>
         <div class="card-body">
-            <!-- Per Page -->
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <form action="<?= current_url() ?>" method="get" id="perPageFormMasuk" class="form-inline">
                     <?php foreach ($queryParams as $key => $val): ?>
                         <input type="hidden" name="<?= esc($key) ?>" value="<?= esc($val) ?>">
                     <?php endforeach; ?>
                     <label class="mr-2 text-muted">Tampilkan</label>
-                    <select name="per_page_masuk" id="per_page_masuk" class="form-control form-control-sm">
+                    <select name="per_page_masuk" id="per_page_masuk" onchange="this.form.submit()" class="form-control form-control-sm">
                         <option value="10" <?= ($perPageMasuk == 10) ? 'selected' : '' ?>>10</option>
                         <option value="25" <?= ($perPageMasuk == 25) ? 'selected' : '' ?>>25</option>
                         <option value="50" <?= ($perPageMasuk == 50) ? 'selected' : '' ?>>50</option>
@@ -148,18 +141,10 @@ unset($queryParams['page_masuk'], $queryParams['page_keluar'], $queryParams['pag
 
     <!-- ================== REKAP KOPI KELUAR ================== -->
     <div class="card shadow mb-4">
-        <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+        <div class="card-header">
             <h6 class="m-0 font-weight-bold text-warning">
                 <i class="fas fa-cash-register mr-2"></i> Rekap Kopi Keluar
             </h6>
-            <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
-                <a href="<?= base_url('admin-komersial/export/keluar/excel?' . http_build_query($filter)) ?>" class="btn btn-sm btn-success">
-                    <i class="fas fa-file-excel"></i> Excel
-                </a>
-                <a href="<?= base_url('admin-komersial/export/keluar/pdf?' . http_build_query($filter)) ?>" class="btn btn-sm btn-danger">
-                    <i class="fas fa-file-pdf"></i> PDF
-                </a>
-            </div>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -168,7 +153,7 @@ unset($queryParams['page_masuk'], $queryParams['page_keluar'], $queryParams['pag
                         <input type="hidden" name="<?= esc($key) ?>" value="<?= esc($val) ?>">
                     <?php endforeach; ?>
                     <label class="mr-2 text-muted">Tampilkan</label>
-                    <select name="per_page_keluar" id="per_page_keluar" class="form-control form-control-sm">
+                    <select name="per_page_keluar" id="per_page_keluar" onchange="this.form.submit()" class="form-control form-control-sm">
                         <option value="10" <?= ($perPageKeluar == 10) ? 'selected' : '' ?>>10</option>
                         <option value="25" <?= ($perPageKeluar == 25) ? 'selected' : '' ?>>25</option>
                         <option value="50" <?= ($perPageKeluar == 50) ? 'selected' : '' ?>>50</option>
@@ -223,18 +208,10 @@ unset($queryParams['page_masuk'], $queryParams['page_keluar'], $queryParams['pag
 
     <!-- ================== STOK KOPI ================== -->
     <div class="card shadow mb-4">
-        <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+        <div class="card-header">
             <h6 class="m-0 font-weight-bold text-info">
                 <i class="fas fa-warehouse mr-2"></i> Stok Akhir Per Jenis Kopi
             </h6>
-            <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
-                <a href="<?= base_url('admin-komersial/export/stok/excel?' . http_build_query($filter)) ?>" class="btn btn-sm btn-success">
-                    <i class="fas fa-file-excel"></i> Excel
-                </a>
-                <a href="<?= base_url('admin-komersial/export/stok/pdf?' . http_build_query($filter)) ?>" class="btn btn-sm btn-danger">
-                    <i class="fas fa-file-pdf"></i> PDF
-                </a>
-            </div>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -243,7 +220,7 @@ unset($queryParams['page_masuk'], $queryParams['page_keluar'], $queryParams['pag
                         <input type="hidden" name="<?= esc($key) ?>" value="<?= esc($val) ?>">
                     <?php endforeach; ?>
                     <label class="mr-2 text-muted">Tampilkan</label>
-                    <select name="per_page_stok" id="per_page_stok" class="form-control form-control-sm">
+                    <select name="per_page_stok" id="per_page_stok" onchange="this.form.submit()" class="form-control form-control-sm">
                         <option value="10" <?= ($perPageStok == 10) ? 'selected' : '' ?>>10</option>
                         <option value="25" <?= ($perPageStok == 25) ? 'selected' : '' ?>>25</option>
                         <option value="50" <?= ($perPageStok == 50) ? 'selected' : '' ?>>50</option>

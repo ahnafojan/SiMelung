@@ -292,7 +292,7 @@ class ExportLaporanKomersial extends LaporanKomersial
         $dompdf->loadHtml($html);
 
         // orientasi
-        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->setPaper('A4', 'potrait');
 
         $dompdf->render();
         $dompdf->stream($filename, ["Attachment" => true]);

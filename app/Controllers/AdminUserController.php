@@ -54,13 +54,31 @@ class AdminUserController extends Controller
     // method edit user (proses update)
     public function edit()
     {
-        $userId = $this->request->getPost('user_id');
+        $userId   = $this->request->getPost('user_id');
         $username = $this->request->getPost('username');
         $password = $this->request->getPost('password');
-        $roles = $this->request->getPost('roles');
+        $newRoles = $this->request->getPost('roles') ?? [];
 
         $userModel = new UserModel();
         $db = \Config\Database::connect();
+
+        // Ambil role LAMA dari database
+        $existingRolesQuery = $db->table('user_roles')->where('user_id', $userId)->get()->getResultArray();
+        $existingRoles = array_column($existingRolesQuery, 'role');
+
+        // Tentukan role yang dilindungi
+        $protectedRolesList = ['bumdes', 'desa', 'kepala desa'];
+        $protectedRoles = array_intersect($existingRoles, $protectedRolesList);
+
+        // Gabungkan role yang dilindungi dengan role BARU dari form
+        $finalRoles = array_unique(array_merge($protectedRoles, $newRoles));
+
+        // ===================================================================
+        // PERBAIKAN KRITIS: PAKSA BATAS MAKSIMAL 2 ROLE DI SISI SERVER
+        // ===================================================================
+        if (count($finalRoles) > 2) {
+            $finalRoles = array_slice($finalRoles, 0, 2); // Ambil hanya 2 role pertama
+        }
 
         // Update username dan password jika ada
         $dataUpdate = ['username' => $username];
@@ -69,16 +87,16 @@ class AdminUserController extends Controller
         }
         $userModel->update($userId, $dataUpdate);
 
-        // Update role: hapus dulu semua role lama
+        // Hapus semua role lama
         $db->table('user_roles')->where('user_id', $userId)->delete();
 
-        // Insert role baru
-        if (!empty($roles)) {
+        // Simpan role yang sudah valid dan terbatas
+        if (!empty($finalRoles)) {
             $roleData = [];
-            foreach ($roles as $role) {
+            foreach ($finalRoles as $role) {
                 $roleData[] = [
                     'user_id' => $userId,
-                    'role' => $role,
+                    'role'    => $role,
                 ];
             }
             $db->table('user_roles')->insertBatch($roleData);

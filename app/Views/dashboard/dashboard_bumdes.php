@@ -13,7 +13,7 @@
 
     <div class="card shadow-sm border-0 mb-4 rounded-lg">
         <div class="card-body py-3">
-            <form method="get" action="<?= base_url('dashboard/dashboard_bumdes') ?>">>
+            <form method="get" action="<?= base_url('dashboard/dashboard_bumdes') ?>">
                 <div class="row g-2 align-items-end">
                     <div class="col-md-3">
                         <label for="bulan" class="form-label text-muted small mb-1">Bulan</label>

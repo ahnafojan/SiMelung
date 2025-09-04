@@ -66,6 +66,8 @@ $routes->group('bumdes', ['namespace' => 'App\Controllers'], function ($routes) 
     });
 });
 //Pengaturan BUMDES
+$routes->get('/pengaturan/bumdes', 'Pengaturan::bumdes');       // Untuk menampilkan halaman form
+$routes->post('/pengaturan/bumdes/update', 'Pengaturan::updatebumdes');
 
 
 
@@ -308,3 +310,9 @@ $routes->group('laporanpariwisata', ['filter' => 'auth'], function ($routes) {
     $routes->get('exportExcel', 'LaporanPariwisata::exportExcel');
     $routes->get('exportPDF', 'LaporanPariwisata::exportPDF');
 });
+
+//DESA
+//komersial
+$routes->get('DesaRekapKopi', 'DesaRekapKopi::index');
+$routes->get('desa/laporan_komersial/aset', 'DesaRekapAset::index');
+$routes->get('desa/laporan_komersial/petani', 'DesaRekapPetani::index');

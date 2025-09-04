@@ -115,7 +115,7 @@ class KomersialRekapPetani extends BaseController
     /**
      * [PRIVATE] Membangun HTML untuk daftar petani (AJAX).
      */
-    private function _buildPetaniListView($petaniData, $pager)
+    protected function _buildPetaniListView($petaniData, $pager)
     {
         $html = '';
         if (empty($petaniData)) {

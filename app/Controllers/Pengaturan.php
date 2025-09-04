@@ -79,4 +79,39 @@ class Pengaturan extends BaseController
         session()->setFlashdata('success', 'Pengaturan untuk laporan komersial berhasil diperbarui!');
         return redirect()->to('/pengaturan/komersial');
     }
+    // --- FUNGSI UNTUK PENGATURAN BUMDES ---
+    public function bumdes()
+    {
+        $pengaturan = $this->pengaturanModel->findAll();
+        $dataPengaturan = [];
+        foreach ($pengaturan as $item) {
+            $dataPengaturan[$item['meta_key']] = $item['meta_value'];
+        }
+
+        $data = [
+            'title' => 'Pengaturan Laporan BUMDES',
+            'pengaturan' => $dataPengaturan
+        ];
+        return view('pengaturan/bumdes', $data);
+    }
+
+    public function updateBumdes()
+    {
+        $dataToUpdate = $this->request->getPost();
+
+        foreach ($dataToUpdate as $key => $value) {
+            // Hanya update field yang relevan untuk BUMDES
+            if (in_array($key, ['lokasi_laporan', 'ketua_bumdes'])) {
+                // Cek jika key sudah ada
+                $exists = $this->pengaturanModel->where('meta_key', $key)->first();
+                if ($exists) {
+                    $this->pengaturanModel->where('meta_key', $key)->set(['meta_value' => $value])->update();
+                } else {
+                    $this->pengaturanModel->insert(['meta_key' => $key, 'meta_value' => $value]);
+                }
+            }
+        }
+
+        return redirect()->to('/pengaturan/bumdes')->with('success', 'Pengaturan BUMDES berhasil diperbarui.');
+    }
 }
