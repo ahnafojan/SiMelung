@@ -19,16 +19,47 @@
             <span>Dashboard</span></a>
     </li>
 
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    <div class="sidebar-heading">
+        Data Master
+    </div>
+
+    <!-- MENU BARU UNTUK OBJEK WISATA DITAMBAHKAN DI SINI -->
     <li class="nav-item">
-        <a class="nav-link" href="<?= base_url('asetpariwisata') ?>">
-            <i class="fas fa-map-marked-alt"></i>
-            <span>Manajemen Aset Pariwisata</span></a>
+        <a class="nav-link" href="<?= base_url('objekwisata') ?>">
+            <i class="fas fa-mountain"></i>
+            <span>Objek Wisata</span>
+        </a>
     </li>
 
     <li class="nav-item">
-        <a class="nav-link" href="<?= base_url('laporanpariwisata') ?>">
+        <a class="nav-link" href="<?= base_url('asetpariwisata') ?>">
+            <i class="fas fa-archive"></i>
+            <span>Manajemen Aset</span>
+        </a>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    <div class="sidebar-heading">
+        Laporan
+    </div>
+
+    <li class="nav-item">
+        <a class="nav-link" href="<?= base_url('laporanasetpariwisata') ?>">
             <i class="fas fa-file-alt"></i>
-            <span>Laporan</span></a>
+            <span>Laporan Aset</span></a>
+    </li>
+    <li class="nav-item">
+        <!-- URL disesuaikan dengan rute '/pengaturan' -->
+        <a class="nav-link fs-3" href="<?= site_url('pengaturan/pariwisata') ?>">
+            <!-- Ikon 'fa-cog' lebih cocok untuk pengaturan -->
+            <i class="fas fa-fw fa-cog fa-lg"></i>
+            <span>Pengaturan Export</span>
+        </a>
     </li>
 
     <!-- Divider -->

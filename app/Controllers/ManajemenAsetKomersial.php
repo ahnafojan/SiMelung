@@ -19,13 +19,12 @@ class ManajemenAsetKomersial extends Controller
     }
 
     /**
-     * Menampilkan daftar aset dan mengirimkan data untuk dropdown modal.
+     * Menampilkan daftar aset dengan pagination.
      */
     public function index()
     {
-        // Daftar kategori aset untuk dropdown di modal edit.
-        // Pastikan daftar ini sama dengan yang ada di controller form Tambah Aset.
-        $data['kategoriAset'] = [
+        // Daftar kategori aset untuk dropdown.
+        $kategoriAset = [
             'Mesin Giling',
             'Mesin Pengupas Kopi',
             'Mesin Pengering Kopi',
@@ -34,14 +33,28 @@ class ManajemenAsetKomersial extends Controller
             'Peralatan Pertanian',
         ];
 
-        $data['asets'] = $this->asetModel->findAll();
-        if (!empty($data['asets'])) {
-            foreach ($data['asets'] as &$aset) {
-                // Logika hak akses Anda
+        // Ambil jumlah item per halaman dari URL, default-nya 10
+        $perPage = $this->request->getVar('per_page') ?? 10;
+
+        // Ambil data aset menggunakan paginate dengan grup 'asets'
+        $asets = $this->asetModel->orderBy('id_aset', 'DESC')->paginate($perPage, 'asets');
+
+        // Cek izin untuk setiap item di halaman saat ini
+        if (!empty($asets)) {
+            foreach ($asets as &$aset) {
                 $aset['can_edit'] = $this->hasActivePermission($aset['id_aset'], 'edit');
                 $aset['can_delete'] = $this->hasActivePermission($aset['id_aset'], 'delete');
             }
         }
+
+        $data = [
+            'kategoriAset' => $kategoriAset,
+            'asets'        => $asets,
+            'pager'        => $this->asetModel->pager,
+            'perPage'      => $perPage,
+            'currentPage'  => $this->asetModel->pager->getCurrentPage('asets'),
+        ];
+
         return view('admin_komersial/aset/manajemen_aset', $data);
     }
 
@@ -61,24 +74,20 @@ class ManajemenAsetKomersial extends Controller
                 throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Data tidak ditemukan');
             }
 
-            // --- LOGIKA BARU UNTUK DROPDOWN NAMA ASET ---
             $kategoriDipilih = $this->request->getPost('kategori_aset');
             $namaAsetFinal = $kategoriDipilih;
 
             if ($kategoriDipilih === 'Lainnya') {
                 $namaAsetLainnya = $this->request->getPost('nama_aset_lainnya');
-                // Validasi: pastikan nama lainnya tidak kosong
                 if (empty($namaAsetLainnya)) {
                     session()->setFlashdata('error', 'Nama Aset Lainnya wajib diisi jika kategori "Lainnya" dipilih.');
                     return redirect()->back();
                 }
                 $namaAsetFinal = $namaAsetLainnya;
             }
-            // --- AKHIR LOGIKA BARU ---
 
-            // Handle foto baru
             $fotoFile = $this->request->getFile('foto');
-            $fotoName = $aset['foto']; // default tetap foto lama
+            $fotoName = $aset['foto'];
 
             if ($fotoFile && $fotoFile->isValid() && !$fotoFile->hasMoved()) {
                 $fotoName = $fotoFile->getRandomName();
@@ -90,13 +99,13 @@ class ManajemenAsetKomersial extends Controller
             }
 
             $this->asetModel->update($id, [
-                'nama_aset'        => $namaAsetFinal, // Menggunakan nama aset final
+                'nama_aset'        => $namaAsetFinal,
                 'kode_aset'        => $this->request->getPost('kode_aset'),
                 'nup'              => $this->request->getPost('nup'),
                 'tahun_perolehan'  => $this->request->getPost('tahun_perolehan'),
                 'merk_type'        => $this->request->getPost('merk_type'),
                 'nilai_perolehan'  => $this->request->getPost('nilai_perolehan'),
-                'keterangan'       => $this->request->getPost('keterangan'), // Sudah benar dari dropdown kondisi
+                'keterangan'       => $this->request->getPost('keterangan'),
                 'metode_pengadaan' => $this->request->getPost('metode_pengadaan'),
                 'sumber_pengadaan' => $this->request->getPost('sumber_pengadaan'),
                 'foto'             => $fotoName,
@@ -171,7 +180,6 @@ class ManajemenAsetKomersial extends Controller
         return redirect()->back();
     }
 
-    // 8. [FUNGSI BARU] Helper untuk mengecek izin aktif
     private function hasActivePermission($asetId, $action)
     {
         $requesterId = session()->get('user_id');

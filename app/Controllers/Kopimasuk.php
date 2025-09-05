@@ -20,20 +20,32 @@ class KopiMasuk extends Controller
     public function __construct()
     {
         $this->kopiMasukModel = new KopiMasukModel();
-        $this->petaniModel    = new PetaniModel();
+        $this->petaniModel      = new PetaniModel();
         $this->petaniPohonModel = new PetaniPohonModel();
         $this->stokKopiModel = new StokKopiModel();
-        $this->permissionModel  = new PermissionRequestModel(); // 3. Inisialisasi model
+        $this->permissionModel  = new PermissionRequestModel();
         helper(['form', 'url', 'date']);
     }
 
     public function index()
     {
-        // cukup panggil getAll() dari model
-        $data['kopiMasuk'] = $this->kopiMasukModel->getAll();
+        // [MODIFIKASI] Ambil jumlah per halaman dari URL, default-nya 10
+        $perPage = $this->request->getGet('per_page') ?? 10;
+
+        // Ambil data kopi masuk menggunakan paginate
+        $data['kopiMasuk'] = $this->kopiMasukModel->getAllWithPagination($perPage);
+
+        // Ambil pager dari model
+        $data['pager'] = $this->kopiMasukModel->pager;
+
+        // [MODIFIKASI] Kirim variabel perPage dan currentPage ke view
+        $data['currentPage'] = $data['pager']->getCurrentPage();
+        $data['perPage'] = $perPage;
 
         // untuk dropdown petani
         $data['petani'] = $this->petaniModel->orderBy('nama', 'ASC')->findAll();
+
+        // Cek izin untuk setiap item di halaman saat ini
         if (!empty($data['kopiMasuk'])) {
             foreach ($data['kopiMasuk'] as &$kopi) {
                 $kopi['can_edit']   = $this->hasActivePermission($kopi['id'], 'edit');
@@ -146,23 +158,20 @@ class KopiMasuk extends Controller
 
     public function update($id)
     {
-        // 5. Tambahkan pengecekan izin sebelum update
         if (!$this->hasActivePermission($id, 'edit')) {
             session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengedit data ini.');
             return redirect()->to(site_url('kopi-masuk'));
         }
 
         $db = \Config\Database::connect();
-        $db->transStart(); // Mulai transaksi
+        $db->transStart();
 
         try {
-            // 1. AMBIL DATA LAMA (SEBELUM DIUBAH)
             $dataLama = $this->kopiMasukModel->find($id);
             if (!$dataLama) {
                 throw new \Exception('Data kopi masuk yang akan diupdate tidak ditemukan.');
             }
 
-            // 2. AMBIL DATA BARU DARI FORM
             $dataBaru = [
                 'petani_user_id'  => $this->request->getPost('petani_user_id'),
                 'petani_pohon_id' => $this->request->getPost('petani_pohon_id'),
@@ -171,7 +180,6 @@ class KopiMasuk extends Controller
                 'keterangan'      => $this->request->getPost('keterangan'),
             ];
 
-            // 3. KEMBALIKAN STOK LAMA
             $petaniPohonLama = $this->petaniPohonModel->find($dataLama['petani_pohon_id']);
             if ($petaniPohonLama) {
                 $stokLama = $this->stokKopiModel
@@ -185,7 +193,6 @@ class KopiMasuk extends Controller
                 }
             }
 
-            // 4. TAMBAHKAN STOK BARU
             $petaniPohonBaru = $this->petaniPohonModel->find($dataBaru['petani_pohon_id']);
             if (!$petaniPohonBaru) {
                 throw new \Exception('Data jenis pohon petani yang baru tidak valid.');
@@ -206,10 +213,9 @@ class KopiMasuk extends Controller
                 ]);
             }
 
-            // 5. UPDATE DATA TRANSAKSI KOPI MASUK
             $this->kopiMasukModel->update($id, $dataBaru);
 
-            $db->transComplete(); // Selesaikan transaksi (commit)
+            $db->transComplete();
 
             if ($db->transStatus() === false) {
                 session()->setFlashdata('error', 'Transaksi gagal saat memperbarui data.');
@@ -217,7 +223,7 @@ class KopiMasuk extends Controller
                 session()->setFlashdata('success', 'Data kopi masuk dan stok berhasil diperbarui.');
             }
         } catch (\Exception $e) {
-            $db->transRollback(); // Batalkan transaksi jika ada error
+            $db->transRollback();
             session()->setFlashdata('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
 
@@ -226,17 +232,15 @@ class KopiMasuk extends Controller
 
     public function delete($id)
     {
-        // 6. Tambahkan pengecekan izin sebelum delete
         if (!$this->hasActivePermission($id, 'delete')) {
             session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk menghapus data ini.');
             return redirect()->to(site_url('kopi-masuk'));
         }
 
         $db = \Config\Database::connect();
-        $db->transStart(); // Mulai transaksi
+        $db->transStart();
 
         try {
-            // 1. Ambil data transaksi yang akan dihapus
             $kopiMasuk = $this->kopiMasukModel->find($id);
             if (!$kopiMasuk) {
                 throw new \Exception('Data kopi masuk tidak ditemukan.');
@@ -245,13 +249,11 @@ class KopiMasuk extends Controller
             $jumlahDihapus = (float) $kopiMasuk['jumlah'];
             $petaniPohonId = $kopiMasuk['petani_pohon_id'];
 
-            // 2. Cari detail petani dan jenis pohon untuk menemukan stok yang benar
             $petaniPohon = $this->petaniPohonModel->find($petaniPohonId);
-            if ($petaniPohon) { // Hanya proses jika relasi masih ada
+            if ($petaniPohon) {
                 $petaniId     = $petaniPohon['user_id'];
                 $jenisPohonId = $petaniPohon['jenis_pohon_id'];
 
-                // 3. Kurangi stok di tabel stok_kopi
                 $stok = $this->stokKopiModel
                     ->where('petani_id', $petaniId)
                     ->where('jenis_pohon_id', $jenisPohonId)
@@ -263,21 +265,19 @@ class KopiMasuk extends Controller
                 }
             }
 
-            // 4. Hapus data dari tabel kopi_masuk
             $this->kopiMasukModel->delete($id);
 
-            $db->transComplete(); // Selesaikan transaksi (commit)
+            $db->transComplete();
             session()->setFlashdata('success', 'Data kopi masuk berhasil dihapus dan stok telah dikurangi.');
         } catch (\Exception $e) {
-            $db->transRollback(); // Batalkan transaksi jika ada error
+            $db->transRollback();
             session()->setFlashdata('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
         }
 
         return redirect()->to(site_url('kopi-masuk'));
     }
 
-    // ... (Sisa controller Anda biarkan sama)
-    // ✅ Tampilkan stok
+
     public function stok()
     {
         $data['stokKopi'] = $this->stokKopiModel->getWithRelations();
@@ -298,7 +298,7 @@ class KopiMasuk extends Controller
                 'requester_id' => $requesterId,
                 'target_id'    => $kopiMasukId,
                 'action_type'  => $action,
-                'target_type'  => 'kopi_masuk', // Tandai ini sebagai permintaan untuk 'kopi_masuk'
+                'target_type'  => 'kopi_masuk',
                 'status'       => 'pending'
             ])->first();
 
@@ -319,7 +319,7 @@ class KopiMasuk extends Controller
         return redirect()->back();
     }
 
-    // 8. [FUNGSI BARU] Helper untuk mengecek izin aktif
+
     private function hasActivePermission($kopiMasukId, $action)
     {
         $requesterId = session()->get('user_id');

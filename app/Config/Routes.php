@@ -80,7 +80,8 @@ $routes->get('/pengaturan/komersial', 'Pengaturan::komersial');       // Untuk m
 $routes->post('/pengaturan/komersial/update', 'Pengaturan::updateKomersial'); // Untuk menyimpan data form
 
 //Pengaturan Pariwisata
-
+$routes->get('/pengaturan/pariwisata', 'Pengaturan::pariwisata');       // Untuk menampilkan halaman form
+$routes->post('/pengaturan/pariwisata/update', 'Pengaturan::updatePariwisata');
 
 
 //Pengaturan UMKM
@@ -297,19 +298,25 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 
 // Dashboard Pariwisata
 $routes->get('dashboard/dashboard_pariwisata', 'DashboardController::pariwisata', ['filter' => 'auth']);
-// Aset Pariwisata
 $routes->group('asetpariwisata', ['filter' => 'auth'], function ($routes) {
-    $routes->get('/', 'AsetPariwisata::index');       // Halaman daftar aset
-    $routes->get('create', 'AsetPariwisata::create'); // Form tambah aset
-    $routes->post('store', 'AsetPariwisata::store');  // Simpan aset baru
+    $routes->get('/', 'AsetPariwisata::index');
+    $routes->post('store', 'AsetPariwisata::store');
 });
+$routes->group('laporanasetpariwisata', ['filter' => 'auth'], function ($routes) {
+    $routes->get('/', 'LaporanAsetPariwisata::index');
+    $routes->get('exportPDF/(:num)', 'LaporanAsetPariwisata::exportPDF/$1');
+    $routes->get('exportExcel/(:num)', 'LaporanAsetPariwisata::exportExcel/$1');
+});
+$routes->group('objekwisata', ['filter' => 'auth'], function ($routes) {
+    $routes->get('/', 'ObjekWisata::index');
+    $routes->post('store', 'ObjekWisata::store');
+    $routes->get('delete/(:num)', 'ObjekWisata::delete/$1');
+});
+$routes->get('asetpariwisata/delete/(:num)', 'AsetPariwisata::delete/$1');
+$routes->put('asetpariwisata/update/(:num)', 'AsetPariwisata::update/$1');
+$routes->post('asetpariwisata/requestaccess', 'AsetPariwisata::requestAccess');
+$routes->post('objekwisata/requestaccess', 'ObjekWisata::requestaccess');
 
-// Laporan Aset Pariwisata
-$routes->group('laporanpariwisata', ['filter' => 'auth'], function ($routes) {
-    $routes->get('/', 'LaporanPariwisata::index');
-    $routes->get('exportExcel', 'LaporanPariwisata::exportExcel');
-    $routes->get('exportPDF', 'LaporanPariwisata::exportPDF');
-});
 
 //DESA
 //komersial

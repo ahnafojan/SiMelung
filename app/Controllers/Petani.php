@@ -19,20 +19,70 @@ class Petani extends Controller
     }
 
     /**
-     * Menampilkan daftar petani dengan status izin untuk setiap baris.
+     * Menampilkan daftar petani dengan status izin dan pagination.
+     */
+    /**
+     * Menampilkan daftar petani dengan Caching untuk performa maksimal.
      */
     public function index()
     {
-        $data['petani'] = $this->petaniModel->orderBy('id', 'ASC')->findAll();
-        if (!empty($data['petani'])) {
-            foreach ($data['petani'] as &$p) {
-                // 'id' di sini adalah ID dari petani, bukan user_id
-                $p['can_edit'] = $this->hasActivePermission($p['id'], 'edit');
-                $p['can_delete'] = $this->hasActivePermission($p['id'], 'delete');
+        $perPage = $this->request->getVar('per_page') ?? 10;
+        $requesterId = session()->get('user_id');
+
+        // 1. Ambil data petani menggunakan paginate (Query ini tetap berjalan)
+        $petani = $this->petaniModel->orderBy('id', 'ASC')->paginate($perPage, 'petani');
+
+        $petaniIds = array_column($petani, 'id');
+        $permissions = [];
+
+        if (!empty($petaniIds) && !empty($requesterId)) {
+            // ===== MULAI OPTIMISASI CACHING =====
+
+            // 2a. Buat 'kunci' unik untuk cache ini.
+            // Kunci ini spesifik untuk user dan daftar petani di halaman ini.
+            $cacheKey = 'perms_user' . $requesterId . '_petani_' . md5(implode(',', $petaniIds));
+
+            // 2b. Coba ambil data dari cache terlebih dahulu.
+            if (! $activePermissions = cache($cacheKey)) {
+
+                // 2c. Jika tidak ada di cache (cache miss), jalankan query ke database.
+                $activePermissions = $this->permissionModel
+                    ->where('requester_id', $requesterId)
+                    ->where('target_type', 'petani')
+                    ->where('status', 'approved')
+                    ->where('expires_at >', date('Y-m-d H:i:s'))
+                    ->whereIn('target_id', $petaniIds)
+                    ->findAll();
+
+                // 2d. Simpan hasil query ke dalam cache selama 5 menit (300 detik).
+                cache()->save($cacheKey, $activePermissions, 300);
+            }
+
+            // ===== SELESAI OPTIMISASI CACHING =====
+
+            // 3. Olah data izin (baik dari cache maupun database)
+            if (!empty($activePermissions)) {
+                foreach ($activePermissions as $perm) {
+                    $permissions[$perm['target_id']][$perm['action_type']] = true;
+                }
             }
         }
 
-        echo view('admin_komersial/petani/index', $data);
+        // 4. Cek izin dengan data yang sudah siap
+        foreach ($petani as &$p) {
+            $p['can_edit'] = isset($permissions[$p['id']]['edit']);
+            $p['can_delete'] = isset($permissions[$p['id']]['delete']);
+        }
+        unset($p);
+
+        $data = [
+            'petani'      => $petani,
+            'pager'       => $this->petaniModel->pager,
+            'perPage'     => $perPage,
+            'currentPage' => $this->petaniModel->pager->getCurrentPage('petani'),
+        ];
+
+        return view('admin_komersial/petani/index', $data);
     }
 
     /**
@@ -41,14 +91,13 @@ class Petani extends Controller
      */
     public function create()
     {
-        // ... (Logika create Anda tidak berubah)
         try {
             $validation = \Config\Services::validation();
             $validation->setRules([
-                'nama'          => 'required|min_length[3]',
-                'alamat'        => 'required',
-                'no_hp'         => 'required|numeric',
-                'foto'          => 'permit_empty|uploaded[foto]|is_image[foto]|max_size[foto,2048]',
+                'nama'   => 'required|min_length[3]',
+                'alamat' => 'required',
+                'no_hp'  => 'required|numeric',
+                'foto'   => 'permit_empty|uploaded[foto]|is_image[foto]|max_size[foto,2048]',
             ]);
 
             if (!$this->validate($validation->getRules())) {
@@ -65,6 +114,14 @@ class Petani extends Controller
             if ($fotoFile && $fotoFile->isValid()) {
                 $fotoName = $fotoFile->getRandomName();
                 $fotoFile->move('uploads/foto_petani', $fotoName);
+
+                // ===== MULAI OPTIMASI GAMBAR =====
+                $imagePath = 'uploads/foto_petani/' . $fotoName;
+                \Config\Services::image()
+                    ->withFile($imagePath)
+                    ->resize(600, 600, true, 'height') // Resize gambar dengan lebar maks 600px
+                    ->save($imagePath, 75);             // Simpan dengan kualitas 75%
+                // ===== SELESAI OPTIMASI GAMBAR =====
             }
 
             $this->petaniModel->save([
@@ -86,27 +143,23 @@ class Petani extends Controller
     }
 
     /**
-     * Memperbarui data petani, dengan pemeriksaan izin terlebih dahulu.
+     * Memperbarui data petani dengan optimasi gambar.
      */
     public function postUpdate()
     {
         $id = $this->request->getPost('id');
 
-        // ======== PEMERIKSAAN IZIN DITAMBAHKAN DI SINI ========
         if (!$this->hasActivePermission($id, 'edit')) {
             session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengedit data ini.');
             return redirect()->to('/petani');
         }
-        // =======================================================
 
         $petaniLama = $this->petaniModel->find($id);
-
         if (!$petaniLama) {
             session()->setFlashdata('error', 'Data petani tidak ditemukan');
             return redirect()->to('/petani');
         }
 
-        // ... (Sisa logika validasi dan update Anda tidak berubah)
         $validation = \Config\Services::validation();
         $validation->setRules([
             'nama'   => 'required|min_length[3]',
@@ -132,6 +185,15 @@ class Petani extends Controller
         if ($fotoFile && $fotoFile->isValid() && !$fotoFile->hasMoved()) {
             $fotoName = $fotoFile->getRandomName();
             $fotoFile->move(FCPATH . 'uploads/foto_petani', $fotoName);
+
+            // ===== MULAI OPTIMASI GAMBAR =====
+            $imagePath = FCPATH . 'uploads/foto_petani/' . $fotoName;
+            \Config\Services::image()
+                ->withFile($imagePath)
+                ->resize(600, 600, true, 'height') // Resize gambar dengan lebar maks 600px
+                ->save($imagePath, 75);             // Simpan dengan kualitas 75%
+            // ===== SELESAI OPTIMASI GAMBAR =====
+
             if (!empty($petaniLama['foto']) && file_exists(FCPATH . 'uploads/foto_petani/' . $petaniLama['foto'])) {
                 unlink(FCPATH . 'uploads/foto_petani/' . $petaniLama['foto']);
             }

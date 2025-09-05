@@ -1,6 +1,12 @@
 <?= $this->extend('layouts/main_layout_admin') ?>
 <?= $this->section('content') ?>
 
+<?php
+// Memberikan nilai default untuk mencegah error
+$currentPage = $currentPage ?? 1;
+$perPage = $perPage ?? 10;
+?>
+
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -31,9 +37,10 @@
                     </thead>
                     <tbody>
                         <?php if (!empty($asets)) : ?>
-                            <?php foreach ($asets as $index => $a) : ?>
+                            <?php $nomor = ($currentPage - 1) * $perPage + 1; ?>
+                            <?php foreach ($asets as $a) : ?>
                                 <tr>
-                                    <td class="text-start fw-bold"><?= $index + 1 ?></td>
+                                    <td class="text-start fw-bold"><?= $nomor++ ?></td>
                                     <td>
                                         <a href="<?= base_url('uploads/foto_aset/' . $a['foto']) ?>" data-lightbox="aset-images" data-title="<?= esc($a['nama_aset']) ?>">
                                             <img src="<?= base_url('uploads/foto_aset/' . $a['foto']) ?>" alt="<?= esc($a['nama_aset']) ?>" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;">
@@ -123,6 +130,48 @@
                 </table>
             </div>
         </div>
+
+        <!-- =============================================================== -->
+        <!-- BLOK PAGINATION -->
+        <!-- =============================================================== -->
+        <?php if (isset($pager) && $pager->getPageCount('asets') > 1): ?>
+            <div class="card-footer">
+                <div class="pagination-wrapper">
+                    <form method="get" class="per-page-selector">
+                        <label class="per-page-label">
+                            <i class="fas fa-list-ul mr-2"></i> Tampilkan
+                        </label>
+                        <div class="dropdown-container">
+                            <select name="per_page" class="per-page-select" onchange="this.form.submit()">
+                                <option value="10" <?= ($perPage == 10 ? 'selected' : '') ?>>10</option>
+                                <option value="25" <?= ($perPage == 25 ? 'selected' : '') ?>>25</option>
+                                <option value="100" <?= ($perPage == 100 ? 'selected' : '') ?>>100</option>
+                            </select>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </div>
+                        <span class="per-page-suffix">data per halaman</span>
+                    </form>
+
+                    <nav class="pagination-nav" aria-label="Navigasi Halaman">
+                        <?= $pager->links('asets', 'custom_pagination_template') ?>
+                    </nav>
+
+                    <div class="page-info">
+                        <span class="info-text">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <?php
+                            $totalItems = $pager->getTotal('asets');
+                            $startItem  = ($currentPage - 1) * $perPage + 1;
+                            $endItem    = min($currentPage * $perPage, $totalItems);
+                            ?>
+                            Menampilkan <?= $startItem ?>-<?= $endItem ?> dari <?= $totalItems ?> total data
+                        </span>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+        <!-- =============================================================== -->
+
     </div>
 </div>
 
@@ -133,7 +182,6 @@
     <div class="modal-dialog modal-lg">
         <form id="formEditAset" method="post" enctype="multipart/form-data">
             <?= csrf_field() ?>
-            <!-- <input type="hidden" name="_method" value="PUT"> --> <!-- Method Spoofing DIHAPUS agar cocok dengan route POST -->
             <div class="modal-content shadow">
                 <div class="modal-header bg-warning">
                     <h5 class="modal-title text-dark" id="modalEditAsetLabel">Edit Data Aset</h5>
@@ -219,6 +267,86 @@
         </form>
     </div>
 </div>
+
+<style>
+    /* CSS UNTUK PAGINATION KUSTOM */
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .per-page-selector,
+    .page-info,
+    .pagination-nav {
+        display: flex;
+        align-items: center;
+    }
+
+    .per-page-selector {
+        gap: 0.5rem;
+        color: #6c757d;
+    }
+
+    .dropdown-container {
+        position: relative;
+    }
+
+    .per-page-select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 0.375rem 1.75rem 0.375rem 0.75rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+
+    .dropdown-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #6c757d;
+    }
+
+    .page-info {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .pagination-nav .pagination {
+        margin: 0;
+    }
+
+    .pagination-nav .page-item .page-link {
+        color: #007bff;
+    }
+
+    .pagination-nav .page-item.active .page-link {
+        z-index: 3;
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    @media (max-width: 768px) {
+        .pagination-wrapper {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pagination-nav {
+            order: -1;
+        }
+    }
+</style>
 
 <!-- Mengirim data PHP ke JavaScript -->
 <script>

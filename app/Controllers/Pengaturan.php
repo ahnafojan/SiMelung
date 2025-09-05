@@ -114,4 +114,38 @@ class Pengaturan extends BaseController
 
         return redirect()->to('/pengaturan/bumdes')->with('success', 'Pengaturan BUMDES berhasil diperbarui.');
     }
+    public function pariwisata()
+    {
+        $pengaturan = $this->pengaturanModel->findAll();
+        $dataPengaturan = [];
+        foreach ($pengaturan as $item) {
+            $dataPengaturan[$item['meta_key']] = $item['meta_value'];
+        }
+
+        $data = [
+            'title' => 'Pengaturan Laporan Pariwisata',
+            'pengaturan' => $dataPengaturan
+        ];
+        return view('pengaturan/pariwisata', $data);
+    }
+
+    public function updatePariwisata()
+    {
+        $dataToUpdate = $this->request->getPost();
+
+        foreach ($dataToUpdate as $key => $value) {
+            // DIUBAH: Menambahkan 'nama_pokdarwis' agar bisa disimpan
+            if (in_array($key, ['lokasi_laporan', 'ketua_pokdarwis', 'nama_pokdarwis'])) {
+                // Cek jika key sudah ada
+                $exists = $this->pengaturanModel->where('meta_key', $key)->first();
+                if ($exists) {
+                    $this->pengaturanModel->where('meta_key', $key)->set(['meta_value' => $value])->update();
+                } else {
+                    $this->pengaturanModel->insert(['meta_key' => $key, 'meta_value' => $value]);
+                }
+            }
+        }
+
+        return redirect()->to('/pengaturan/pariwisata')->with('success', 'Pengaturan Pariwisata berhasil diperbarui.');
+    }
 }

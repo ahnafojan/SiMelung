@@ -86,9 +86,10 @@
                 </thead>
                 <tbody>
                     <?php if (!empty($petani)): ?>
-                        <?php foreach ($petani as $index => $row): ?>
+                        <?php $nomor = ($currentPage - 1) * $perPage + 1; ?>
+                        <?php foreach ($petani as $row): ?>
                             <tr class="align-middle">
-                                <td><?= $index + 1 ?></td>
+                                <td><?= $nomor++ ?></td>
                                 <td><?= esc($row['user_id']) ?></td>
                                 <td><?= esc($row['nama']) ?></td>
                                 <td><?= esc($row['alamat']) ?></td>
@@ -159,17 +160,62 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- =============================================================== -->
+        <!-- BLOK PAGINATION (DEBUG MODE: SELALU TAMPIL) -->
+        <!-- Saya mengubah kondisi if di bawah ini -->
+        <!-- =============================================================== -->
+        <?php if (isset($pager)): ?>
+            <div class="card-footer">
+                <!-- DEBUG INFO: Total Data: <?= $pager->getTotal('petani') ?>, Jumlah Halaman: <?= $pager->getPageCount('petani') ?> -->
+                <div class="pagination-wrapper">
+                    <form method="get" class="per-page-selector">
+                        <label class="per-page-label">
+                            <i class="fas fa-list-ul mr-2"></i> Tampilkan
+                        </label>
+                        <div class="dropdown-container">
+                            <select name="per_page" class="per-page-select" onchange="this.form.submit()">
+                                <option value="10" <?= ($perPage == 10 ? 'selected' : '') ?>>10</option>
+                                <option value="25" <?= ($perPage == 25 ? 'selected' : '') ?>>25</option>
+                                <option value="100" <?= ($perPage == 100 ? 'selected' : '') ?>>100</option>
+                            </select>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </div>
+                        <span class="per-page-suffix">data per halaman</span>
+                    </form>
+
+                    <nav class="pagination-nav" aria-label="Navigasi Halaman">
+                        <?= $pager->links('petani', 'custom_pagination_template') ?>
+                    </nav>
+
+                    <div class="page-info">
+                        <span class="info-text">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <?php
+                            $totalItems = $pager->getTotal('petani');
+                            $startItem  = ($currentPage - 1) * $perPage + 1;
+                            $endItem    = min($currentPage * $perPage, $totalItems);
+                            ?>
+                            Menampilkan <?= $startItem ?>-<?= $endItem ?> dari <?= $totalItems ?> total petani
+                        </span>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+        <!-- =============================================================== -->
+
     </div>
 
     <div class="d-block d-lg-none">
         <?php if (!empty($petani)): ?>
-            <?php foreach ($petani as $index => $row): ?>
+            <?php $nomor = ($currentPage - 1) * $perPage + 1; ?>
+            <?php foreach ($petani as $row): ?>
                 <div class="card shadow mb-3">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-2">
                             <?php if (!empty($row['foto'])): ?>
                                 <img src="<?= base_url('uploads/foto_petani/' . esc($row['foto'])) ?>"
-                                    alt="Foto Petani" class="rounded mr-2" style="width:60px; height:60px; object-fit:cover;">
+                                    alt="Foto Petani" class="rounded mr-2" loading="lazy" style="width:60px; height:60px; object-fit:cover;">
                             <?php endif; ?>
                             <div>
                                 <h6 class="mb-0"><?= esc($row['nama']) ?></h6>
@@ -228,6 +274,21 @@
                     </div>
                 </div>
             <?php endforeach; ?>
+
+            <!-- =============================================================== -->
+            <!-- PAGINATION UNTUK TAMPILAN MOBILE -->
+            <!-- =============================================================== -->
+            <?php if (isset($pager)): ?>
+                <div class="card shadow">
+                    <div class="card-footer">
+                        <div class="pagination-wrapper">
+                            <?= $pager->links('petani', 'custom_pagination_template') ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+            <!-- =============================================================== -->
+
         <?php else: ?>
             <p class="text-center">Tidak ada data petani</p>
         <?php endif; ?>
@@ -316,6 +377,100 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* CSS UNTUK PAGINATION KUSTOM */
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .per-page-selector,
+    .page-info,
+    .pagination-nav {
+        display: flex;
+        align-items: center;
+    }
+
+    .per-page-selector {
+        gap: 0.5rem;
+        color: #6c757d;
+    }
+
+    .dropdown-container {
+        position: relative;
+    }
+
+    .per-page-select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 0.375rem 1.75rem 0.375rem 0.75rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+
+    .dropdown-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #6c757d;
+    }
+
+    .page-info {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .pagination-nav .pagination {
+        margin: 0;
+    }
+
+    .pagination-nav .page-item .page-link {
+        color: #007bff;
+    }
+
+    .pagination-nav .page-item.active .page-link {
+        z-index: 3;
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    /* Responsif */
+    @media (max-width: 991.98px) {
+
+        /* target lg breakpoint */
+        .pagination-wrapper {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pagination-nav {
+            order: -1;
+            /* Pindahkan navigasi ke atas di layar kecil */
+        }
+
+        .per-page-selector,
+        .page-info {
+            display: none;
+            /* Sembunyikan per-page dan info di mobile */
+        }
+
+        .d-lg-none .pagination-wrapper {
+            justify-content: center;
+        }
+    }
+</style>
 
 <script>
     $(function() {

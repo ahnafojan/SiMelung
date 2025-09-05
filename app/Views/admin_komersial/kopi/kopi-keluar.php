@@ -1,4 +1,5 @@
 <?= $this->extend('layouts/main_layout_admin') ?>
+
 <?= $this->section('content') ?>
 <div class="container-fluid py-4">
 
@@ -142,9 +143,10 @@
                 </thead>
                 <tbody>
                     <?php if (!empty($kopikeluar)): ?>
-                        <?php foreach ($kopikeluar as $index => $k): ?>
+                        <?php $nomor = ($currentPage - 1) * $perPage + 1; ?>
+                        <?php foreach ($kopikeluar as $k): ?>
                             <tr>
-                                <td><?= $index + 1 ?></td>
+                                <td><?= $nomor++ ?></td>
                                 <td><?= esc($k['nama_pohon'] ?? '-') ?></td>
                                 <td><?= esc($k['tujuan']) ?></td>
                                 <td class="text-right"><?= number_format($k['jumlah'], 2, ',', '.') ?> Kg</td>
@@ -221,12 +223,140 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- =============================================================== -->
+        <!-- BLOK PAGINATION (DEBUG MODE DIAKTIFKAN) -->
+        <!-- =============================================================== -->
+        <?php if (isset($pager)): ?>
+            <div class="card-footer">
+                <!-- DEBUG INFO (Lihat di source code halaman): Total Data: <?= $pager->getTotal('kopikeluar') ?>, Jumlah Halaman: <?= $pager->getPageCount('kopikeluar') ?> -->
+                <div class="pagination-wrapper">
+                    <!-- Per Page Selector -->
+                    <form method="get" class="per-page-selector">
+                        <label class="per-page-label">
+                            <i class="fas fa-list-ul mr-2"></i>
+                            Tampilkan
+                        </label>
+                        <div class="dropdown-container">
+                            <select name="per_page" class="per-page-select" onchange="this.form.submit()">
+                                <option value="10" <?= ($perPage == 10 ? 'selected' : '') ?>>10</option>
+                                <option value="25" <?= ($perPage == 25 ? 'selected' : '') ?>>25</option>
+                                <option value="100" <?= ($perPage == 100 ? 'selected' : '') ?>>100</option>
+                            </select>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </div>
+                        <span class="per-page-suffix">data per halaman</span>
+                    </form>
+
+                    <!-- Pagination Navigation -->
+                    <nav class="pagination-nav" aria-label="Navigasi Halaman">
+                        <?= $pager->links('kopikeluar', 'custom_pagination_template') ?>
+                    </nav>
+
+                    <!-- Page Info -->
+                    <div class="page-info">
+                        <span class="info-text">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <?php
+                            $totalItems = $pager->getTotal('kopikeluar');
+                            $startItem  = ($currentPage - 1) * $perPage + 1;
+                            $endItem    = min($currentPage * $perPage, $totalItems);
+                            ?>
+                            Menampilkan <?= $startItem ?>-<?= $endItem ?> dari <?= $totalItems ?> total data
+                        </span>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+        <!-- =============================================================== -->
+
     </div>
 </div>
 
+<style>
+    /* CSS UNTUK PAGINATION KUSTOM */
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .per-page-selector,
+    .page-info,
+    .pagination-nav {
+        display: flex;
+        align-items: center;
+    }
+
+    .per-page-selector {
+        gap: 0.5rem;
+        color: #6c757d;
+    }
+
+    .dropdown-container {
+        position: relative;
+    }
+
+    .per-page-select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 0.375rem 1.75rem 0.375rem 0.75rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+
+    .dropdown-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #6c757d;
+    }
+
+    .page-info {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .pagination-nav .pagination {
+        margin: 0;
+    }
+
+    .pagination-nav .page-item .page-link {
+        color: #007bff;
+    }
+
+    .pagination-nav .page-item.active .page-link {
+        z-index: 3;
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    /* Responsif */
+    @media (max-width: 768px) {
+        .pagination-wrapper {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pagination-nav {
+            order: -1;
+            /* Pindahkan navigasi ke atas di layar kecil */
+        }
+    }
+</style>
+
 <!-- =============================================================================== -->
-<!-- GANTI BLOK SCRIPT LAMA ANDA DENGAN YANG INI -->
-<!-- Letakkan skrip ini di tempat yang sama seperti sebelumnya (di dalam HTML, sebelum endSection) -->
+<!-- SCRIPT LAMA ANDA -->
 <!-- =============================================================================== -->
 <script>
     $(document).ready(function() {

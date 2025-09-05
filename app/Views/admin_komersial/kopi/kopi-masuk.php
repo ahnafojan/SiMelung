@@ -37,7 +37,7 @@
                             <label>Nama Petani</label>
                             <select id="petani" name="petani_user_id" class="form-control" required>
                                 <option value="">-- Pilih Petani --</option>
-                                <?php foreach ($petani as $p): ?>
+                                <?php foreach ($petani as $p) : ?>
                                     <option value="<?= $p['user_id'] ?>">
                                         <?= $p['user_id'] ?> - <?= $p['nama'] ?>
                                     </option>
@@ -58,10 +58,7 @@
                         <!-- Input Jumlah -->
                         <div class="form-group">
                             <label for="jumlah">Jumlah (Kg)</label>
-                            <input type="number" step="0.01" min="0"
-                                class="form-control"
-                                id="jumlah" name="jumlah"
-                                placeholder="Masukkan jumlah kopi Kg">
+                            <input type="number" step="0.01" min="0" class="form-control" id="jumlah" name="jumlah" placeholder="Masukkan jumlah kopi Kg">
                         </div>
 
 
@@ -105,10 +102,14 @@
                     </tr>
                 </thead>
                 <tbody class="text-center">
-                    <?php if (!empty($kopiMasuk)): ?>
-                        <?php foreach ($kopiMasuk as $index => $k): ?>
+                    <?php if (!empty($kopiMasuk)) : ?>
+                        <?php
+                        // Inisialisasi nomor urut berdasarkan halaman saat ini
+                        $nomor = ($currentPage - 1) * $perPage + 1;
+                        ?>
+                        <?php foreach ($kopiMasuk as $k) : ?>
                             <tr>
-                                <td><?= $index + 1 ?></td>
+                                <td><?= $nomor++ ?></td> <!-- Gunakan nomor yang sudah dihitung -->
                                 <td><?= esc($k['nama_petani']) ?></td>
                                 <td><?= esc($k['nama_pohon']) ?></td>
                                 <td><?= esc($k['tanggal']) ?></td>
@@ -117,26 +118,22 @@
                                 <td><?= esc($k['keterangan']) ?></td>
                                 <td>
                                     <div class="btn-group">
-                                        <?php if ($k['can_edit']): ?>
+                                        <?php if ($k['can_edit']) : ?>
                                             <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modalEditKopi<?= $k['id'] ?>">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                        <?php else: ?>
-                                            <button class="btn btn-sm btn-outline-warning btn-request-access"
-                                                data-kopimasuk-id="<?= $k['id'] ?>"
-                                                data-action-type="edit" title="Minta Izin Edit">
+                                        <?php else : ?>
+                                            <button class="btn btn-sm btn-outline-warning btn-request-access" data-kopimasuk-id="<?= $k['id'] ?>" data-action-type="edit" title="Minta Izin Edit">
                                                 <i class="fas fa-lock"></i>
                                             </button>
                                         <?php endif; ?>
 
-                                        <?php if ($k['can_delete']): ?>
+                                        <?php if ($k['can_delete']) : ?>
                                             <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalHapusKopi<?= $k['id'] ?>">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        <?php else: ?>
-                                            <button class="btn btn-sm btn-outline-danger btn-request-access"
-                                                data-kopimasuk-id="<?= $k['id'] ?>"
-                                                data-action-type="delete" title="Minta Izin Hapus">
+                                        <?php else : ?>
+                                            <button class="btn btn-sm btn-outline-danger btn-request-access" data-kopimasuk-id="<?= $k['id'] ?>" data-action-type="delete" title="Minta Izin Hapus">
                                                 <i class="fas fa-lock"></i>
                                             </button>
                                         <?php endif; ?>
@@ -160,7 +157,7 @@
                                                 <div class="form-group">
                                                     <label>Nama Petani</label>
                                                     <select name="petani_user_id" class="form-control">
-                                                        <?php foreach ($petani as $p): ?>
+                                                        <?php foreach ($petani as $p) : ?>
                                                             <option value="<?= $p['user_id'] ?>" <?= $p['user_id'] == $k['petani_user_id'] ? 'selected' : '' ?>>
                                                                 <?= $p['user_id'] ?> - <?= $p['nama'] ?>
                                                             </option>
@@ -232,16 +229,135 @@
                             </div>
 
                         <?php endforeach; ?>
-                    <?php else: ?>
+                    <?php else : ?>
                         <tr>
-                            <td colspan="6" class="text-center">Belum ada data</td>
+                            <td colspan="8" class="text-center">Belum ada data</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
+        <!-- Blok Pagination Kustom -->
+        <div class="card-footer">
+            <?php if (isset($pager) && $pager->getPageCount() > 1) : ?>
+                <div class="pagination-wrapper">
+                    <!-- Per Page Selector -->
+                    <form method="get" class="per-page-selector">
+                        <label class="per-page-label">
+                            <i class="fas fa-list-ul mr-2"></i>
+                            Tampilkan
+                        </label>
+                        <div class="dropdown-container">
+                            <select name="per_page" class="per-page-select" onchange="this.form.submit()">
+                                <option value="10" <?= ($perPage == 10 ? 'selected' : '') ?>>10</option>
+                                <option value="25" <?= ($perPage == 25 ? 'selected' : '') ?>>25</option>
+                                <option value="100" <?= ($perPage == 100 ? 'selected' : '') ?>>100</option>
+                            </select>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </div>
+                        <span class="per-page-suffix">data per halaman</span>
+                    </form>
+
+                    <!-- Pagination Navigation -->
+                    <nav class="pagination-nav" aria-label="Navigasi Halaman">
+                        <?= $pager->links('default', 'custom_pagination_template') ?>
+                    </nav>
+
+                    <!-- Page Info -->
+                    <div class="page-info">
+                        <span class="info-text">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <?php
+                            $totalItems = $pager->getTotal();
+                            $startItem = (($currentPage - 1) * $perPage) + 1;
+                            $endItem = min($currentPage * $perPage, $totalItems);
+                            ?>
+                            Menampilkan <?= $startItem ?>-<?= $endItem ?> dari <?= $totalItems ?> total data
+                        </span>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 </div>
+
+<style>
+    /* Tambahkan CSS ini di file CSS utama Anda atau di tag <style> di layout */
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 1rem 0;
+    }
+
+    .per-page-selector,
+    .page-info,
+    .pagination-nav {
+        margin: 0.5rem;
+    }
+
+    .per-page-selector {
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .per-page-label,
+    .per-page-suffix {
+        margin: 0 0.5rem;
+    }
+
+    .dropdown-container {
+        position: relative;
+    }
+
+    .per-page-select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 0.375rem 1.75rem 0.375rem 0.75rem;
+        cursor: pointer;
+    }
+
+    .dropdown-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #6c757d;
+    }
+
+    .page-info {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .pagination-nav .pagination {
+        margin-bottom: 0;
+    }
+
+    .pagination .page-item.active .page-link {
+        z-index: 3;
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .pagination .page-link {
+        color: #007bff;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d;
+    }
+</style>
+
 <script>
     $(document).ready(function() {
         // ------------------------------
@@ -271,8 +387,15 @@
         // ------------------------------
         $('.modal').on('shown.bs.modal', function() {
             let $jenisPohon = $(this).find('.jenis-pohon-dropdown');
+            if (!$jenisPohon.length) return; // Keluar jika dropdown tidak ada di modal ini
+
             let petaniId = $jenisPohon.data('petani'); // user_id petani
             let selectedId = $jenisPohon.data('selected'); // id pohon yang tersimpan
+
+            // Cek jika sudah diisi, jangan di-load ulang
+            if ($jenisPohon.find('option').length > 1) {
+                return;
+            }
 
             if (petaniId) {
                 $.getJSON("<?= base_url('get-jenis-pohon') ?>/" + petaniId, function(data) {
@@ -308,13 +431,10 @@
                 $jenisPohon.html('<option value="">-- Pilih Jenis Pohon --</option>').prop('disabled', true);
             }
         });
-    });
-</script>
-<script>
-    $(document).ready(function() {
-        // ... (script Anda yang sudah ada untuk dropdown biarkan saja)
 
-        // SCRIPT BARU UNTUK PERMINTAAN IZIN
+        // ------------------------------
+        // SCRIPT UNTUK PERMINTAAN IZIN
+        // ------------------------------
         $('.btn-request-access').on('click', function() {
             const button = $(this);
             const kopiMasukId = button.data('kopimasuk-id');

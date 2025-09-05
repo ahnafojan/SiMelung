@@ -36,7 +36,10 @@ class PersetujuanKomersial extends BaseController
                 'jp_keluar.nama_jenis as kopikeluar_jenis_kopi',
                 'jp_master.nama_jenis as jenispohon_target_name',
                 'aset.nama_aset as aset_target_name',
-                'aset.kode_aset as aset_target_kode'
+                'aset.kode_aset as aset_target_kode',
+                // ▼▼▼ KOLOM BARU UNTUK ASET PARIWISATA (DIPERBAIKI) ▼▼▼
+                'aset_p.nama_pariwisata as aset_pariwisata_target_name',
+                'wisata.nama_wisata as aset_pariwisata_lokasi'
             ])
             // Join ke tabel users untuk mendapatkan nama pemohon
             ->join('users', 'users.id = permission_requests.requester_id', 'left')
@@ -55,12 +58,20 @@ class PersetujuanKomersial extends BaseController
             //kopi keluar 
             ->join('kopi_keluar as k_keluar', 'k_keluar.id = permission_requests.target_id AND permission_requests.target_type = "kopi_keluar"', 'left')
             ->join('stok_kopi as sk', 'sk.id = k_keluar.stok_kopi_id', 'left')
+
             ->join('jenis_pohon as jp_keluar', 'jp_keluar.id = sk.jenis_pohon_id', 'left')
             // **JOIN BARU** untuk target 'jenis_pohon'
             ->join('jenis_pohon as jp_master', 'jp_master.id = permission_requests.target_id AND permission_requests.target_type = "jenis_pohon"', 'left')
             //aset
             ->join('master_aset as aset', 'aset.id_aset = permission_requests.target_id AND permission_requests.target_type = "aset"', 'left')
-
+            // ▼▼▼ JOIN UNTUK ASET PARIWISATA (VERSI PALING STABIL) ▼▼▼
+            // Langkah 1: Hubungkan permission_requests ke aset_pariwisata
+            ->join('aset_pariwisata as aset_p', 'aset_p.id = permission_requests.target_id AND permission_requests.target_type = "aset_pariwisata"', 'left')
+            // Langkah 2: Hubungkan hasil dari join pertama (aset_p) ke tabel pivot
+            ->join('aset_wisata', 'aset_wisata.aset_id = aset_p.id', 'left')
+            // Langkah 3: Hubungkan tabel pivot ke tabel objek_wisata untuk mendapatkan nama
+            ->join('objek_wisata as wisata', 'wisata.id = aset_wisata.wisata_id', 'left')
+            // ▲▲▲ AKHIR DARI PERBAIKAN JOIN ▲▲▲
             ->where('permission_requests.status', 'pending')
             ->orderBy('permission_requests.created_at', 'DESC')
             ->findAll();

@@ -28,15 +28,13 @@ class KopiKeluar extends BaseController
 
     public function index()
     {
-        // QUERY DIPERBARUI untuk mengambil sisa stok terkini per jenis kopi
-        $kopikeluar = $this->kopiKeluarModel
-            ->select('kopi_keluar.*, jenis_pohon.nama_jenis as nama_pohon, stok_kopi.stok as sisa_stok_jenis')
-            ->join('stok_kopi', 'kopi_keluar.stok_kopi_id = stok_kopi.id', 'left')
-            ->join('jenis_pohon', 'jenis_pohon.id = stok_kopi.jenis_pohon_id', 'left')
-            ->orderBy('kopi_keluar.tanggal', 'DESC')
-            ->orderBy('kopi_keluar.id', 'DESC')
-            ->findAll();
+        // Ambil jumlah item per halaman dari URL, default-nya 10
+        $perPage = $this->request->getVar('per_page') ?? 10;
 
+        // Ambil data menggunakan method pagination yang baru dibuat di model
+        $kopikeluar = $this->kopiKeluarModel->getAllWithPagination($perPage);
+
+        // Cek izin untuk setiap item di halaman saat ini
         if (!empty($kopikeluar)) {
             foreach ($kopikeluar as &$kopi) {
                 $kopi['can_edit']   = $this->hasActivePermission($kopi['id'], 'edit');
@@ -44,15 +42,19 @@ class KopiKeluar extends BaseController
             }
         }
 
+        // Kalkulasi total stok (logika ini tetap sama)
         $totalMasuk = $this->kopiMasukModel->selectSum('jumlah')->first()['jumlah'] ?? 0;
         $totalKeluar = $this->kopiKeluarModel->selectSum('jumlah')->first()['jumlah'] ?? 0;
         $stok = $totalMasuk - $totalKeluar;
 
         $data = [
-            'title'      => 'Data Kopi Keluar',
-            'kopikeluar' => $kopikeluar,
-            'stokKopi'   => $this->stokKopiModel->getWithJenis(),
-            'stok'       => $stok
+            'title'       => 'Data Kopi Keluar',
+            'kopikeluar'  => $kopikeluar,
+            'stokKopi'    => $this->stokKopiModel->getWithJenis(),
+            'stok'        => $stok,
+            'pager'       => $this->kopiKeluarModel->pager, // Mengambil objek pager
+            'perPage'     => $perPage, // Mengirimkan nilai perPage ke view
+            'currentPage' => $this->kopiKeluarModel->pager->getCurrentPage('kopikeluar'), // Mengambil halaman saat ini
         ];
         return view('admin_komersial/kopi/kopi-keluar', $data);
     }

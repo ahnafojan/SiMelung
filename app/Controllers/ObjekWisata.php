@@ -1,0 +1,184 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Models\ObjekWisataModel;
+use App\Models\PermissionRequestModel; // PASTIKAN ANDA MEMBUAT MODEL INI
+use CodeIgniter\Exceptions\PageNotFoundException;
+
+class ObjekWisata extends BaseController
+{
+    protected $wisataModel;
+    protected $permissionModel;
+
+    /**
+     * Menginisialisasi model yang akan digunakan.
+     */
+    public function __construct()
+    {
+        $this->wisataModel = new ObjekWisataModel();
+        // Diasumsikan Anda sudah membuat PermissionRequestModel
+        // Jika belum, Anda harus membuatnya sesuai dengan logika di controller AsetPariwisata
+        $this->permissionModel = new PermissionRequestModel();
+        helper(['date']);
+    }
+
+    /**
+     * Menampilkan halaman utama manajemen objek wisata dengan pagination dan permission.
+     */
+    public function index()
+    {
+        // Ambil parameter pagination dari URL
+        $perPage = $this->request->getGet('per_page') ?? 10;
+        $perPage = in_array($perPage, [10, 25, 100]) ? $perPage : 10;
+
+        // Query dengan pagination
+        $list_wisata = $this->wisataModel->orderBy('nama_wisata', 'ASC')->paginate($perPage, 'default');
+        $pager = $this->wisataModel->pager;
+
+        // Tambahkan flag can_edit dan can_delete ke setiap item wisata
+        if (!empty($list_wisata)) {
+            foreach ($list_wisata as &$wisata) {
+                // Panggil helper untuk cek izin
+                $wisata['can_edit']   = $this->hasActivePermission($wisata['id'], 'edit');
+                $wisata['can_delete'] = $this->hasActivePermission($wisata['id'], 'delete');
+            }
+        }
+
+        $data = [
+            'title'       => 'Manajemen Objek Wisata',
+            'list_wisata' => $list_wisata,
+            'pager'       => $pager,
+            'currentPage' => $pager->getCurrentPage(),
+            'perPage'     => $perPage,
+        ];
+        return view('admin_pariwisata/objek_pariwisata', $data);
+    }
+
+    /**
+     * Menyimpan data baru atau memperbarui data yang ada dengan cek izin.
+     */
+    public function store()
+    {
+        $id = $this->request->getPost('id');
+
+        // Jika ini adalah operasi UPDATE, cek izin terlebih dahulu
+        if (!empty($id) && !$this->hasActivePermission($id, 'edit')) {
+            return redirect()->to('/objekwisata')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengedit data ini.');
+        }
+
+        $data = [
+            'nama_wisata' => $this->request->getPost('nama_wisata'),
+            'lokasi'      => $this->request->getPost('lokasi'),
+            'deskripsi'   => $this->request->getPost('deskripsi'),
+        ];
+
+        // Jika ada ID, tambahkan ke data untuk operasi update
+        if (!empty($id)) {
+            $data['id'] = $id;
+        }
+
+        if (empty($data['nama_wisata']) || empty($data['lokasi'])) {
+            return redirect()->back()->withInput()->with('error', 'Nama wisata dan lokasi wajib diisi.');
+        }
+
+        if ($this->wisataModel->save($data)) {
+            $message = !empty($id) ? 'Data objek wisata berhasil diperbarui.' : 'Data objek wisata baru berhasil ditambahkan.';
+            return redirect()->to('/objekwisata')->with('success', $message);
+        } else {
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan data.');
+        }
+    }
+
+    /**
+     * Menghapus data objek wisata dengan cek izin.
+     */
+    public function delete($id = null)
+    {
+        if (!$id) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+
+        // PENTING: Cek izin sebelum menghapus
+        if (!$this->hasActivePermission($id, 'delete')) {
+            return redirect()->to('/objekwisata')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk menghapus data ini.');
+        }
+
+        // Tambahkan validasi lain jika diperlukan di sini
+        // ...
+
+        if ($this->wisataModel->delete($id)) {
+            return redirect()->to('/objekwisata')->with('success', 'Data objek wisata berhasil dihapus.');
+        } else {
+            return redirect()->to('/objekwisata')->with('error', 'Gagal menghapus data.');
+        }
+    }
+
+    /**
+     * Menangani permintaan izin via AJAX.
+     */
+    public function requestAccess()
+    {
+        if ($this->request->isAJAX()) {
+            $wisataId = $this->request->getPost('wisata_id');
+            $action = $this->request->getPost('action_type');
+            $requesterId = session()->get('user_id'); // Pastikan 'user_id' ada di session
+
+            if (empty($requesterId)) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Sesi tidak valid.'])->setStatusCode(401);
+            }
+
+            // Cek apakah sudah ada permintaan yang sama dan masih pending
+            $existing = $this->permissionModel->where([
+                'requester_id' => $requesterId,
+                'target_id'    => $wisataId,
+                'action_type'  => $action,
+                'target_type'  => 'objek_wisata', // Penting untuk membedakan target
+                'status'       => 'pending'
+            ])->first();
+
+            if ($existing) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Anda sudah mengajukan permintaan serupa.']);
+            }
+
+            // Simpan permintaan baru
+            $this->permissionModel->save([
+                'requester_id' => $requesterId,
+                'target_id'    => $wisataId,
+                'target_type'  => 'objek_wisata', // Sesuaikan dengan konteks
+                'action_type'  => $action,
+                'status'       => 'pending',
+            ]);
+
+            return $this->response->setJSON(['status' => 'success', 'message' => 'Permintaan izin berhasil dikirim.']);
+        }
+        return redirect()->back();
+    }
+
+    /**
+     * Helper untuk mengecek izin aktif yang belum kedaluwarsa.
+     */
+    private function hasActivePermission($wisataId, $action)
+    {
+        // Bypass untuk admin atau peran tertentu (opsional)
+        // if (session()->get('role') === 'admin') {
+        //     return true;
+        // }
+
+        $requesterId = session()->get('user_id');
+        if (empty($requesterId)) {
+            return false;
+        }
+
+        $permission = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $wisataId,
+            'target_type'  => 'objek_wisata',
+            'action_type'  => $action,
+            'status'       => 'approved',
+            'expires_at >' => date('Y-m-d H:i:s')
+        ])->first();
+
+        return $permission ? true : false;
+    }
+}
