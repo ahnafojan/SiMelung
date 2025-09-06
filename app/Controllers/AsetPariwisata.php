@@ -55,12 +55,12 @@ class AsetPariwisata extends BaseController
         }
 
         $data = [
-            'title'         => 'Manajemen Aset Pariwisata',
-            'asets'         => $asets,
-            'list_wisata'   => $objekWisataModel->orderBy('nama_wisata', 'ASC')->findAll(),
-            'pager'         => $pager,
-            'currentPage'   => $pager->getCurrentPage(),
-            'perPage'       => $perPage,
+            'title'       => 'Manajemen Aset Pariwisata',
+            'asets'       => $asets,
+            'list_wisata' => $objekWisataModel->orderBy('nama_wisata', 'ASC')->findAll(),
+            'pager'       => $pager,
+            'currentPage' => $pager->getCurrentPage(),
+            'perPage'     => $perPage,
         ];
 
         return view('admin_pariwisata/manajemen', $data);
@@ -95,8 +95,13 @@ class AsetPariwisata extends BaseController
 
         $nilaiPerolehan = preg_replace('/[^0-9]/', '', $this->request->getPost('nilai_perolehan'));
 
+        // ====================================================================
+        // PERBAIKAN UTAMA DI SINI
+        // Menyimpan ke 'nama_aset' dan juga 'nama_pariwisata' untuk konsistensi
+        // ====================================================================
         $asetData = [
-            'nama_pariwisata'   => $this->request->getPost('nama_aset'), // Sesuaikan dengan field di model
+            'nama_aset'       => $this->request->getPost('nama_aset'),
+            'nama_pariwisata' => $this->request->getPost('nama_aset'),
             'kode_aset'       => $this->request->getPost('kode_aset'),
             'nup'             => $this->request->getPost('nup'),
             'tahun_perolehan' => $this->request->getPost('tahun_perolehan'),
@@ -124,7 +129,6 @@ class AsetPariwisata extends BaseController
      */
     public function update($id = null)
     {
-        // Pemeriksaan izin di awal method
         if (!$this->hasActivePermission($id, 'edit')) {
             return redirect()->to('/asetpariwisata')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengedit data ini.');
         }
@@ -171,8 +175,12 @@ class AsetPariwisata extends BaseController
 
         $nilaiPerolehan = preg_replace('/[^0-9]/', '', $this->request->getPost('nilai_perolehan'));
 
+        // ====================================================================
+        // PERBAIKAN UTAMA DI SINI JUGA
+        // ====================================================================
         $asetData = [
-            'nama_pariwisata'   => $this->request->getPost('nama_aset'),
+            'nama_aset'       => $this->request->getPost('nama_aset'),
+            'nama_pariwisata' => $this->request->getPost('nama_aset'),
             'kode_aset'       => $this->request->getPost('kode_aset'),
             'nup'             => $this->request->getPost('nup'),
             'tahun_perolehan' => $this->request->getPost('tahun_perolehan'),
@@ -182,6 +190,7 @@ class AsetPariwisata extends BaseController
             'keterangan'      => $this->request->getPost('keterangan'),
             'foto_aset'       => $namaFoto,
         ];
+
         $newWisataId = $this->request->getPost('objek_wisata_id');
 
         if ($this->asetModel->updateAsetAndRelation($id, $asetData, $newWisataId, $oldWisataId)) {
@@ -196,7 +205,6 @@ class AsetPariwisata extends BaseController
      */
     public function delete($id = null)
     {
-        // Pemeriksaan izin di awal method
         if (!$this->hasActivePermission($id, 'delete')) {
             return redirect()->to('/asetpariwisata')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk menghapus data ini.');
         }

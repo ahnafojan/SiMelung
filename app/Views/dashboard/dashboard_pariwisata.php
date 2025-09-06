@@ -1,9 +1,9 @@
+<h1>HALO DARI FILE VIEW: dashboard_pariwisata.php</h1>
 <?= $this->extend('layouts/main_layout_admin') ?>
 
 <?= $this->section('content') ?>
 
 <div class="container-fluid py-4">
-    <!-- Header yang Lebih Ringkas -->
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h1 class="h3 text-dark font-weight-bolder">Dashboard Pariwisata</h1>
@@ -19,16 +19,13 @@
         </div>
     </div>
 
-    <!-- Stats Cards - Tetap sama -->
     <div class="row">
-        <!-- Jumlah Aset Card -->
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Aset</div>
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Aset</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= number_format($jumlah_aset ?? 0) ?></div>
                         </div>
                         <div class="col-auto">
@@ -39,14 +36,12 @@
             </div>
         </div>
 
-        <!-- Jumlah Lokasi Wisata Card -->
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Lokasi Wisata</div>
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Lokasi Wisata</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800"><?= number_format($jumlah_wisata ?? 0) ?></div>
                         </div>
                         <div class="col-auto">
@@ -57,14 +52,12 @@
             </div>
         </div>
 
-        <!-- Total Nilai Aset Card -->
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Total Nilai</div>
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Nilai</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">Rp <?= number_format($total_nilai ?? 0, 0, ',', '.') ?></div>
                         </div>
                         <div class="col-auto">
@@ -75,14 +68,12 @@
             </div>
         </div>
 
-        <!-- Rata-rata Nilai Card -->
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Rata-rata Nilai</div>
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Rata-rata Nilai</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">Rp <?= number_format($rata_rata_nilai ?? 0, 0, ',', '.') ?></div>
                         </div>
                         <div class="col-auto">
@@ -94,9 +85,7 @@
         </div>
     </div>
 
-    <!-- Hanya Dua Chart Utama -->
     <div class="row">
-        <!-- Bar Chart - Aset per Tahun -->
         <div class="col-xl-6 col-lg-6">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
@@ -110,7 +99,6 @@
             </div>
         </div>
 
-        <!-- Doughnut Chart - Aset per Lokasi -->
         <div class="col-xl-6 col-lg-6">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
@@ -125,7 +113,6 @@
         </div>
     </div>
 
-    <!-- Hanya Tabel Aset Terbaru -->
     <div class="row">
         <div class="col-12">
             <div class="card shadow mb-4">
@@ -147,8 +134,6 @@
                             <tbody>
                                 <?php if (!empty($aset_terbaru)): ?>
                                     <?php foreach ($aset_terbaru as $aset): ?>
-                                        <?php dd($aset); // HENTIKAN di sini 
-                                        ?>
                                         <tr>
                                             <td><?= esc($aset['nama_aset']) ?></td>
                                             <td><?= esc($aset['nama_wisata']) ?></td>
@@ -186,21 +171,15 @@
     }
 </style>
 
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Fungsi helper untuk memastikan data array aman digunakan
         function safeArray(arr) {
             return Array.isArray(arr) && arr.length ? arr : [];
         }
 
-        // Data dari Controller
         const dataTahun = safeArray(<?= json_encode($aset_per_tahun ?? []) ?>);
         const dataLokasi = safeArray(<?= json_encode($aset_per_lokasi ?? []) ?>);
-
-        // Color palette
         const colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5a5c69', '#2e59d9'];
 
         // Chart 1: Aset per Tahun (Bar Chart)

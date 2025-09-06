@@ -238,7 +238,6 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->get('keuangan/dashboard', 'DashboardController::keuangan');
     $routes->get('dashboard/dashboard_komersial', 'DashboardController::komersial');
     $routes->get('dashboard/dashboard_umkm', 'DashboardController::umkm');
-    $routes->get('dashboard/dashboard_pariwisata', 'DashboardController::pariwisata');
     //tambah user
     $routes->get('admin-user', 'AdminUserController::index');
     $routes->post('admin-user/create', 'AdminUserController::create');
@@ -297,7 +296,7 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 });
 
 // Dashboard Pariwisata
-$routes->get('dashboard/dashboard_pariwisata', 'DashboardController::pariwisata', ['filter' => 'auth']);
+$routes->get('dashboard/dashboard_pariwisata', 'DashboardPariwisata::index', ['filter' => 'auth']);
 $routes->group('asetpariwisata', ['filter' => 'auth'], function ($routes) {
     $routes->get('/', 'AsetPariwisata::index');
     $routes->post('store', 'AsetPariwisata::store');
