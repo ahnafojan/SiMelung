@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
+class ComposerStaticInit80dcc0a32fff292d51e33440a326a590
 {
     public static $files = array (
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
@@ -95,8 +95,8 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-factory/src',
-            1 => __DIR__ . '/..' . '/psr/http-message/src',
+            0 => __DIR__ . '/..' . '/psr/http-message/src',
+            1 => __DIR__ . '/..' . '/psr/http-factory/src',
         ),
         'Psr\\Http\\Client\\' => 
         array (
@@ -177,15 +177,34 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
     public static $classMap = array (
         'App\\Controllers\\AdminUserController' => __DIR__ . '/../..' . '/app/Controllers/AdminUserController.php',
         'App\\Controllers\\AsetKomersial' => __DIR__ . '/../..' . '/app/Controllers/AsetKomersial.php',
+        'App\\Controllers\\AsetPariwisata' => __DIR__ . '/../..' . '/app/Controllers/AsetPariwisata.php',
         'App\\Controllers\\AuthController' => __DIR__ . '/../..' . '/app/Controllers/AuthController.php',
         'App\\Controllers\\BaseController' => __DIR__ . '/../..' . '/app/Controllers/BaseController.php',
+        'App\\Controllers\\BkuBulanan' => __DIR__ . '/../..' . '/app/Controllers/BkuBulanan.php',
+        'App\\Controllers\\BkuTahunan' => __DIR__ . '/../..' . '/app/Controllers/BkuTahunan.php',
+        'App\\Controllers\\BumdesRekapAset' => __DIR__ . '/../..' . '/app/Controllers/BumdesRekapAset.php',
+        'App\\Controllers\\BumdesRekapKopi' => __DIR__ . '/../..' . '/app/Controllers/BumdesRekapKopi.php',
+        'App\\Controllers\\BumdesRekapPetani' => __DIR__ . '/../..' . '/app/Controllers/BumdesRekapPetani.php',
         'App\\Controllers\\DashboardAdminKomersial' => __DIR__ . '/../..' . '/app/Controllers/DashboardAdminKomersial.php',
         'App\\Controllers\\DashboardAdminUmkm' => __DIR__ . '/../..' . '/app/Controllers/DashboardAdminUmkm.php',
         'App\\Controllers\\DashboardBumdes' => __DIR__ . '/../..' . '/app/Controllers/DashboardBumdes.php',
         'App\\Controllers\\DashboardController' => __DIR__ . '/../..' . '/app/Controllers/DashboardController.php',
         'App\\Controllers\\DashboardDesa' => __DIR__ . '/../..' . '/app/Controllers/DashboardDesa.php',
+        'App\\Controllers\\DashboardKeuangan' => __DIR__ . '/../..' . '/app/Controllers/DashboardKeuangan.php',
+        'App\\Controllers\\DashboardPariwisata' => __DIR__ . '/../..' . '/app/Controllers/DashboardPariwisata.php',
+        'App\\Controllers\\DesaRekapAset' => __DIR__ . '/../..' . '/app/Controllers/DesaRekapAset.php',
+        'App\\Controllers\\DesaRekapKopi' => __DIR__ . '/../..' . '/app/Controllers/DesaRekapKopi.php',
+        'App\\Controllers\\DesaRekapPetani' => __DIR__ . '/../..' . '/app/Controllers/DesaRekapPetani.php',
+        'App\\Controllers\\ExportLaporanBumdes' => __DIR__ . '/../..' . '/app/Controllers/ExportLaporanBumdes.php',
+        'App\\Controllers\\ExportLaporanKomersial' => __DIR__ . '/../..' . '/app/Controllers/ExportLaporanKomersial.php',
+        'App\\Controllers\\History' => __DIR__ . '/../..' . '/app/Controllers/History.php',
+        'App\\Controllers\\JenisPohon' => __DIR__ . '/../..' . '/app/Controllers/JenisPohon.php',
+        'App\\Controllers\\KomersialRekapAset' => __DIR__ . '/../..' . '/app/Controllers/KomersialRekapAset.php',
+        'App\\Controllers\\KomersialRekapKopi' => __DIR__ . '/../..' . '/app/Controllers/KomersialRekapKopi.php',
+        'App\\Controllers\\KomersialRekapPetani' => __DIR__ . '/../..' . '/app/Controllers/KomersialRekapPetani.php',
         'App\\Controllers\\LandingPage' => __DIR__ . '/../..' . '/app/Controllers/LandingPage.php',
         'App\\Controllers\\LaporanArusKas' => __DIR__ . '/../..' . '/app/Controllers/LaporanArusKas.php',
+        'App\\Controllers\\LaporanAsetPariwisata' => __DIR__ . '/../..' . '/app/Controllers/LaporanAsetPariwisata.php',
         'App\\Controllers\\LaporanBumdes' => __DIR__ . '/../..' . '/app/Controllers/LaporanBumdes.php',
         'App\\Controllers\\LaporanKomersial' => __DIR__ . '/../..' . '/app/Controllers/LaporanKomersial.php',
         'App\\Controllers\\LaporanLabaRugi' => __DIR__ . '/../..' . '/app/Controllers/LaporanLabaRugi.php',
@@ -193,19 +212,44 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         'App\\Controllers\\LaporanNeraca' => __DIR__ . '/../..' . '/app/Controllers/LaporanNeraca.php',
         'App\\Controllers\\Log_aktivitas' => __DIR__ . '/../..' . '/app/Controllers/Log_aktivitas.php',
         'App\\Controllers\\ManajemenAsetKomersial' => __DIR__ . '/../..' . '/app/Controllers/ManajemenAsetKomersial.php',
+        'App\\Controllers\\MasterKategori' => __DIR__ . '/../..' . '/app/Controllers/MasterKategori.php',
+        'App\\Controllers\\MasterNeraca' => __DIR__ . '/../..' . '/app/Controllers/MasterNeraca.php',
+        'App\\Controllers\\MasterPendapatan' => __DIR__ . '/../..' . '/app/Controllers/MasterPendapatan.php',
+        'App\\Controllers\\NeracaKeuangan' => __DIR__ . '/../..' . '/app/Controllers/NeracaKeuangan.php',
+        'App\\Controllers\\ObjekWisata' => __DIR__ . '/../..' . '/app/Controllers/ObjekWisata.php',
+        'App\\Controllers\\Pengaturan' => __DIR__ . '/../..' . '/app/Controllers/Pengaturan.php',
+        'App\\Controllers\\PersetujuanKomersial' => __DIR__ . '/../..' . '/app/Controllers/PersetujuanKomersial.php',
         'App\\Controllers\\Petani' => __DIR__ . '/../..' . '/app/Controllers/Petani.php',
+        'App\\Controllers\\PetaniPohon' => __DIR__ . '/../..' . '/app/Controllers/PetaniPohon.php',
         'App\\Controllers\\Profile' => __DIR__ . '/../..' . '/app/Controllers/Profile.php',
         'App\\Controllers\\Umkm' => __DIR__ . '/../..' . '/app/Controllers/Umkm.php',
         'App\\Database\\Seeds\\PetaniSeeder' => __DIR__ . '/../..' . '/app/Database/Seeds/PetaniSeeder.php',
         'App\\Database\\Seeds\\UserSeeder' => __DIR__ . '/../..' . '/app/Database/Seeds/UserSeeder.php',
         'App\\Filters\\AuthFilter' => __DIR__ . '/../..' . '/app/Filters/AuthFilter.php',
         'App\\Models\\AsetKomersialModel' => __DIR__ . '/../..' . '/app/Models/AsetKomersialModel.php',
+        'App\\Models\\AsetPariwisataModel' => __DIR__ . '/../..' . '/app/Models/AsetPariwisataModel.php',
+        'App\\Models\\BkuBulananModel' => __DIR__ . '/../..' . '/app/Models/BkuBulananModel.php',
+        'App\\Models\\DetailAlokasiModel' => __DIR__ . '/../..' . '/app/Models/DetailAlokasiModel.php',
+        'App\\Models\\DetailNeracaModel' => __DIR__ . '/../..' . '/app/Models/DetailNeracaModel.php',
+        'App\\Models\\DetailPendapatanModel' => __DIR__ . '/../..' . '/app/Models/DetailPendapatanModel.php',
+        'App\\Models\\DetailPengeluaranModel' => __DIR__ . '/../..' . '/app/Models/DetailPengeluaranModel.php',
+        'App\\Models\\JenisPohonModel' => __DIR__ . '/../..' . '/app/Models/JenisPohonModel.php',
         'App\\Models\\KopiKeluarModel' => __DIR__ . '/../..' . '/app/Models/KopiKeluarModel.php',
         'App\\Models\\KopiMasukModel' => __DIR__ . '/../..' . '/app/Models/KopiMasukModel.php',
+        'App\\Models\\LogAktivitasModel' => __DIR__ . '/../..' . '/app/Models/LogAktivitasModel.php',
         'App\\Models\\MasterAsetModel' => __DIR__ . '/../..' . '/app/Models/MasterAsetModel.php',
+        'App\\Models\\MasterKategoriPengeluaranModel' => __DIR__ . '/../..' . '/app/Models/MasterKategoriPengeluaranModel.php',
+        'App\\Models\\MasterNeracaModel' => __DIR__ . '/../..' . '/app/Models/MasterNeracaModel.php',
+        'App\\Models\\MasterPendapatanModel' => __DIR__ . '/../..' . '/app/Models/MasterPendapatanModel.php',
+        'App\\Models\\ObjekWisataModel' => __DIR__ . '/../..' . '/app/Models/ObjekWisataModel.php',
+        'App\\Models\\PengaturanModel' => __DIR__ . '/../..' . '/app/Models/PengaturanModel.php',
+        'App\\Models\\PermissionRequestModel' => __DIR__ . '/../..' . '/app/Models/PermissionRequestModel.php',
         'App\\Models\\PetaniModel' => __DIR__ . '/../..' . '/app/Models/PetaniModel.php',
+        'App\\Models\\PetaniPohonModel' => __DIR__ . '/../..' . '/app/Models/PetaniPohonModel.php',
+        'App\\Models\\StokKopiModel' => __DIR__ . '/../..' . '/app/Models/StokKopiModel.php',
         'App\\Models\\UmkmModel' => __DIR__ . '/../..' . '/app/Models/UmkmModel.php',
         'App\\Models\\UserModel' => __DIR__ . '/../..' . '/app/Models/UserModel.php',
+        'App\\Services\\RekapKopiService' => __DIR__ . '/../..' . '/app/Services/RekapKopiService.php',
         'CodeIgniter\\API\\ResponseTrait' => __DIR__ . '/..' . '/codeigniter4/framework/system/API/ResponseTrait.php',
         'CodeIgniter\\Autoloader\\Autoloader' => __DIR__ . '/..' . '/codeigniter4/framework/system/Autoloader/Autoloader.php',
         'CodeIgniter\\Autoloader\\FileLocator' => __DIR__ . '/..' . '/codeigniter4/framework/system/Autoloader/FileLocator.php',
@@ -3475,10 +3519,10 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit657ac079313fab046eb8c29fe1d6992b::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit657ac079313fab046eb8c29fe1d6992b::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit657ac079313fab046eb8c29fe1d6992b::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit657ac079313fab046eb8c29fe1d6992b::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit80dcc0a32fff292d51e33440a326a590::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit80dcc0a32fff292d51e33440a326a590::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit80dcc0a32fff292d51e33440a326a590::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit80dcc0a32fff292d51e33440a326a590::$classMap;
 
         }, null, ClassLoader::class);
     }

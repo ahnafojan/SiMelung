@@ -1,4 +1,4 @@
-<?= $this->extend('layouts/main_layout_admin'); ?>
+<?= $this->extend('admin_keuangan/layout/template'); ?>
 <?= $this->section('content'); ?>
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800"><?= $title; ?></h1>

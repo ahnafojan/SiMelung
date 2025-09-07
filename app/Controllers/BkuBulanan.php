@@ -15,8 +15,6 @@ use Dompdf\Dompdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Font;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use App\Models\LogAktivitasModel;
@@ -64,6 +62,7 @@ class BkuBulanan extends BaseController
 
         // LANGKAH 1: Tambahkan Array Konfigurasi
         // Peta untuk mendefinisikan hierarki kategori pengeluaran.
+
         $konfigurasiHierarki = [
             'OPERASIONAL PENGELOLAAN' => [
                 'KESEKRETARIATAN',
@@ -96,6 +95,7 @@ class BkuBulanan extends BaseController
         $bulanIndonesia = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'];
         $namaBulan = $bulanIndonesia[(int)$laporan['bulan']];
 
+        $this->logAktivitas('CETAK PDF', "Mencetak laporan BKU (PDF) untuk periode {$namaBulan} {$laporan['tahun']}", $id);
         // LANGKAH 3: Proses data untuk membuat struktur hierarki dan pemetaan kolom
         $kategoriHierarki = [];
         $kategoriColumnMap = []; // Peta dari ID kategori ke indeks kolomnya
@@ -247,6 +247,7 @@ class BkuBulanan extends BaseController
         // =======================================================================================
 
         // 3. Setup Kolom Dinamis (Logika Baru)
+        $this->logAktivitas('CETAK EXCEL', "Mencetak laporan BKU (Excel) untuk periode {$namaBulan} {$laporan['tahun']}", $id);
         $kategoriHierarki = [];
         $kategoriColumnMap = [];
         $kategoriSudahDiProses = [];
