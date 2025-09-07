@@ -72,25 +72,52 @@ $perPage = $perPage ?? 10;
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group">
-                                            <?php if ($a['can_edit']) : ?>
-                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-edit-aset" data-id="<?= $a['id_aset'] ?>" data-nama_aset="<?= esc($a['nama_aset']) ?>" data-kode_aset="<?= esc($a['kode_aset']) ?>" data-nup="<?= esc($a['nup']) ?>" data-tahun_perolehan="<?= esc($a['tahun_perolehan']) ?>" data-merk_type="<?= esc($a['merk_type']) ?>" data-nilai_perolehan="<?= esc($a['nilai_perolehan']) ?>" data-keterangan="<?= esc($a['keterangan']) ?>" data-metode_pengadaan="<?= esc($a['metode_pengadaan']) ?>" data-sumber_pengadaan="<?= esc($a['sumber_pengadaan']) ?>" data-bs-toggle="modal" data-bs-target="#modalEditAset">
+
+                                            <?php if ($a['edit_status'] == 'approved') : ?>
+                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-edit-aset"
+                                                    data-id="<?= $a['id_aset'] ?>"
+                                                    data-nama_aset="<?= esc($a['nama_aset']) ?>"
+                                                    data-kode_aset="<?= esc($a['kode_aset']) ?>"
+                                                    data-nup="<?= esc($a['nup']) ?>"
+                                                    data-tahun_perolehan="<?= esc($a['tahun_perolehan']) ?>"
+                                                    data-merk_type="<?= esc($a['merk_type']) ?>"
+                                                    data-nilai_perolehan="<?= esc($a['nilai_perolehan']) ?>"
+                                                    data-keterangan="<?= esc($a['keterangan']) ?>"
+                                                    data-metode_pengadaan="<?= esc($a['metode_pengadaan']) ?>"
+                                                    data-sumber_pengadaan="<?= esc($a['sumber_pengadaan']) ?>"
+                                                    data-bs-toggle="modal" data-bs-target="#modalEditAset" title="Edit Aset">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
+                                            <?php elseif ($a['edit_status'] == 'pending') : ?>
+                                                <button class="btn btn-sm btn-secondary mx-1 disabled" title="Permintaan edit sedang diproses">
+                                                    <i class="fas fa-clock"></i>
+                                                </button>
                                             <?php else : ?>
-                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-request-access" data-aset-id="<?= $a['id_aset'] ?>" data-action-type="edit" title="Minta Izin Edit">
+                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-request-access"
+                                                    data-aset-id="<?= $a['id_aset'] ?>"
+                                                    data-action-type="edit" title="Minta Izin Edit">
                                                     <i class="fas fa-lock"></i>
                                                 </button>
                                             <?php endif; ?>
 
-                                            <?php if ($a['can_delete']) : ?>
-                                                <button class="btn btn-sm btn-outline-danger mx-1" data-bs-toggle="modal" data-bs-target="#deleteModal<?= $a['id_aset'] ?>">
+                                            <?php if ($a['delete_status'] == 'approved') : ?>
+                                                <button class="btn btn-sm btn-outline-danger mx-1"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteModal<?= $a['id_aset'] ?>" title="Hapus Aset">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
+                                            <?php elseif ($a['delete_status'] == 'pending') : ?>
+                                                <button class="btn btn-sm btn-secondary mx-1 disabled" title="Permintaan hapus sedang diproses">
+                                                    <i class="fas fa-clock"></i>
+                                                </button>
                                             <?php else : ?>
-                                                <button class="btn btn-sm btn-outline-danger mx-1 btn-request-access" data-aset-id="<?= $a['id_aset'] ?>" data-action-type="delete" title="Minta Izin Hapus">
+                                                <button class="btn btn-sm btn-outline-danger mx-1 btn-request-access"
+                                                    data-aset-id="<?= $a['id_aset'] ?>"
+                                                    data-action-type="delete" title="Minta Izin Hapus">
                                                     <i class="fas fa-lock"></i>
                                                 </button>
                                             <?php endif; ?>
+
                                         </div>
                                     </td>
                                 </tr>

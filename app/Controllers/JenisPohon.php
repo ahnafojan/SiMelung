@@ -22,8 +22,10 @@ class JenisPohon extends BaseController
         $data['jenisPohon'] = $this->jenisPohonModel->findAll();
         if (!empty($data['jenisPohon'])) {
             foreach ($data['jenisPohon'] as &$jenis) {
-                $jenis['can_edit'] = $this->hasActivePermission($jenis['id'], 'edit');
-                $jenis['can_delete'] = $this->hasActivePermission($jenis['id'], 'delete');
+                // Mengganti 'can_edit' menjadi 'edit_status' yang lebih deskriptif
+                $jenis['edit_status'] = $this->getPermissionStatus($jenis['id'], 'edit');
+                // Mengganti 'can_delete' menjadi 'delete_status'
+                $jenis['delete_status'] = $this->getPermissionStatus($jenis['id'], 'delete');
             }
         }
         return view('admin_komersial/petani/daftarpohon', $data);
@@ -139,5 +141,42 @@ class JenisPohon extends BaseController
         ])->first();
 
         return $permission ? true : false;
+    }
+    private function getPermissionStatus($jenisPohonId, $action)
+    {
+        $requesterId = session()->get('user_id');
+        if (empty($requesterId)) {
+            return 'none';
+        }
+
+        // 1. Cek izin yang sudah 'approved' dan aktif
+        $approved = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $jenisPohonId,
+            'target_type'  => 'jenis_pohon',
+            'action_type'  => $action,
+            'status'       => 'approved',
+            'expires_at >' => date('Y-m-d H:i:s')
+        ])->first();
+
+        if ($approved) {
+            return 'approved';
+        }
+
+        // 2. Cek permintaan yang masih 'pending'
+        $pending = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $jenisPohonId,
+            'target_type'  => 'jenis_pohon',
+            'action_type'  => $action,
+            'status'       => 'pending'
+        ])->first();
+
+        if ($pending) {
+            return 'pending';
+        }
+
+        // 3. Jika tidak ada, kembalikan 'none'
+        return 'none';
     }
 }

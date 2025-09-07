@@ -37,9 +37,10 @@ class PersetujuanKomersial extends BaseController
                 'jp_master.nama_jenis as jenispohon_target_name',
                 'aset.nama_aset as aset_target_name',
                 'aset.kode_aset as aset_target_kode',
-                // ▼▼▼ KOLOM BARU UNTUK ASET PARIWISATA (DIPERBAIKI) ▼▼▼
+                // ▼▼▼ PENAMBAHAN UNTUK ASET PARIWISATA ▼▼▼
                 'aset_p.nama_pariwisata as aset_pariwisata_target_name',
-                'wisata.nama_wisata as aset_pariwisata_lokasi'
+                'wisata.nama_wisata as aset_pariwisata_lokasi',
+                'ow_target.nama_wisata as objekwisata_target_name'
             ])
             // Join ke tabel users untuk mendapatkan nama pemohon
             ->join('users', 'users.id = permission_requests.requester_id', 'left')
@@ -64,14 +65,16 @@ class PersetujuanKomersial extends BaseController
             ->join('jenis_pohon as jp_master', 'jp_master.id = permission_requests.target_id AND permission_requests.target_type = "jenis_pohon"', 'left')
             //aset
             ->join('master_aset as aset', 'aset.id_aset = permission_requests.target_id AND permission_requests.target_type = "aset"', 'left')
-            // ▼▼▼ JOIN UNTUK ASET PARIWISATA (VERSI PALING STABIL) ▼▼▼
+            // ▼▼▼ JOIN BARU UNTUK ASET PARIWISATA (JOIN BERTINGKAT) ▼▼▼
             // Langkah 1: Hubungkan permission_requests ke aset_pariwisata
             ->join('aset_pariwisata as aset_p', 'aset_p.id = permission_requests.target_id AND permission_requests.target_type = "aset_pariwisata"', 'left')
             // Langkah 2: Hubungkan hasil dari join pertama (aset_p) ke tabel pivot
             ->join('aset_wisata', 'aset_wisata.aset_id = aset_p.id', 'left')
-            // Langkah 3: Hubungkan tabel pivot ke tabel objek_wisata untuk mendapatkan nama
+            // Langkah 3: Hubungkan tabel pivot ke tabel objek_wisata untuk mendapatkan nama lokasi
             ->join('objek_wisata as wisata', 'wisata.id = aset_wisata.wisata_id', 'left')
-            // ▲▲▲ AKHIR DARI PERBAIKAN JOIN ▲▲▲
+            ->join('objek_wisata as ow_target', 'ow_target.id = permission_requests.target_id AND permission_requests.target_type = "objek_wisata"', 'left')
+
+            // ▲▲▲ AKHIR DARI JOIN BARU ▲▲▲
             ->where('permission_requests.status', 'pending')
             ->orderBy('permission_requests.created_at', 'DESC')
             ->findAll();

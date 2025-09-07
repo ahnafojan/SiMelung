@@ -147,25 +147,45 @@
                                     <td data-label="Deskripsi"><?= esc($wisata['deskripsi']) ?></td>
                                     <td data-label="Aksi" class="text-center">
                                         <div class="btn-group">
-                                            <?php if ($wisata['can_edit'] ?? false) : ?>
+
+                                            <?php if ($wisata['edit_status'] == 'approved') : ?>
                                                 <button class="btn btn-sm btn-outline-warning mx-1" title="Edit Data" onclick="editData(<?= htmlspecialchars(json_encode($wisata), ENT_QUOTES, 'UTF-8') ?>)">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
+                                            <?php elseif ($wisata['edit_status'] == 'pending') : ?>
+                                                <button class="btn btn-sm btn-secondary mx-1 disabled" title="Permintaan edit sedang diproses">
+                                                    <i class="fas fa-clock"></i>
+                                                </button>
                                             <?php else : ?>
-                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-request-access" data-wisata-id="<?= $wisata['id'] ?>" data-action-type="edit" title="Minta Izin Edit">
+                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-request-access"
+                                                    data-wisata-id="<?= $wisata['id'] ?>"
+                                                    data-action-type="edit"
+                                                    title="Minta Izin Edit">
                                                     <i class="fas fa-lock"></i>
                                                 </button>
                                             <?php endif; ?>
 
-                                            <?php if ($wisata['can_delete'] ?? false) : ?>
-                                                <a href="<?= base_url('objekwisata/delete/' . $wisata['id']) ?>" class="btn btn-sm btn-outline-danger mx-1" title="Hapus Data" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+
+                                            <?php if ($wisata['delete_status'] == 'approved') : ?>
+                                                <a href="<?= base_url('objekwisata/delete/' . $wisata['id']) ?>"
+                                                    class="btn btn-sm btn-outline-danger mx-1"
+                                                    title="Hapus Data"
+                                                    onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
                                                     <i class="fas fa-trash"></i>
                                                 </a>
+                                            <?php elseif ($wisata['delete_status'] == 'pending') : ?>
+                                                <button class="btn btn-sm btn-secondary mx-1 disabled" title="Permintaan hapus sedang diproses">
+                                                    <i class="fas fa-clock"></i>
+                                                </button>
                                             <?php else : ?>
-                                                <button class="btn btn-sm btn-outline-danger mx-1 btn-request-access" data-wisata-id="<?= $wisata['id'] ?>" data-action-type="delete" title="Minta Izin Hapus">
+                                                <button class="btn btn-sm btn-outline-danger mx-1 btn-request-access"
+                                                    data-wisata-id="<?= $wisata['id'] ?>"
+                                                    data-action-type="delete"
+                                                    title="Minta Izin Hapus">
                                                     <i class="fas fa-lock"></i>
                                                 </button>
                                             <?php endif; ?>
+
                                         </div>
                                     </td>
                                 </tr>

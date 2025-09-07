@@ -194,29 +194,56 @@
                                     <td data-label="Nilai (Rp)"><?= number_format($aset['nilai_perolehan'], 0, ',', '.') ?></td>
                                     <td data-label="Aksi" class="text-center">
                                         <div class="btn-group">
-                                            <?php if ($aset['can_edit'] ?? false) : ?>
-                                                <!-- Tombol Edit Jika Punya Izin -->
-                                                <button class="btn btn-sm btn-outline-warning mx-1" title="Edit Aset" data-bs-toggle="modal" data-bs-target="#modalEditAset" data-id="<?= $aset['id'] ?>" data-objek-wisata-id="<?= $aset['objek_wisata_id'] ?? '' ?>" data-nama-aset="<?= esc($aset['nama_pariwisata'] ?? $aset['nama_aset'] ?? '') ?>" data-kode-aset="<?= esc($aset['kode_aset']) ?>" data-nup="<?= esc($aset['nup']) ?>" data-tahun-perolehan="<?= esc($aset['tahun_perolehan']) ?>" data-nilai-perolehan="<?= esc($aset['nilai_perolehan']) ?>" data-metode-pengadaan="<?= esc($aset['metode_pengadaan']) ?>" data-sumber-pengadaan="<?= esc($aset['sumber_pengadaan']) ?>" data-keterangan="<?= esc($aset['keterangan']) ?>">
+                                            <?php if ($aset['edit_status'] == 'approved') : ?>
+                                                <button class="btn btn-sm btn-outline-warning mx-1" title="Edit Aset"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalEditAset"
+                                                    data-id="<?= $aset['id'] ?>"
+                                                    data-objek-wisata-id="<?= $aset['objek_wisata_id'] ?? '' ?>"
+                                                    data-nama-aset="<?= esc($aset['nama_pariwisata'] ?? $aset['nama_aset'] ?? '') ?>"
+                                                    data-kode-aset="<?= esc($aset['kode_aset']) ?>"
+                                                    data-nup="<?= esc($aset['nup']) ?>"
+                                                    data-tahun-perolehan="<?= esc($aset['tahun_perolehan']) ?>"
+                                                    data-nilai-perolehan="<?= esc($aset['nilai_perolehan']) ?>"
+                                                    data-metode-pengadaan="<?= esc($aset['metode_pengadaan']) ?>"
+                                                    data-sumber-pengadaan="<?= esc($aset['sumber_pengadaan']) ?>"
+                                                    data-keterangan="<?= esc($aset['keterangan']) ?>">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
+                                            <?php elseif ($aset['edit_status'] == 'pending') : ?>
+                                                <button class="btn btn-sm btn-secondary mx-1 disabled" title="Permintaan edit sedang diproses">
+                                                    <i class="fas fa-clock"></i>
+                                                </button>
                                             <?php else : ?>
-                                                <!-- Tombol Minta Izin Edit -->
-                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-request-access" data-aset-id="<?= $aset['id'] ?>" data-action-type="edit" title="Minta Izin Edit">
+                                                <button class="btn btn-sm btn-outline-warning mx-1 btn-request-access"
+                                                    data-aset-id="<?= $aset['id'] ?>"
+                                                    data-action-type="edit"
+                                                    title="Minta Izin Edit">
                                                     <i class="fas fa-lock"></i>
                                                 </button>
                                             <?php endif; ?>
 
-                                            <?php if ($aset['can_delete'] ?? false) : ?>
-                                                <!-- Tombol Hapus Jika Punya Izin -->
-                                                <a href="<?= base_url('asetpariwisata/delete/' . $aset['id']) ?>" class="btn btn-sm btn-outline-danger mx-1" title="Hapus Aset" onclick="return confirm('Apakah Anda yakin ingin menghapus aset ini?')">
+
+                                            <?php if ($aset['delete_status'] == 'approved') : ?>
+                                                <a href="<?= base_url('asetpariwisata/delete/' . $aset['id']) ?>"
+                                                    class="btn btn-sm btn-outline-danger mx-1"
+                                                    title="Hapus Aset"
+                                                    onclick="return confirm('Apakah Anda yakin ingin menghapus aset ini?')">
                                                     <i class="fas fa-trash"></i>
                                                 </a>
+                                            <?php elseif ($aset['delete_status'] == 'pending') : ?>
+                                                <button class="btn btn-sm btn-secondary mx-1 disabled" title="Permintaan hapus sedang diproses">
+                                                    <i class="fas fa-clock"></i>
+                                                </button>
                                             <?php else : ?>
-                                                <!-- Tombol Minta Izin Hapus -->
-                                                <button class="btn btn-sm btn-outline-danger mx-1 btn-request-access" data-aset-id="<?= $aset['id'] ?>" data-action-type="delete" title="Minta Izin Hapus">
+                                                <button class="btn btn-sm btn-outline-danger mx-1 btn-request-access"
+                                                    data-aset-id="<?= $aset['id'] ?>"
+                                                    data-action-type="delete"
+                                                    title="Minta Izin Hapus">
                                                     <i class="fas fa-lock"></i>
                                                 </button>
                                             <?php endif; ?>
+
                                         </div>
                                     </td>
                                 </tr>

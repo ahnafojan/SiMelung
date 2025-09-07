@@ -23,6 +23,10 @@ class ManajemenAsetKomersial extends Controller
      */
     public function index()
     {
+        if (!session()->get('user_id')) {
+            session()->setFlashdata('error', 'Anda harus login untuk mengakses halaman ini.');
+            return redirect()->to('/login'); // Arahkan ke halaman login Anda
+        }
         // Daftar kategori aset untuk dropdown.
         $kategoriAset = [
             'Mesin Giling',
@@ -42,8 +46,10 @@ class ManajemenAsetKomersial extends Controller
         // Cek izin untuk setiap item di halaman saat ini
         if (!empty($asets)) {
             foreach ($asets as &$aset) {
-                $aset['can_edit'] = $this->hasActivePermission($aset['id_aset'], 'edit');
-                $aset['can_delete'] = $this->hasActivePermission($aset['id_aset'], 'delete');
+                // Mengganti 'can_edit' menjadi 'edit_status' yang lebih deskriptif
+                $aset['edit_status'] = $this->getPermissionStatus($aset['id_aset'], 'edit');
+                // Mengganti 'can_delete' menjadi 'delete_status'
+                $aset['delete_status'] = $this->getPermissionStatus($aset['id_aset'], 'delete');
             }
         }
 
@@ -197,5 +203,42 @@ class ManajemenAsetKomersial extends Controller
         ])->first();
 
         return $permission ? true : false;
+    }
+    private function getPermissionStatus($asetId, $action)
+    {
+        $requesterId = session()->get('user_id');
+        if (empty($requesterId)) {
+            return 'none'; // Status untuk pengguna yang tidak login
+        }
+
+        // 1. Prioritaskan cek izin yang sudah disetujui dan masih aktif
+        $approved = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $asetId,
+            'target_type'  => 'aset',
+            'action_type'  => $action,
+            'status'       => 'approved',
+            'expires_at >' => date('Y-m-d H:i:s')
+        ])->first();
+
+        if ($approved) {
+            return 'approved';
+        }
+
+        // 2. Jika tidak ada yang disetujui, cek apakah ada permintaan yang tertunda
+        $pending = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $asetId,
+            'target_type'  => 'aset',
+            'action_type'  => $action,
+            'status'       => 'pending'
+        ])->first();
+
+        if ($pending) {
+            return 'pending';
+        }
+
+        // 3. Jika tidak ada keduanya, berarti belum ada permintaan
+        return 'none';
     }
 }

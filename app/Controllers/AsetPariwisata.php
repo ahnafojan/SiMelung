@@ -49,8 +49,8 @@ class AsetPariwisata extends BaseController
         // Tambahkan flag can_edit dan can_delete ke setiap aset
         if (!empty($asets)) {
             foreach ($asets as &$aset) {
-                $aset['can_edit']   = $this->hasActivePermission($aset['id'], 'edit');
-                $aset['can_delete'] = $this->hasActivePermission($aset['id'], 'delete');
+                $aset['edit_status']   = $this->getPermissionStatus($aset['id'], 'edit');
+                $aset['delete_status'] = $this->getPermissionStatus($aset['id'], 'delete');
             }
         }
 
@@ -286,5 +286,42 @@ class AsetPariwisata extends BaseController
         ])->first();
 
         return $permission ? true : false;
+    }
+    private function getPermissionStatus($asetId, $action)
+    {
+        $requesterId = session()->get('user_id');
+        if (empty($requesterId)) {
+            return 'none';
+        }
+
+        // 1. Cek izin 'approved' yang masih aktif
+        $approved = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $asetId,
+            'target_type'  => 'aset_pariwisata',
+            'action_type'  => $action,
+            'status'       => 'approved',
+            'expires_at >' => date('Y-m-d H:i:s')
+        ])->first();
+
+        if ($approved) {
+            return 'approved';
+        }
+
+        // 2. Cek permintaan yang 'pending'
+        $pending = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $asetId,
+            'target_type'  => 'aset_pariwisata',
+            'action_type'  => $action,
+            'status'       => 'pending'
+        ])->first();
+
+        if ($pending) {
+            return 'pending';
+        }
+
+        // 3. Jika tidak ada, kembalikan 'none'
+        return 'none';
     }
 }

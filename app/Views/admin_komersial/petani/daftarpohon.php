@@ -91,12 +91,19 @@
                                             <td><?= esc($row['nama_jenis']) ?></td>
                                             <td class="text-center">
                                                 <div class="btn-group">
-                                                    <!-- Tombol Edit Dinamis -->
-                                                    <?php if ($row['can_edit']): ?>
-                                                        <button class="btn btn-warning btn-sm btn-edit" data-id="<?= $row['id'] ?>" data-nama="<?= esc($row['nama_jenis']) ?>" title="Edit">
+
+                                                    <?php if ($row['edit_status'] == 'approved') : ?>
+                                                        <button class="btn btn-warning btn-sm btn-edit"
+                                                            data-id="<?= $row['id'] ?>"
+                                                            data-nama="<?= esc($row['nama_jenis']) ?>"
+                                                            title="Edit">
                                                             <i class="fas fa-edit"></i>
                                                         </button>
-                                                    <?php else: ?>
+                                                    <?php elseif ($row['edit_status'] == 'pending') : ?>
+                                                        <button class="btn btn-sm btn-secondary disabled" title="Permintaan edit sedang diproses">
+                                                            <i class="fas fa-clock"></i>
+                                                        </button>
+                                                    <?php else : ?>
                                                         <button class="btn btn-sm btn-outline-warning btn-request-access"
                                                             data-jenispohon-id="<?= $row['id'] ?>"
                                                             data-action-type="edit" title="Minta Izin Edit">
@@ -104,18 +111,25 @@
                                                         </button>
                                                     <?php endif; ?>
 
-                                                    <!-- Tombol Hapus Dinamis -->
-                                                    <?php if ($row['can_delete']): ?>
-                                                        <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#modalHapusJenisPohon<?= $row['id'] ?>" title="Hapus">
+                                                    <?php if ($row['delete_status'] == 'approved') : ?>
+                                                        <button class="btn btn-danger btn-sm"
+                                                            data-toggle="modal"
+                                                            data-target="#modalHapusJenisPohon<?= $row['id'] ?>"
+                                                            title="Hapus">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
-                                                    <?php else: ?>
+                                                    <?php elseif ($row['delete_status'] == 'pending') : ?>
+                                                        <button class="btn btn-sm btn-secondary disabled" title="Permintaan hapus sedang diproses">
+                                                            <i class="fas fa-clock"></i>
+                                                        </button>
+                                                    <?php else : ?>
                                                         <button class="btn btn-sm btn-outline-danger btn-request-access"
                                                             data-jenispohon-id="<?= $row['id'] ?>"
                                                             data-action-type="delete" title="Minta Izin Hapus">
                                                             <i class="fas fa-lock"></i>
                                                         </button>
                                                     <?php endif; ?>
+
                                                 </div>
                                             </td>
                                         </tr>

@@ -139,16 +139,21 @@ if (empty($petani['foto']) || !file_exists($fotoPath)) {
                                             <td><?= esc(number_format($row['luas_lahan'], 2, ',', '.')) ?></td>
                                             <td><?= esc(number_format($row['jumlah_pohon'], 0, ',', '.')) ?></td>
                                             <td>
-                                                <?php if ($row['can_delete']): ?>
-                                                    <!-- Tombol Hapus Asli jika ada izin -->
+                                                <?php if ($row['delete_status'] == 'approved') : ?>
                                                     <button class="btn btn-danger btn-sm btn-delete-pohon"
                                                         data-id="<?= esc($row['id']) ?>"
                                                         data-nama="<?= esc($row['nama_jenis']) ?>"
-                                                        data-toggle="modal" data-target="#modalHapusPohon">
+                                                        data-toggle="modal" data-target="#modalHapusPohon"
+                                                        title="Hapus Data">
                                                         <i class="fas fa-trash-alt"></i> Hapus
                                                     </button>
-                                                <?php else: ?>
-                                                    <!-- Tombol Minta Izin jika tidak ada izin -->
+
+                                                <?php elseif ($row['delete_status'] == 'pending') : ?>
+                                                    <button class="btn btn-secondary btn-sm disabled" title="Permintaan hapus sedang diproses">
+                                                        <i class="fas fa-clock"></i> Menunggu
+                                                    </button>
+
+                                                <?php else : ?>
                                                     <button class="btn btn-outline-danger btn-sm btn-request-access"
                                                         data-pohon-id="<?= esc($row['id']) ?>"
                                                         data-action-type="delete"

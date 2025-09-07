@@ -1,6 +1,6 @@
 <ul class="navbar-nav sidebar sidebar-dark accordion bg-main" id="accordionSidebar">
 
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<?= site_url('DashboardDesa') ?>">
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<?= site_url('dashboard/dashboard_desa') ?>">
         <div class="sidebar-brand-icon">
             <img src="<?= base_url('img/KKNLOGO.png') ?>" alt="Logo" width="60" height="60" style="object-fit: cover;">
         </div>
@@ -56,10 +56,20 @@
     </li>
 
     <li class="nav-item">
-        <a class="nav-link fs-3" href="<?= site_url('AsetPariwisata') ?>">
+        <a class="nav-link collapsed fs-3" href="#" data-toggle="collapse" data-target="#collapsePariwisata"
+            aria-expanded="true" aria-controls="collapsePariwisata">
             <i class="fas fa-fw fa-map-marked-alt fa-lg"></i>
-            <span>Aset Pariwisata</span>
+            <span>Laporan Pariwisata</span>
         </a>
+        <div id="collapsePariwisata" class="collapse" aria-labelledby="headingPariwisata" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Jenis Laporan:</h6>
+                <!-- Tautan ini sekarang mengarah ke rute laporan objek wisata -->
+                <a class="collapse-item" href="<?= site_url('desa/laporan_pariwisata/objekwisata') ?>">Laporan Objek Wisata</a>
+                <!-- Tautan ini sekarang mengarah ke rute laporan aset -->
+                <a class="collapse-item" href="<?= site_url('desa/laporan_pariwisata/asetpariwisata') ?>">Laporan Aset</a>
+            </div>
+        </div>
     </li>
 
     <li class="nav-item">

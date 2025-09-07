@@ -6,8 +6,6 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'LandingPage::index');
-$routes->get('DashboardDesa', 'DashboardDesa::index');
-$routes->get('dashboard/dashboard_desa', 'DashboardDesa::index');
 //BUMDES
 $routes->get('DashboardBumdes', 'DashboardBumdes::index');
 $routes->get('dashboard', 'DashboardBumdes::index');
@@ -233,7 +231,7 @@ $routes->post('/login/process', 'AuthController::processLogin');
 $routes->get('/logout', 'AuthController::logout');
 
 $routes->group('', ['filter' => 'auth'], function ($routes) {
-    $routes->get('dashboard/dashboard_desa', 'DashboardController::desa');
+    $routes->get('dashboard/dashboard_desa', 'DashboardDesa::index');
     $routes->get('dashboard/dashboard_bumdes', 'DashboardController::bumdes');
     $routes->get('keuangan/dashboard', 'DashboardController::keuangan');
     $routes->get('dashboard/dashboard_komersial', 'DashboardController::komersial');
@@ -322,3 +320,7 @@ $routes->post('objekwisata/requestaccess', 'ObjekWisata::requestaccess');
 $routes->get('DesaRekapKopi', 'DesaRekapKopi::index');
 $routes->get('desa/laporan_komersial/aset', 'DesaRekapAset::index');
 $routes->get('desa/laporan_komersial/petani', 'DesaRekapPetani::index');
+//Pariwisata
+$routes->get('desa/laporan_pariwisata/objekwisata', 'DesaRekapPariwisata::laporanObjekWisata');
+// URL: http://domain-anda.com/desa/laporan_pariwisata/asetpariwisata
+$routes->get('desa/laporan_pariwisata/asetpariwisata', 'DesaRekapPariwisata::laporanAset');

@@ -157,12 +157,16 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group">
-                                        <!-- Tombol Edit Dinamis -->
-                                        <?php if ($k['can_edit']): ?>
-                                            <button class="btn btn-sm btn-warning btn-edit" data-id="<?= $k['id'] ?>">
+
+                                        <?php if ($k['edit_status'] == 'approved') : ?>
+                                            <button class="btn btn-sm btn-warning btn-edit" data-id="<?= $k['id'] ?>" title="Edit Data">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                        <?php else: ?>
+                                        <?php elseif ($k['edit_status'] == 'pending') : ?>
+                                            <button class="btn btn-sm btn-secondary disabled" title="Permintaan edit sedang diproses">
+                                                <i class="fas fa-clock"></i>
+                                            </button>
+                                        <?php else : ?>
                                             <button class="btn btn-sm btn-outline-warning btn-request-access"
                                                 data-kopikeluar-id="<?= $k['id'] ?>"
                                                 data-action-type="edit" title="Minta Izin Edit">
@@ -170,18 +174,24 @@
                                             </button>
                                         <?php endif; ?>
 
-                                        <!-- Tombol Hapus Dinamis -->
-                                        <?php if ($k['can_delete']): ?>
-                                            <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalHapusKopiKeluar<?= $k['id'] ?>">
+
+                                        <?php if ($k['delete_status'] == 'approved') : ?>
+                                            <button class="btn btn-sm btn-danger" data-toggle="modal"
+                                                data-target="#modalHapusKopiKeluar<?= $k['id'] ?>" title="Hapus Data">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        <?php else: ?>
+                                        <?php elseif ($k['delete_status'] == 'pending') : ?>
+                                            <button class="btn btn-sm btn-secondary disabled" title="Permintaan hapus sedang diproses">
+                                                <i class="fas fa-clock"></i>
+                                            </button>
+                                        <?php else : ?>
                                             <button class="btn btn-sm btn-outline-danger btn-request-access"
                                                 data-kopikeluar-id="<?= $k['id'] ?>"
                                                 data-action-type="delete" title="Minta Izin Hapus">
                                                 <i class="fas fa-lock"></i>
                                             </button>
                                         <?php endif; ?>
+
                                     </div>
                                 </td>
                             </tr>

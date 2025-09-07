@@ -258,6 +258,8 @@
                             <option value="kopi_keluar">Kopi Keluar</option>
                             <option value="jenis_pohon">Jenis Pohon</option>
                             <option value="aset">Aset</option>
+                            <option value="aset_pariwisata">Aset Pariwisata</option>
+                            <option value="objek_wisata">Objek Wisata</option>
                         </select>
                     </div>
                     <div class="col-md-6 col-lg-3 mb-2">
@@ -344,10 +346,18 @@
                                         Kopi Masuk: <strong><?= esc($req['kopimasuk_petani_name']) ?> (<?= esc($req['kopimasuk_jumlah']) ?> Kg)</strong>
                                     <?php elseif ($req['target_type'] === 'kopi_keluar' && !empty($req['kopikeluar_tujuan'])): ?>
                                         Kopi Keluar: <strong><?= esc($req['kopikeluar_jumlah']) ?> Kg ke <?= esc($req['kopikeluar_tujuan']) ?></strong>
+                                    <?php elseif ($req['target_type'] === 'jenis_pohon' && !empty($req['jenispohon_target_name'])): ?>
+                                        Jenis Pohon: <strong><?= esc($req['jenispohon_target_name']) ?></strong>
                                     <?php elseif ($req['target_type'] === 'aset' && !empty($req['aset_target_name'])): ?>
                                         Aset: <strong><?= esc($req['aset_target_name']) ?> (<?= esc($req['aset_target_kode']) ?>)</strong>
+                                    <?php elseif ($req['target_type'] === 'aset_pariwisata' && !empty($req['aset_pariwisata_target_name'])): ?>
+                                        Aset: <strong><?= esc($req['aset_pariwisata_target_name']) ?></strong>
+                                        <br><small class="text-muted">Lokasi: <?= esc($req['aset_pariwisata_lokasi']) ?></small>
+                                    <?php elseif ($req['target_type'] === 'objek_wisata' && !empty($req['objekwisata_target_name'])): ?>
+                                        Objek Wisata: <strong><?= esc($req['objekwisata_target_name']) ?></strong>
                                     <?php else: ?>
                                         <?= esc(ucfirst(str_replace('_', ' ', $req['target_type']))) ?> ID: #<?= esc($req['target_id']) ?>
+
                                     <?php endif; ?>
                                 </span>
                             </div>
@@ -415,8 +425,15 @@
                                             Kopi Masuk: <strong><?= esc($req['kopimasuk_petani_name']) ?> (<?= esc($req['kopimasuk_jumlah']) ?> Kg)</strong>
                                         <?php elseif ($req['target_type'] === 'kopi_keluar' && !empty($req['kopikeluar_tujuan'])): ?>
                                             Kopi Keluar: <strong><?= esc($req['kopikeluar_jumlah']) ?> Kg ke <?= esc($req['kopikeluar_tujuan']) ?></strong>
+                                        <?php elseif ($req['target_type'] === 'jenis_pohon' && !empty($req['jenispohon_target_name'])): ?>
+                                            Jenis Pohon: <strong><?= esc($req['jenispohon_target_name']) ?></strong>
                                         <?php elseif ($req['target_type'] === 'aset' && !empty($req['aset_target_name'])): ?>
                                             Aset: <strong><?= esc($req['aset_target_name']) ?> (<?= esc($req['aset_target_kode']) ?>)</strong>
+                                        <?php elseif ($req['target_type'] === 'aset_pariwisata' && !empty($req['aset_pariwisata_target_name'])): ?>
+                                            Aset: <strong><?= esc($req['aset_pariwisata_target_name']) ?></strong>
+                                            <br><small class="text-muted">Lokasi: <?= esc($req['aset_pariwisata_lokasi']) ?></small>
+                                        <?php elseif ($req['target_type'] === 'objek_wisata' && !empty($req['objekwisata_target_name'])): ?>
+                                            Objek Wisata: <strong><?= esc($req['objekwisata_target_name']) ?></strong>
                                         <?php else: ?>
                                             <?= esc(ucfirst(str_replace('_', ' ', $req['target_type']))) ?> ID: #<?= esc($req['target_id']) ?>
                                         <?php endif; ?>

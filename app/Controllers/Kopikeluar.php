@@ -37,8 +37,8 @@ class KopiKeluar extends BaseController
         // Cek izin untuk setiap item di halaman saat ini
         if (!empty($kopikeluar)) {
             foreach ($kopikeluar as &$kopi) {
-                $kopi['can_edit']   = $this->hasActivePermission($kopi['id'], 'edit');
-                $kopi['can_delete'] = $this->hasActivePermission($kopi['id'], 'delete');
+                $kopi['edit_status']   = $this->getPermissionStatus($kopi['id'], 'edit');
+                $kopi['delete_status'] = $this->getPermissionStatus($kopi['id'], 'delete');
             }
         }
 
@@ -239,5 +239,42 @@ class KopiKeluar extends BaseController
         ])->first();
 
         return $permission ? true : false;
+    }
+    private function getPermissionStatus($kopiKeluarId, $action)
+    {
+        $requesterId = session()->get('user_id');
+        if (empty($requesterId)) {
+            return 'none';
+        }
+
+        // 1. Cek dulu apakah izin sudah 'approved' dan aktif
+        $approved = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $kopiKeluarId,
+            'target_type'  => 'kopi_keluar',
+            'action_type'  => $action,
+            'status'       => 'approved',
+            'expires_at >' => date('Y-m-d H:i:s')
+        ])->first();
+
+        if ($approved) {
+            return 'approved';
+        }
+
+        // 2. Jika tidak, cek apakah ada permintaan 'pending'
+        $pending = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $kopiKeluarId,
+            'target_type'  => 'kopi_keluar',
+            'action_type'  => $action,
+            'status'       => 'pending'
+        ])->first();
+
+        if ($pending) {
+            return 'pending';
+        }
+
+        // 3. Jika tidak keduanya, berarti belum ada aksi
+        return 'none';
     }
 }

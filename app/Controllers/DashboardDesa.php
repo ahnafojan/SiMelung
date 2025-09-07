@@ -2,91 +2,102 @@
 
 namespace App\Controllers;
 
-use App\Models\KopiMasukModel;
-use App\Models\KopiKeluarModel;
-use App\Models\PetaniModel;
 use App\Models\AsetKomersialModel;
+use App\Models\AsetPariwisataModel;
+use App\Models\KopiKeluarModel;
+use App\Models\KopiMasukModel;
+use App\Models\ObjekWisataModel;
+use App\Models\PetaniModel;
 
 class DashboardDesa extends BaseController
 {
     public function index()
     {
-        // ================== Cek Session ==================
-        $userId = session()->get('user_id');
-        if (!$userId) {
+        // Cek Session
+        if (!session()->get('user_id')) {
             return redirect()->to('/login');
         }
 
-        // ================== Load Model ==================
-        $kopiMasukModel  = new KopiMasukModel();
-        $kopiKeluarModel = new KopiKeluarModel();
-        $petaniModel     = new PetaniModel();
-        $asetModel       = new AsetKomersialModel();
+        // Load Models
+        $kopiMasukModel      = new KopiMasukModel();
+        $kopiKeluarModel     = new KopiKeluarModel();
+        $petaniModel         = new PetaniModel();
+        $asetKomersialModel  = new AsetKomersialModel();
+        $asetPariwisataModel = new AsetPariwisataModel();
+        $objekWisataModel    = new ObjekWisataModel();
 
-        // ================== Ambil Filter ==================
+        // Filter
         $bulan = (int) ($this->request->getGet('bulan') ?? date('m'));
         $tahun = (int) ($this->request->getGet('tahun') ?? date('Y'));
 
-        // ================== Hitung Total ==================
-        $totalMasuk  = (int) ($kopiMasukModel->selectSum('jumlah')->first()['jumlah'] ?? 0);
+        // KPI Data
+        $totalMasuk = (int) ($kopiMasukModel->selectSum('jumlah')->first()['jumlah'] ?? 0);
         $totalKeluar = (int) ($kopiKeluarModel->selectSum('jumlah')->first()['jumlah'] ?? 0);
-        $stokBersih  = $totalMasuk - $totalKeluar;
+        $stokBersih = $totalMasuk - $totalKeluar;
         $totalPetani = $petaniModel->countAll();
-        $totalAset   = $asetModel->countAll();
+        $totalAset = $asetKomersialModel->countAll();
+        $totalObjekWisata = $objekWisataModel->countAll();
+        $totalAsetPariwisata = $asetPariwisataModel->countAll();
+        $totalNilaiAsetPariwisata = $asetPariwisataModel->selectSum('nilai_perolehan')->first()['nilai_perolehan'] ?? 0;
 
-        // ================== Data Grafik Masuk ==================
+        // PAGINATION - MANUAL (TANPA ERROR)
+        $perPage = 5;
+        $currentPage = (int) ($this->request->getGet('page_pariwisata') ?? 1);
+
+        // Ambil semua data
+        $allAsetsPariwisata = $asetPariwisataModel
+            ->select('aset_pariwisata.*, objek_wisata.nama_wisata')
+            ->join('aset_wisata', 'aset_wisata.aset_id = aset_pariwisata.id', 'left')
+            ->join('objek_wisata', 'objek_wisata.id = aset_wisata.wisata_id', 'left')
+            ->orderBy('aset_pariwisata.created_at', 'DESC')
+            ->findAll();
+
+        // Hitung pagination
+        $totalData = count($allAsetsPariwisata);
+        $totalPages = ceil($totalData / $perPage);
+
+        // Validasi halaman
+        if ($currentPage < 1) $currentPage = 1;
+        if ($currentPage > $totalPages && $totalPages > 0) $currentPage = $totalPages;
+
+        // Slice data untuk halaman saat ini
+        $offset = ($currentPage - 1) * $perPage;
+        $asetsPariwisata = array_slice($allAsetsPariwisata, $offset, $perPage);
+
+        // Data Grafik
         $kopiMasuk = $kopiMasukModel
             ->select("DATE(tanggal) as tgl, SUM(jumlah) as total")
-            ->where('MONTH(tanggal)', $bulan)
-            ->where('YEAR(tanggal)', $tahun)
-            ->groupBy('DATE(tanggal)')
-            ->orderBy('tanggal', 'ASC')
-            ->findAll();
+            ->where('MONTH(tanggal)', $bulan)->where('YEAR(tanggal)', $tahun)
+            ->groupBy('DATE(tanggal)')->orderBy('tanggal', 'ASC')->findAll();
 
-        // ================== Data Grafik Keluar ==================
         $kopiKeluar = $kopiKeluarModel
             ->select("DATE(tanggal) as tgl, SUM(jumlah) as total")
-            ->where('MONTH(tanggal)', $bulan)
-            ->where('YEAR(tanggal)', $tahun)
-            ->groupBy('DATE(tanggal)')
-            ->orderBy('tanggal', 'ASC')
-            ->findAll();
+            ->where('MONTH(tanggal)', $bulan)->where('YEAR(tanggal)', $tahun)
+            ->groupBy('DATE(tanggal)')->orderBy('tanggal', 'ASC')->findAll();
 
-        // ================== Gabungkan Data ==================
         $tanggalList = [];
         foreach ($kopiMasuk as $row) {
-            $tanggalList[$row['tgl']] = [
-                'masuk' => (int) $row['total'],
-                'keluar' => 0
-            ];
+            $tanggalList[$row['tgl']] = ['masuk' => (int) $row['total'], 'keluar' => 0];
         }
         foreach ($kopiKeluar as $row) {
             if (!isset($tanggalList[$row['tgl']])) {
-                $tanggalList[$row['tgl']] = [
-                    'masuk' => 0,
-                    'keluar' => (int) $row['total']
-                ];
+                $tanggalList[$row['tgl']] = ['masuk' => 0, 'keluar' => (int) $row['total']];
             } else {
                 $tanggalList[$row['tgl']]['keluar'] = (int) $row['total'];
             }
         }
-
         ksort($tanggalList);
 
-        $labels     = array_keys($tanggalList);
-        $dataMasuk  = array_column($tanggalList, 'masuk');
+        $labels = array_keys($tanggalList);
+        $dataMasuk = array_column($tanggalList, 'masuk');
         $dataKeluar = array_column($tanggalList, 'keluar');
 
-        // ================== Data Distribusi Stok per Jenis Kopi ==================
         $stokPerJenis = $kopiMasukModel
             ->select('jenis_pohon.nama_jenis, SUM(kopi_masuk.jumlah) as total')
             ->join('petani_pohon', 'petani_pohon.id = kopi_masuk.petani_pohon_id', 'left')
             ->join('jenis_pohon', 'jenis_pohon.id = petani_pohon.jenis_pohon_id', 'left')
-            ->groupBy('jenis_pohon.nama_jenis')
-            ->findAll();
+            ->groupBy('jenis_pohon.nama_jenis')->findAll();
 
-
-        // Pisahkan label & data
         $jenisLabels = [];
         $jenisTotals = [];
         foreach ($stokPerJenis as $row) {
@@ -94,38 +105,41 @@ class DashboardDesa extends BaseController
             $jenisTotals[] = (int) $row['total'];
         }
 
-
-        // ================== Dropdown Tahun Dinamis ==================
+        // Years untuk filter
         $startYear = 2020;
-
-        $maxMasuk  = $kopiMasukModel->selectMax('tanggal')->first()['tanggal'] ?? null;
+        $maxMasuk = $kopiMasukModel->selectMax('tanggal')->first()['tanggal'] ?? null;
         $maxKeluar = $kopiKeluarModel->selectMax('tanggal')->first()['tanggal'] ?? null;
-
         $maxYearDb = max(
             $maxMasuk ? date('Y', strtotime($maxMasuk)) : date('Y'),
             $maxKeluar ? date('Y', strtotime($maxKeluar)) : date('Y')
         );
-
         $currentYear = date('Y');
-        $endYear     = max($currentYear, $maxYearDb);
-
+        $endYear = max($currentYear, $maxYearDb);
         $years = range($startYear, $endYear);
 
-        // ================== Kirim Data ke View ==================
+        // Data untuk View
         $data = [
-            'stokBersih'   => $stokBersih,
-            'totalMasuk'   => $totalMasuk,
-            'totalKeluar'  => $totalKeluar,
-            'totalPetani'  => $totalPetani,
-            'totalAset'    => $totalAset,
-            'labels'       => json_encode($labels),
-            'dataMasuk'    => json_encode($dataMasuk),
-            'dataKeluar'   => json_encode($dataKeluar),
-            'years'        => $years,
-            'bulan'        => $bulan,
-            'tahun'        => $tahun,
-            'jenisLabels'  => json_encode($jenisLabels),
-            'jenisTotals'  => json_encode($jenisTotals),
+            'stokBersih' => $stokBersih,
+            'totalMasuk' => $totalMasuk,
+            'totalKeluar' => $totalKeluar,
+            'totalPetani' => $totalPetani,
+            'totalAset' => $totalAset,
+            'totalObjekWisata' => $totalObjekWisata,
+            'totalAsetPariwisata' => $totalAsetPariwisata,
+            'totalNilaiAsetPariwisata' => $totalNilaiAsetPariwisata,
+            'asetsPariwisata' => $asetsPariwisata,
+            'totalData' => $totalData,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'perPage' => $perPage,
+            'labels' => json_encode($labels),
+            'dataMasuk' => json_encode($dataMasuk),
+            'dataKeluar' => json_encode($dataKeluar),
+            'jenisLabels' => json_encode($jenisLabels),
+            'jenisTotals' => json_encode($jenisTotals),
+            'years' => $years,
+            'bulan' => $bulan,
+            'tahun' => $tahun,
         ];
 
         return view('dashboard/dashboard_desa', $data);

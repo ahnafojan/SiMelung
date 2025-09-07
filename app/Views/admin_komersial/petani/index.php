@@ -106,49 +106,42 @@
                                 </td>
                                 <td>
                                     <div class="btn-group">
-                                        <?php if ($row['can_edit']): ?>
-                                            <button class="btn btn-warning btn-sm btn-edit-petani"
-                                                data-toggle="modal" data-target="#modalEditPetani"
-                                                data-id="<?= esc($row['id']) ?>"
-                                                data-user_id="<?= esc($row['user_id']) ?>"
-                                                data-nama="<?= esc($row['nama']) ?>"
-                                                data-alamat="<?= esc($row['alamat']) ?>"
-                                                data-no_hp="<?= esc($row['no_hp']) ?>"
-                                                data-usia="<?= esc($row['usia']) ?>"
-                                                data-tempat_lahir="<?= esc($row['tempat_lahir']) ?>"
-                                                data-tanggal_lahir="<?= esc($row['tanggal_lahir']) ?>"
-                                                data-foto="<?= esc($row['foto']) ?>"
-                                                title="Edit">
+                                        <!-- Tombol Edit berdasarkan status -->
+                                        <?php if ($row['edit_status'] == 'approved') : ?>
+                                            <button class="btn btn-warning btn-sm btn-edit-petani" data-toggle="modal" data-target="#modalEditPetani" data-id="<?= esc($row['id']) ?>" data-user_id="<?= esc($row['user_id']) ?>" data-nama="<?= esc($row['nama']) ?>" data-alamat="<?= esc($row['alamat']) ?>" data-no_hp="<?= esc($row['no_hp']) ?>" data-usia="<?= esc($row['usia']) ?>" data-tempat_lahir="<?= esc($row['tempat_lahir']) ?>" data-tanggal_lahir="<?= esc($row['tanggal_lahir']) ?>" data-foto="<?= esc($row['foto']) ?>" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                        <?php else: ?>
-                                            <button class="btn btn-outline-warning btn-sm btn-request-access"
-                                                data-petani-id="<?= esc($row['id']) ?>"
-                                                data-action-type="edit" title="Minta Izin Edit">
+                                        <?php elseif ($row['edit_status'] == 'pending') : ?>
+                                            <button class="btn btn-secondary btn-sm disabled" title="Permintaan sedang diproses">
+                                                <i class="fas fa-clock"></i>
+                                            </button>
+                                        <?php else : ?>
+                                            <button class="btn btn-outline-warning btn-sm btn-request-access" data-petani-id="<?= esc($row['id']) ?>" data-action-type="edit" title="Minta Izin Edit">
                                                 <i class="fas fa-lock"></i>
                                             </button>
                                         <?php endif; ?>
 
-                                        <?php if ($row['can_delete']): ?>
-                                            <button class="btn btn-danger btn-sm btn-delete-petani"
-                                                data-id="<?= esc($row['id']) ?>"
-                                                data-nama="<?= esc($row['nama']) ?>"
-                                                data-toggle="modal" data-target="#modalHapusPetani" title="Hapus">
+                                        <!-- Tombol Delete berdasarkan status -->
+                                        <?php if ($row['delete_status'] == 'approved') : ?>
+                                            <button class="btn btn-danger btn-sm btn-delete-petani" data-id="<?= esc($row['id']) ?>" data-nama="<?= esc($row['nama']) ?>" data-toggle="modal" data-target="#modalHapusPetani" title="Hapus">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        <?php else: ?>
-                                            <button class="btn btn-outline-danger btn-sm btn-request-access"
-                                                data-petani-id="<?= esc($row['id']) ?>"
-                                                data-action-type="delete" title="Minta Izin Hapus">
+                                        <?php elseif ($row['delete_status'] == 'pending') : ?>
+                                            <button class="btn btn-secondary btn-sm disabled" title="Permintaan sedang diproses">
+                                                <i class="fas fa-clock"></i>
+                                            </button>
+                                        <?php else : ?>
+                                            <button class="btn btn-outline-danger btn-sm btn-request-access" data-petani-id="<?= esc($row['id']) ?>" data-action-type="delete" title="Minta Izin Hapus">
                                                 <i class="fas fa-lock"></i>
                                             </button>
                                         <?php endif; ?>
 
-                                        <a href="<?= site_url('petanipohon/index/' . $row['user_id']) ?>"
-                                            class="btn btn-success btn-sm" title="Detail Pohon">
+                                        <!-- Tombol Detail Pohon (tidak berubah) -->
+                                        <a href="<?= site_url('petanipohon/index/' . $row['user_id']) ?>" class="btn btn-success btn-sm" title="Detail Pohon">
                                             <i class="fas fa-seedling"></i>
                                         </a>
                                     </div>
+
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -228,7 +221,7 @@
                         <p class="mb-1"><strong>TTL:</strong> <?= esc($row['tempat_lahir'] . ', ' . $row['tanggal_lahir']) ?></p>
 
                         <div class="mt-2">
-                            <?php if ($row['can_edit']): ?>
+                            <?php if ($row['edit_status']): ?>
                                 <button class="btn btn-warning btn-sm btn-edit-petani"
                                     data-toggle="modal" data-target="#modalEditPetani"
                                     data-id="<?= esc($row['id']) ?>"
@@ -251,7 +244,7 @@
                                 </button>
                             <?php endif; ?>
 
-                            <?php if ($row['can_delete']): ?>
+                            <?php if ($row['delete_status']): ?>
                                 <button class="btn btn-danger btn-sm btn-delete-petani"
                                     data-id="<?= esc($row['id']) ?>"
                                     data-nama="<?= esc($row['nama']) ?>"

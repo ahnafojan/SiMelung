@@ -39,10 +39,10 @@ class PetaniPohon extends BaseController
             ->where('petani_pohon.user_id', $user_id)
             ->findAll();
 
-        // 5. Tambahkan pengecekan izin untuk setiap data pohon
         if (!empty($detailPohon)) {
             foreach ($detailPohon as &$pohon) {
-                $pohon['can_delete'] = $this->hasActivePermission($pohon['id'], 'delete');
+                // Mengganti 'can_delete' menjadi 'delete_status' yang berisi ('approved', 'pending', atau 'none')
+                $pohon['delete_status'] = $this->getPermissionStatus($pohon['id'], 'delete');
             }
         }
 
@@ -165,5 +165,42 @@ class PetaniPohon extends BaseController
         ])->first();
 
         return $permission ? true : false;
+    }
+    private function getPermissionStatus($pohonId, $action)
+    {
+        $requesterId = session()->get('user_id');
+        if (empty($requesterId)) {
+            return 'none';
+        }
+
+        // 1. Cek izin yang 'approved' dan masih aktif
+        $approved = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $pohonId,
+            'target_type'  => 'pohon',
+            'action_type'  => $action,
+            'status'       => 'approved',
+            'expires_at >' => date('Y-m-d H:i:s')
+        ])->first();
+
+        if ($approved) {
+            return 'approved';
+        }
+
+        // 2. Cek permintaan yang masih 'pending'
+        $pending = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $pohonId,
+            'target_type'  => 'pohon',
+            'action_type'  => $action,
+            'status'       => 'pending'
+        ])->first();
+
+        if ($pending) {
+            return 'pending';
+        }
+
+        // 3. Jika tidak ada, kembalikan 'none'
+        return 'none';
     }
 }
