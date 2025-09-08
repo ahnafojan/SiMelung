@@ -1,4 +1,4 @@
-<?= $this->extend('layouts/main_layout_admin'); ?>
+<?= $this->extend('admin_keuangan/layout/template'); ?>
 
 <?= $this->section('content'); ?>
 <style>

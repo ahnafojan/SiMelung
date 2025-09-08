@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\MasterNeracaModel;
+use App\Models\LogAktivitasModel;
 
 class MasterNeraca extends BaseController
 {
@@ -15,6 +16,16 @@ class MasterNeraca extends BaseController
         helper('form');
     }
 
+    private function logAktivitas($aktivitas, $deskripsi, $bku_id = null)
+    {
+        $logModel = new LogAktivitasModel();
+        $logModel->save([
+            'username'  => session()->get('username') ?? 'System', // Ambil username dari session
+            'aktivitas' => $aktivitas,
+            'deskripsi' => $deskripsi,
+            'bku_id'    => $bku_id
+        ]);
+    }
 
     /**
      * Menampilkan daftar semua komponen neraca
@@ -75,7 +86,8 @@ class MasterNeraca extends BaseController
             'nama_komponen' => $this->request->getVar('nama_komponen'),
             'kategori'      => $this->request->getVar('kategori'),
         ]);
-
+        // menambahkan log aktivitas
+        $this->logAktivitas('TAMBAH', "Menambahkan komponen neraca baru: " . $this->request->getVar('nama_komponen'));
         session()->setFlashdata('success', 'Komponen neraca berhasil ditambahkan.');
         return redirect()->to('/master-neraca');
     }
@@ -123,6 +135,8 @@ class MasterNeraca extends BaseController
             'kategori'      => $this->request->getVar('kategori'),
         ]);
 
+        // menambahkan log aktivitas
+        $this->logAktivitas('EDIT', "Memperbarui komponen neraca ID {$id}: " . $this->request->getVar('nama_komponen'));
         session()->setFlashdata('success', 'Komponen neraca berhasil diperbarui.');
         return redirect()->to('/master-neraca');
     }
@@ -132,8 +146,27 @@ class MasterNeraca extends BaseController
      */
     public function delete($id = null)
     {
-        $this->masterNeracaModel->delete($id);
-        session()->setFlashdata('success', 'Komponen neraca berhasil dihapus.');
+        // [DIUBAH] Ambil data berdasarkan ID SEBELUM dihapus
+        $data = $this->masterNeracaModel->find($id);
+
+        // Lakukan pengecekan apakah data ditemukan
+        if ($data) {
+            // Simpan nama komponen untuk dicatat di log
+            $namaKomponen = $data['nama_komponen'];
+
+            // Hapus data dari database
+            $this->masterNeracaModel->delete($id);
+
+            // Catat aktivitas dengan nama yang sudah disimpan
+            $this->logAktivitas('HAPUS', "Menghapus komponen neraca: '" . $namaKomponen . "'");
+
+            session()->setFlashdata('success', 'Komponen neraca berhasil dihapus.');
+        } else {
+            // Jika data tidak ditemukan, beri pesan error
+            session()->setFlashdata('error', 'Data komponen tidak ditemukan atau sudah dihapus.');
+        }
+
+        // Redirect kembali ke halaman utama
         return redirect()->to('/master-neraca');
     }
 }

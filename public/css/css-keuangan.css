@@ -1,0 +1,186 @@
+/* General Body and Layout */
+body {
+    overflow-x: hidden;
+    background-color: #f8f9fa;
+    font-family: 'Poppins', sans-serif;
+}
+
+    input[readonly] {
+        background-color: #e9ecef; /* Warna abu-abu standar Bootstrap untuk field non-aktif */
+        cursor: not-allowed;      /* Mengubah cursor menjadi ikon 'dilarang' saat di-hover */
+        opacity: 1;               /* Memastikan field tidak terlihat pudar */
+    }
+
+#wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+/* --- Sidebar Styling --- */
+.sidebar {
+    width: 250px;
+    background-color: #212529;
+    color: #fff;
+    transition: all 0.3s;
+    min-height: 100vh;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    border-right: 1px solid #343a40;
+}
+
+.sidebar-header {
+    padding: 1.25rem;
+    background-color: #1c2023;
+    text-align: center;
+    border-bottom: 1px solid #343a40;
+}
+
+.sidebar-header h4 {
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.sidebar .nav-item {
+    margin-bottom: 2px;
+}
+
+/* --- PERBAIKAN UTAMA ADA DI BLOK INI --- */
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    padding: 1rem 1.25rem;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    border-left: 4px solid transparent;
+    font-weight: 500;
+    
+    /* Menggunakan Flexbox untuk perataan vertikal */
+    display: flex;
+    align-items: center;
+}
+
+.sidebar .nav-link .fa-angle-left {
+    /* Mendorong panah ke ujung kanan secara otomatis */
+    margin-left: auto;
+    /* Memastikan transisi rotasi tetap ada */
+    transition: transform 0.3s ease;
+}
+/* ------------------------------------------- */
+
+.sidebar .nav-link:hover {
+    color: #fff;
+    background-color: #343a40;
+    border-left-color: #0d6efd;
+}
+
+.sidebar .nav-link.active {
+    color: #fff;
+    background-color: #343a40;
+    border-left-color: #0d6efd;
+}
+
+.sidebar .nav-item.menu-open > a > .fa-angle-left {
+    transform: rotate(-90deg);
+}
+
+.sidebar .nav .nav-link .fas {
+    width: 20px;
+    text-align: center;
+    font-size: 0.95rem;
+    opacity: 0.8;
+}
+
+/* Submenu styling */
+.sidebar .collapse .nav-link {
+    background: rgba(0,0,0,0.2);
+    padding-left: 3rem;
+    font-size: 0.85rem;
+    position: relative;
+    border-left: 4px solid transparent;
+}
+
+.sidebar .collapse .nav-link::before {
+    content: "—";
+    position: absolute;
+    left: 1.75rem;
+    opacity: 0.6;
+}
+
+.sidebar .collapse .nav-link:hover,
+.sidebar .collapse .nav-link.active {
+    background: rgba(0,0,0,0.4);
+    color: #fff;
+}
+
+/* Logout Button Styling */
+.sidebar-footer {
+    padding: 1rem;
+    margin-top: auto;
+    border-top: 1px solid #343a40;
+}
+
+.sidebar-footer .nav-link {
+    padding: 0.75rem;
+    text-align: center;
+    border-radius: 5px;
+}
+
+.sidebar-footer .nav-link:hover {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #dc3545 !important;
+    border-left-color: transparent;
+}
+
+/* --- Content & Other Elements --- */
+#content-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+    padding: 2rem;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.main-footer {
+    background-color: #fff;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* Styling untuk wrapper logo di footer */
+.footer-logos {
+    display: flex; /* Mengaktifkan Flexbox untuk penataan otomatis */
+    justify-content: center; /* Membuat semua logo berada di tengah */
+    align-items: center; /* Membuat logo sejajar secara vertikal */
+    gap: 20px; /* Memberi jarak 20px antar logo */
+    flex-wrap: wrap; /* Memastikan logo akan turun ke bawah jika layar terlalu kecil */
+}
+
+/* Styling untuk setiap logo di footer */
+.logo-footer {
+    height: 45px; /* Menetapkan tinggi yang seragam untuk semua logo */
+    width: auto; /* Lebar akan menyesuaikan secara otomatis agar gambar tidak gepeng */
+    object-fit: contain; /* Memastikan gambar terlihat penuh tanpa terpotong */
+}
+
+/* Responsive Behavior */
+@media (max-width: 991.98px) {
+    #wrapper .sidebar {
+        margin-left: -250px;
+    }
+
+    #wrapper.sidebar-toggled .sidebar {
+        margin-left: 0;
+    }
+}
