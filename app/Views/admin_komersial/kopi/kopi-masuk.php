@@ -3,7 +3,6 @@
 <?= $this->section('content') ?>
 <div class="container-fluid py-4">
 
-    <!-- Judul Halaman -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3 mb-1 page-title">Kopi Masuk</h1>
@@ -11,7 +10,6 @@
         </div>
     </div>
 
-    <!-- Tombol Tambah Data -->
     <div class="mb-3">
         <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalTambahKopi">
             <i class="fas fa-plus"></i> Tambah Data Kopi Masuk
@@ -19,7 +17,6 @@
     </div>
 
 
-    <!-- Modal Form Tambah Data -->
     <div class="modal fade" id="modalTambahKopi" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <form action="<?= base_url('kopi-masuk/create') ?>" method="post">
@@ -32,7 +29,6 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <!-- Dropdown Petani -->
                         <div class="form-group">
                             <label>Nama Petani</label>
                             <select id="petani" name="petani_user_id" class="form-control" required>
@@ -44,38 +40,26 @@
                                 <?php endforeach; ?>
                             </select>
                         </div>
-
-
-                        <!-- Dropdown Jenis Pohon -->
                         <div class="form-group">
                             <label>Jenis Pohon</label>
                             <select id="jenis_pohon" name="petani_pohon_id" class="form-control" required>
                                 <option value="">-- Pilih Jenis Pohon --</option>
                             </select>
                         </div>
-
-
-                        <!-- Input Jumlah -->
                         <div class="form-group">
                             <label for="jumlah">Jumlah (Kg)</label>
                             <input type="number" step="0.01" min="0" class="form-control" id="jumlah" name="jumlah" placeholder="Masukkan jumlah kopi Kg">
                         </div>
-
-
-                        <!-- Input Tanggal -->
                         <div class="form-group">
                             <label>Tanggal Setor</label>
                             <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
                         </div>
-
-                        <!-- Input Keterangan -->
                         <div class="form-group">
                             <label>Keterangan</label>
                             <textarea name="keterangan" class="form-control" rows="2" placeholder="Masukan Keterangan jika ada"></textarea>
                         </div>
-
                     </div>
-                    <div class="modal-footer px-0">
+                    <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary">Simpan</button>
                     </div>
@@ -84,11 +68,9 @@
         </div>
     </div>
 
-
-    <!-- Tabel Data Kopi Masuk -->
-    <div class="card shadow">
+    <div class="card shadow d-none d-lg-block">
         <div class="card-body table-responsive">
-            <table class="table table-bordered">
+            <table class="table table-bordered table-hover align-middle">
                 <thead class="thead-dark">
                     <tr>
                         <th>#</th>
@@ -96,20 +78,17 @@
                         <th>Jenis Pohon Kopi</th>
                         <th>Tanggal</th>
                         <th>Stok Saat Ini (Kg)</th>
-                        <th>Kopi Masuk Harian (Kg)</th>
+                        <th>Kopi Masuk (Kg)</th>
                         <th>Keterangan</th>
-                        <th>Aksi</th>
+                        <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="text-center">
                     <?php if (!empty($kopiMasuk)) : ?>
-                        <?php
-                        // Inisialisasi nomor urut berdasarkan halaman saat ini
-                        $nomor = ($currentPage - 1) * $perPage + 1;
-                        ?>
+                        <?php $nomor = ($currentPage - 1) * $perPage + 1; ?>
                         <?php foreach ($kopiMasuk as $k) : ?>
                             <tr>
-                                <td><?= $nomor++ ?></td> <!-- Gunakan nomor yang sudah dihitung -->
+                                <td><?= $nomor++ ?></td>
                                 <td><?= esc($k['nama_petani']) ?></td>
                                 <td><?= esc($k['nama_pohon']) ?></td>
                                 <td><?= esc($k['tanggal']) ?></td>
@@ -118,122 +97,22 @@
                                 <td><?= esc($k['keterangan']) ?></td>
                                 <td>
                                     <?php if ($k['edit_status'] == 'approved') : ?>
-                                        <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modalEditKopi<?= $k['id'] ?>">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
+                                        <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modalEditKopi<?= $k['id'] ?>"><i class="fas fa-edit"></i></button>
                                     <?php elseif ($k['edit_status'] == 'pending') : ?>
-                                        <button class="btn btn-sm btn-secondary disabled" title="Permintaan sedang diproses">
-                                            <i class="fas fa-clock"></i>
-                                        </button>
+                                        <button class="btn btn-sm btn-secondary disabled" title="Permintaan sedang diproses"><i class="fas fa-clock"></i></button>
                                     <?php else : ?>
-                                        <button class="btn btn-sm btn-outline-warning btn-request-access" data-kopimasuk-id="<?= $k['id'] ?>" data-action-type="edit" title="Minta Izin Edit">
-                                            <i class="fas fa-lock"></i>
-                                        </button>
+                                        <button class="btn btn-sm btn-outline-warning btn-request-access" data-kopimasuk-id="<?= $k['id'] ?>" data-action-type="edit" title="Minta Izin Edit"><i class="fas fa-lock"></i></button>
                                     <?php endif; ?>
 
                                     <?php if ($k['delete_status'] == 'approved') : ?>
-                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalHapusKopi<?= $k['id'] ?>">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalHapusKopi<?= $k['id'] ?>"><i class="fas fa-trash"></i></button>
                                     <?php elseif ($k['delete_status'] == 'pending') : ?>
-                                        <button class="btn btn-sm btn-secondary disabled" title="Permintaan sedang diproses">
-                                            <i class="fas fa-clock"></i>
-                                        </button>
+                                        <button class="btn btn-sm btn-secondary disabled" title="Permintaan sedang diproses"><i class="fas fa-clock"></i></button>
                                     <?php else : ?>
-                                        <button class="btn btn-sm btn-outline-danger btn-request-access" data-kopimasuk-id="<?= $k['id'] ?>" data-action-type="delete" title="Minta Izin Hapus">
-                                            <i class="fas fa-lock"></i>
-                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-request-access" data-kopimasuk-id="<?= $k['id'] ?>" data-action-type="delete" title="Minta Izin Hapus"><i class="fas fa-lock"></i></button>
                                     <?php endif; ?>
                                 </td>
                             </tr>
-
-                            <!-- Modal Edit -->
-                            <div class="modal fade" id="modalEditKopi<?= $k['id'] ?>" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <form action="<?= base_url('kopi-masuk/update/' . $k['id']) ?>" method="post">
-                                        <?= csrf_field() ?>
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-warning text-white">
-                                                <h5 class="modal-title">Edit Data Kopi Masuk</h5>
-                                                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                                            </div>
-                                            <div class="modal-body">
-
-                                                <!-- Pilih Petani -->
-                                                <div class="form-group">
-                                                    <label>Nama Petani</label>
-                                                    <select name="petani_user_id" class="form-control">
-                                                        <?php foreach ($petani as $p) : ?>
-                                                            <option value="<?= $p['user_id'] ?>" <?= $p['user_id'] == $k['petani_user_id'] ? 'selected' : '' ?>>
-                                                                <?= $p['user_id'] ?> - <?= $p['nama'] ?>
-                                                            </option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                </div>
-
-                                                <!-- Pilih Jenis Pohon -->
-                                                <div class="form-group">
-                                                    <label for="jenis_pohon">Jenis Pohon</label>
-                                                    <select id="jenis_pohon_edit_<?= $k['id'] ?>" name="petani_pohon_id" class="form-control jenis-pohon-dropdown" data-petani="<?= $k['petani_user_id'] ?>" data-selected="<?= $k['petani_pohon_id'] ?>" required>
-                                                        <option value="">-- Pilih Jenis Pohon --</option>
-                                                        <!-- Akan diisi melalui JS -->
-                                                    </select>
-                                                </div>
-
-
-
-                                                <!-- Jumlah -->
-                                                <div class="form-group">
-                                                    <label>Jumlah (Kg)</label>
-                                                    <input type="number" step="0.01" min="0" name="jumlah" class="form-control" value="<?= esc($k['jumlah']) ?>" required>
-                                                </div>
-
-                                                <!-- Tanggal -->
-                                                <div class="form-group">
-                                                    <label>Tanggal</label>
-                                                    <input type="date" name="tanggal" class="form-control" value="<?= esc($k['tanggal']) ?>" required>
-                                                </div>
-
-                                                <!-- Keterangan -->
-                                                <div class="form-group">
-                                                    <label>Keterangan</label>
-                                                    <textarea name="keterangan" class="form-control" rows="2"><?= esc($k['keterangan']) ?></textarea>
-                                                </div>
-                                            </div>
-
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                                <button type="submit" class="btn btn-warning">Simpan</button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-
-
-                            <!-- Modal Hapus -->
-                            <div class="modal fade" id="modalHapusKopi<?= $k['id'] ?>" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <form action="<?= base_url('kopi-masuk/delete/' . $k['id']) ?>" method="post">
-                                        <?= csrf_field() ?>
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-danger text-white">
-                                                <h5 class="modal-title">Konfirmasi Hapus</h5>
-                                                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                Apakah Anda yakin ingin menghapus data kopi masuk dari
-                                                <strong><?= esc($k['nama_petani']) ?></strong> (<?= esc($k['nama_pohon']) ?>)?
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                                <button type="submit" class="btn btn-danger">Hapus</button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-
                         <?php endforeach; ?>
                     <?php else : ?>
                         <tr>
@@ -243,16 +122,11 @@
                 </tbody>
             </table>
         </div>
-        <!-- Blok Pagination Kustom -->
         <div class="card-footer">
             <?php if (isset($pager) && $pager->getPageCount() > 1) : ?>
                 <div class="pagination-wrapper">
-                    <!-- Per Page Selector -->
                     <form method="get" class="per-page-selector">
-                        <label class="per-page-label">
-                            <i class="fas fa-list-ul mr-2"></i>
-                            Tampilkan
-                        </label>
+                        <label class="per-page-label"><i class="fas fa-list-ul mr-2"></i> Tampilkan </label>
                         <div class="dropdown-container">
                             <select name="per_page" class="per-page-select" onchange="this.form.submit()">
                                 <option value="10" <?= ($perPage == 10 ? 'selected' : '') ?>>10</option>
@@ -263,13 +137,7 @@
                         </div>
                         <span class="per-page-suffix">data per halaman</span>
                     </form>
-
-                    <!-- Pagination Navigation -->
-                    <nav class="pagination-nav" aria-label="Navigasi Halaman">
-                        <?= $pager->links('default', 'custom_pagination_template') ?>
-                    </nav>
-
-                    <!-- Page Info -->
+                    <nav class="pagination-nav" aria-label="Navigasi Halaman"><?= $pager->links('default', 'custom_pagination_template') ?></nav>
                     <div class="page-info">
                         <span class="info-text">
                             <i class="fas fa-info-circle mr-2"></i>
@@ -285,28 +153,148 @@
             <?php endif; ?>
         </div>
     </div>
+
+    <div class="d-block d-lg-none">
+        <?php if (!empty($kopiMasuk)) : ?>
+            <?php foreach ($kopiMasuk as $k) : ?>
+                <div class="card shadow mb-3">
+                    <div class="card-body">
+                        <h6 class="font-weight-bold text-primary"><?= esc($k['nama_petani']) ?></h6>
+                        <p class="mb-1"><strong>Jenis Kopi:</strong> <?= esc($k['nama_pohon']) ?></p>
+                        <p class="mb-1"><strong>Tanggal:</strong> <?= esc($k['tanggal']) ?></p>
+                        <p class="mb-1"><strong>Stok Saat Ini:</strong> <?= esc($k['stok'] ?? 0) ?> Kg</p>
+                        <p class="mb-1"><strong>Kopi Masuk:</strong> <?= esc($k['jumlah']) ?> Kg</p>
+                        <?php if (!empty($k['keterangan'])) : ?>
+                            <p class="mb-2"><strong>Ket:</strong> <?= esc($k['keterangan']) ?></p>
+                        <?php endif; ?>
+
+                        <div class="mt-3 border-top pt-3 text-right">
+                            <?php if ($k['edit_status'] == 'approved') : ?>
+                                <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modalEditKopi<?= $k['id'] ?>"><i class="fas fa-edit"></i> Edit</button>
+                            <?php elseif ($k['edit_status'] == 'pending') : ?>
+                                <button class="btn btn-sm btn-secondary disabled" title="Permintaan sedang diproses"><i class="fas fa-clock"></i> Pending</button>
+                            <?php else : ?>
+                                <button class="btn btn-sm btn-outline-warning btn-request-access" data-kopimasuk-id="<?= $k['id'] ?>" data-action-type="edit" title="Minta Izin Edit"><i class="fas fa-lock"></i> Minta Edit</button>
+                            <?php endif; ?>
+
+                            <?php if ($k['delete_status'] == 'approved') : ?>
+                                <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalHapusKopi<?= $k['id'] ?>"><i class="fas fa-trash"></i> Hapus</button>
+                            <?php elseif ($k['delete_status'] == 'pending') : ?>
+                                <button class="btn btn-sm btn-secondary disabled" title="Permintaan sedang diproses"><i class="fas fa-clock"></i> Pending</button>
+                            <?php else : ?>
+                                <button class="btn btn-sm btn-outline-danger btn-request-access" data-kopimasuk-id="<?= $k['id'] ?>" data-action-type="delete" title="Minta Izin Hapus"><i class="fas fa-lock"></i> Minta Hapus</button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+
+            <?php if (isset($pager) && $pager->getPageCount() > 1) : ?>
+                <div class="d-flex justify-content-center">
+                    <?= $pager->links('default', 'custom_pagination_template') ?>
+                </div>
+            <?php endif; ?>
+
+        <?php else : ?>
+            <div class="alert alert-info text-center">Belum ada data</div>
+        <?php endif; ?>
+    </div>
+
+    <?php if (!empty($kopiMasuk)) : ?>
+        <?php foreach ($kopiMasuk as $k) : ?>
+            <div class="modal fade" id="modalEditKopi<?= $k['id'] ?>" tabindex="-1">
+                <div class="modal-dialog">
+                    <form action="<?= base_url('kopi-masuk/update/' . $k['id']) ?>" method="post">
+                        <?= csrf_field() ?>
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning text-white">
+                                <h5 class="modal-title">Edit Data Kopi Masuk</h5>
+                                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label>Nama Petani</label>
+                                    <select name="petani_user_id" class="form-control">
+                                        <?php foreach ($petani as $p) : ?>
+                                            <option value="<?= $p['user_id'] ?>" <?= $p['user_id'] == $k['petani_user_id'] ? 'selected' : '' ?>>
+                                                <?= $p['user_id'] ?> - <?= $p['nama'] ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Jenis Pohon</label>
+                                    <select name="petani_pohon_id" class="form-control jenis-pohon-dropdown" data-petani="<?= $k['petani_user_id'] ?>" data-selected="<?= $k['petani_pohon_id'] ?>" required>
+                                        <option value="">-- Pilih Jenis Pohon --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Jumlah (Kg)</label>
+                                    <input type="number" step="0.01" min="0" name="jumlah" class="form-control" value="<?= esc($k['jumlah']) ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tanggal</label>
+                                    <input type="date" name="tanggal" class="form-control" value="<?= esc($k['tanggal']) ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Keterangan</label>
+                                    <textarea name="keterangan" class="form-control" rows="2"><?= esc($k['keterangan']) ?></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-warning">Simpan</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="modal fade" id="modalHapusKopi<?= $k['id'] ?>" tabindex="-1">
+                <div class="modal-dialog">
+                    <form action="<?= base_url('kopi-masuk/delete/' . $k['id']) ?>" method="post">
+                        <?= csrf_field() ?>
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title">Konfirmasi Hapus</h5>
+                                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Apakah Anda yakin ingin menghapus data kopi masuk dari <strong><?= esc($k['nama_petani']) ?></strong> (<?= esc($k['nama_pohon']) ?>)?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-danger">Hapus</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+
 </div>
 
 <style>
-    /* Tambahkan CSS ini di file CSS utama Anda atau di tag <style> di layout */
+    /* CSS Kustom untuk Pagination */
     .pagination-wrapper {
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        padding: 1rem 0;
+        padding: 0.5rem 1.25rem;
     }
 
     .per-page-selector,
     .page-info,
     .pagination-nav {
-        margin: 0.5rem;
+        margin: 0.5rem 0;
     }
 
     .per-page-selector {
         display: flex;
         align-items: center;
-        font-size: 0.9rem;
+        font-size: 0.875rem;
         color: #6c757d;
     }
 
@@ -340,107 +328,63 @@
     }
 
     .page-info {
-        font-size: 0.9rem;
+        font-size: 0.875rem;
         color: #6c757d;
     }
 
     .pagination-nav .pagination {
         margin-bottom: 0;
     }
-
-    .pagination .page-item.active .page-link {
-        z-index: 3;
-        color: #fff;
-        background-color: #007bff;
-        border-color: #007bff;
-    }
-
-    .pagination .page-link {
-        color: #007bff;
-    }
-
-    .pagination .page-item.disabled .page-link {
-        color: #6c757d;
-    }
 </style>
 
 <script>
     $(document).ready(function() {
-        // ------------------------------
-        // FORM CREATE
-        // ------------------------------
+        // Fungsi untuk mengambil data jenis pohon berdasarkan petani
+        function loadJenisPohon(petaniId, $dropdown, selectedId = null) {
+            $dropdown.prop('disabled', true).html('<option>Loading...</option>');
+            if (petaniId) {
+                $.getJSON("<?= base_url('get-jenis-pohon') ?>/" + petaniId, function(data) {
+                    let options = '<option value="">-- Pilih Jenis Pohon --</option>';
+                    $.each(data, function(i, item) {
+                        let isSelected = (item.id == selectedId) ? 'selected' : '';
+                        options += `<option value="${item.id}" ${isSelected}>${item.nama_jenis}</option>`;
+                    });
+                    $dropdown.html(options).prop('disabled', false);
+                });
+            } else {
+                $dropdown.html('<option value="">-- Pilih Jenis Pohon --</option>').prop('disabled', true);
+            }
+        }
+
+        // Event handler untuk dropdown petani di form TAMBAH
         $('#petani').change(function() {
             let petaniId = $(this).val();
             let $jenisPohon = $('#jenis_pohon');
-
-            $jenisPohon.prop('disabled', true).html('<option>Loading...</option>');
-
-            if (petaniId) {
-                $.getJSON("<?= base_url('get-jenis-pohon') ?>/" + petaniId, function(data) {
-                    let options = '<option value="">-- Pilih Jenis Pohon --</option>';
-                    $.each(data, function(i, item) {
-                        options += `<option value="${item.id}">${item.nama_jenis}</option>`;
-                    });
-                    $jenisPohon.html(options).prop('disabled', false);
-                });
-            } else {
-                $jenisPohon.html('<option value="">-- Pilih Jenis Pohon --</option>').prop('disabled', true);
-            }
+            loadJenisPohon(petaniId, $jenisPohon);
         });
 
-        // ------------------------------
-        // FORM EDIT (modal)
-        // ------------------------------
+        // Event handler saat modal EDIT ditampilkan
         $('.modal').on('shown.bs.modal', function() {
             let $jenisPohon = $(this).find('.jenis-pohon-dropdown');
-            if (!$jenisPohon.length) return; // Keluar jika dropdown tidak ada di modal ini
+            if (!$jenisPohon.length) return; // Keluar jika bukan modal edit
 
-            let petaniId = $jenisPohon.data('petani'); // user_id petani
-            let selectedId = $jenisPohon.data('selected'); // id pohon yang tersimpan
-
-            // Cek jika sudah diisi, jangan di-load ulang
-            if ($jenisPohon.find('option').length > 1) {
-                return;
-            }
-
-            if (petaniId) {
-                $.getJSON("<?= base_url('get-jenis-pohon') ?>/" + petaniId, function(data) {
-                    let options = '<option value="">-- Pilih Jenis Pohon --</option>';
-                    $.each(data, function(i, item) {
-                        let selected = (item.id == selectedId) ? 'selected' : '';
-                        options += `<option value="${item.id}" ${selected}>${item.nama_jenis}</option>`;
-                    });
-                    $jenisPohon.html(options).prop('disabled', false);
-                });
+            // Hanya load jika dropdown masih kosong
+            if ($jenisPohon.find('option').length <= 1) {
+                let petaniId = $jenisPohon.data('petani');
+                let selectedId = $jenisPohon.data('selected');
+                loadJenisPohon(petaniId, $jenisPohon, selectedId);
             }
         });
 
-        // ------------------------------
-        // Kalau di modal edit user ganti petani
-        // ------------------------------
+        // Event handler jika petani diganti di dalam modal EDIT
         $(document).on('change', '.modal select[name="petani_user_id"]', function() {
             let $modal = $(this).closest('.modal');
             let petaniId = $(this).val();
             let $jenisPohon = $modal.find('.jenis-pohon-dropdown');
-
-            $jenisPohon.prop('disabled', true).html('<option>Loading...</option>');
-
-            if (petaniId) {
-                $.getJSON("<?= base_url('get-jenis-pohon') ?>/" + petaniId, function(data) {
-                    let options = '<option value="">-- Pilih Jenis Pohon --</option>';
-                    $.each(data, function(i, item) {
-                        options += `<option value="${item.id}">${item.nama_jenis}</option>`;
-                    });
-                    $jenisPohon.html(options).prop('disabled', false);
-                });
-            } else {
-                $jenisPohon.html('<option value="">-- Pilih Jenis Pohon --</option>').prop('disabled', true);
-            }
+            loadJenisPohon(petaniId, $jenisPohon);
         });
 
-        // ------------------------------
-        // SCRIPT UNTUK PERMINTAAN IZIN
-        // ------------------------------
+        // AJAX untuk Minta Izin Akses (Request Access)
         $('.btn-request-access').on('click', function() {
             const button = $(this);
             const kopiMasukId = button.data('kopimasuk-id');
@@ -466,6 +410,10 @@
                         });
                         button.removeClass('btn-outline-warning btn-outline-danger').addClass('btn-secondary disabled')
                             .html('<i class="fas fa-clock"></i>');
+                        // Update teks tombol di mobile view
+                        if (button.text().includes("Minta")) {
+                            button.html('<i class="fas fa-clock"></i> Pending');
+                        }
                     } else {
                         Swal.fire({
                             icon: 'error',
@@ -473,6 +421,9 @@
                             text: response.message
                         });
                         button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                        if (button.text().includes("Pending")) {
+                            button.html(action === 'edit' ? '<i class="fas fa-lock"></i> Minta Edit' : '<i class="fas fa-lock"></i> Minta Hapus');
+                        }
                     }
                 },
                 error: function() {

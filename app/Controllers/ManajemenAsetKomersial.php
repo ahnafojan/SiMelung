@@ -60,6 +60,18 @@ class ManajemenAsetKomersial extends Controller
             'perPage'      => $perPage,
             'currentPage'  => $this->asetModel->pager->getCurrentPage('asets'),
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Manajemen Aset',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-tools' // Ikon yang cocok untuk data master
+            ]
+        ];
 
         return view('admin_komersial/aset/manajemen_aset', $data);
     }

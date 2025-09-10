@@ -62,6 +62,18 @@ class AsetPariwisata extends BaseController
             'currentPage' => $pager->getCurrentPage(),
             'perPage'     => $perPage,
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_pariwisata'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Manajemen Aset Pariwisata',
+                'url'   => '#',
+                'icon'  => 'fas fa-archive'
+            ]
+        ];
 
         return view('admin_pariwisata/manajemen', $data);
     }

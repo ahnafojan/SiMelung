@@ -30,6 +30,18 @@ class AsetKomersial extends Controller
             'Kendaraan Operasional',
             'Peralatan Pertanian',
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Master Aset',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-tools' // Ikon yang cocok untuk data master
+            ]
+        ];
 
         return view('admin_komersial/aset/master_aset', $data);
     }

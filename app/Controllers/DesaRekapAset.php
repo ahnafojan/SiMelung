@@ -87,6 +87,18 @@ class DesaRekapAset extends BaseController
             'filterTahun'   => $filterTahunAset,
             'perPageAset'   => $perPageAset,
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_desa'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan Aset Produksi',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-coffee fa-lg' // Ikon yang cocok untuk data master
+            ]
+        ];
 
         // Mengarah ke view utama DESA
         return view('desa/laporan_komersial/aset', $data);

@@ -7,7 +7,7 @@
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h1 class="h3 text-dark font-weight-bolder">Dashboard Pariwisata</h1>
-            <p class="text-secondary small">Ringkasan Aset Pariwisata Desa Melung</p>
+            <p class="text-secondary medium">Ringkasan Aset Pariwisata Desa Melung</p>
         </div>
         <div class="btn-group">
             <a href="<?= base_url('asetpariwisata') ?>" class="btn btn-primary">

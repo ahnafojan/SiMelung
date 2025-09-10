@@ -78,7 +78,18 @@ class PersetujuanKomersial extends BaseController
             ->where('permission_requests.status', 'pending')
             ->orderBy('permission_requests.created_at', 'DESC')
             ->findAll();
-
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_bumdes'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Permission Requests',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-tasks fa-lg' // Ikon untuk stok atau barang masuk
+            ]
+        ];
         return view('bumdes/persetujuan/admin_komersial/index', $data);
     }
 

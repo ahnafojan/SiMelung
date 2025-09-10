@@ -56,6 +56,18 @@ class DesaRekapKopi extends KomersialRekapKopi // <-- Kunci utamanya ada di sini
             'pagerStokAkhir'    => $pagerStokAkhir,
             'perPageStok'       => $perPageStok,
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_desa'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan Rekap Kopi',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-coffee fa-lg' // Ikon yang cocok untuk data master
+            ]
+        ];
 
         // PERBEDAAN UTAMA: Mengarahkan ke view yang berbeda untuk Desa
         // Pastikan Anda membuat file view ini.

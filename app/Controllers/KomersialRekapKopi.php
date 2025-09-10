@@ -70,6 +70,23 @@ class KomersialRekapKopi extends BaseController
             'pagerStokAkhir'    => $pagerStokAkhir,
             'perPageStok'       => $perPageStok,
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan Komersial',
+                'url'   => site_url('admin-komersial/laporan'),
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ],
+            [
+                'title' => 'Laporan Rekap Kopi',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ]
+        ];
 
         return view('admin_komersial/laporan/rekap_kopi', $data);
     }

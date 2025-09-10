@@ -56,6 +56,18 @@ class KopiKeluar extends BaseController
             'perPage'     => $perPage, // Mengirimkan nilai perPage ke view
             'currentPage' => $this->kopiKeluarModel->pager->getCurrentPage('kopikeluar'), // Mengambil halaman saat ini
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Kopi Keluar',
+                'url'   => '#',
+                'icon'  => 'fas fa-seedling' // Ikon untuk stok atau barang masuk
+            ]
+        ];
         return view('admin_komersial/kopi/kopi-keluar', $data);
     }
 

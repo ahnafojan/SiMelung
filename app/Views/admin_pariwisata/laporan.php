@@ -2,8 +2,11 @@
 <?= $this->section('content') ?>
 
 <div class="container-fluid py-4">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Laporan Aset Pariwisata</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1 page-title">Laporan Aset Pariwisata</h1>
+            <p class="mb-0 page-subtitle text-muted">Cetak Laporan Aset tiap Objek Pariwisata Desa Melung.</p>
+        </div>
     </div>
 
     <div class="card shadow mb-4">

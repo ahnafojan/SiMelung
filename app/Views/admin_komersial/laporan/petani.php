@@ -11,6 +11,7 @@
         --border-color: #e3e6f0;
     }
 
+    /* ... (CSS Anda yang sudah ada tidak saya hapus) ... */
     .page-title {
         color: #3a3b45;
         font-weight: 700;
@@ -139,6 +140,15 @@
         color: var(--secondary-text);
     }
 
+    .icon-circle {
+        height: 2.5rem;
+        width: 2.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     @media (min-width: 992px) {
         .view-mobile {
             display: none;
@@ -163,13 +173,84 @@
         }
     }
 
-    .icon-circle {
-        height: 2.5rem;
-        width: 2.5rem;
-        border-radius: 50%;
+    /* === [BARU] CSS UNTUK PAGINATION === */
+    .pagination-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 0.5rem 0;
+    }
+
+    .per-page-selector {
         display: flex;
         align-items: center;
-        justify-content: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #5a5c69;
+    }
+
+    .per-page-label i {
+        color: #858796;
+    }
+
+    .dropdown-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .per-page-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-color: #fff;
+        border: 1px solid #d1d3e2;
+        border-radius: 0.35rem;
+        padding: 0.375rem 1.75rem 0.375rem 0.75rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    .per-page-select:focus {
+        border-color: #4e73df;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    }
+
+    .dropdown-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #858796;
+    }
+
+    .page-info {
+        font-size: 0.875rem;
+        color: #5a5c69;
+    }
+
+    .info-text .fas {
+        color: #858796;
+    }
+
+    .pagination-nav .pagination {
+        margin-bottom: 0;
+    }
+
+    @media (max-width: 991.98px) {
+        .pagination-wrapper {
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .pagination-nav {
+            order: -1;
+        }
     }
 </style>
 
@@ -188,11 +269,11 @@
         <div class="col-12">
             <div class="card p-3 filter-card shadow-sm">
                 <div class="row align-items-end">
-                    <div class="col-lg-3 col-md-6 mb-2">
+                    <div class="col-lg-4 col-md-6 mb-2">
                         <label for="filter-search" class="filter-label">Cari Nama Petani</label>
                         <input type="text" class="form-control form-control-sm" id="filter-search" placeholder="Ketik nama..." value="<?= esc($filters['search']) ?>">
                     </div>
-                    <div class="col-lg-3 col-md-6 mb-2">
+                    <div class="col-lg-4 col-md-6 mb-2">
                         <label for="filter-jenis-kopi" class="filter-label">Filter Jenis Kopi</label>
                         <select class="form-control form-control-sm" id="filter-jenis-kopi">
                             <option value="">Semua Jenis</option>
@@ -201,23 +282,14 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-lg-2 col-md-4 mb-2">
-                        <label for="per_page_select" class="filter-label">Item/Halaman</label>
-                        <select class="form-control form-control-sm" id="per_page_select">
-                            <option value="10" <?= ($perPage == 10) ? 'selected' : '' ?>>10</option>
-                            <option value="25" <?= ($perPage == 25) ? 'selected' : '' ?>>25</option>
-                            <option value="50" <?= ($perPage == 50) ? 'selected' : '' ?>>50</option>
-                            <option value="100" <?= ($perPage == 100) ? 'selected' : '' ?>>100</option>
-                        </select>
-                    </div>
-                    <div class="col-lg-2 col-md-4 mb-2">
+                    <div class="col-lg-2 col-md-6 mb-2">
                         <label class="filter-label">&nbsp;</label>
                         <div class="btn-group w-100">
                             <a id="export-excel" href="#" class="btn btn-sm btn-success" title="Export ke Excel"><i class="fas fa-file-excel"></i></a>
                             <a id="export-pdf" href="#" class="btn btn-sm btn-danger" title="Export ke PDF"><i class="fas fa-file-pdf"></i></a>
                         </div>
                     </div>
-                    <div class="col-lg-2 col-md-4 mb-2">
+                    <div class="col-lg-2 col-md-6 mb-2">
                         <label class="filter-label">&nbsp;</label>
                         <button class="btn btn-sm btn-outline-secondary w-100" id="reset-filter">
                             <i class="fas fa-eraser mr-1"></i> Reset
@@ -237,20 +309,48 @@
         <div id="petani-list-container">
             <?= $petaniListView ?>
         </div>
-        <div class="card-footer d-flex justify-content-end" id="pagination-container">
-            <?= $petaniPager->links('petani', 'default_full') ?>
+
+        <div class="card-footer" id="pagination-container">
+            <div class="pagination-wrapper">
+
+                <div class="per-page-selector">
+                    <label class="per-page-label"><i class="fas fa-list-ul me-2"></i> Tampilkan</label>
+                    <div class="dropdown-container">
+                        <select id="per_page_select" class="per-page-select">
+                            <option value="10" <?= ($perPage == 10) ? 'selected' : '' ?>>10</option>
+                            <option value="25" <?= ($perPage == 25) ? 'selected' : '' ?>>25</option>
+                            <option value="50" <?= ($perPage == 50) ? 'selected' : '' ?>>50</option>
+                            <option value="100" <?= ($perPage == 100) ? 'selected' : '' ?>>100</option>
+                        </select>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </div>
+                    <span class="per-page-suffix">data per halaman</span>
+                </div>
+
+                <nav class="pagination-nav" id="pagination-nav-links" aria-label="Navigasi Halaman Petani">
+                    <?= $petaniPager->links('petani', 'custom_pagination_template') ?>
+                </nav>
+
+                <div class="page-info">
+                    <span class="info-text" id="page-info-text">
+                        <i class="fas fa-info-circle me-2"></i> Memuat info...
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // --- Definisi Elemen ---
+        // Definisi Elemen
         const searchInput = document.getElementById('filter-search');
         const jenisKopiSelect = document.getElementById('filter-jenis-kopi');
         const perPageSelect = document.getElementById('per_page_select');
-        const resetButton = document.getElementById('reset-filter'); // Pastikan ID ini dipanggil
+        const resetButton = document.getElementById('reset-filter');
         const listContainer = document.getElementById('petani-list-container');
-        const paginationContainer = document.getElementById('pagination-container');
+        const paginationNavContainer = document.getElementById('pagination-nav-links');
+        const pageInfoText = document.getElementById('page-info-text');
         const resultCount = document.getElementById('result-count');
         const exportExcelBtn = document.getElementById('export-excel');
         const exportPdfBtn = document.getElementById('export-pdf');
@@ -258,7 +358,71 @@
 
         const baseExportUrl = "<?= site_url('admin-komersial/laporan-petani/export') ?>";
 
-        // --- Definisi Fungsi ---
+        // Fungsi untuk memperbarui teks info pagination
+        function updatePageInfo(totalItems, perPage, currentPage) {
+            if (totalItems == 0) {
+                pageInfoText.innerHTML = `<i class="fas fa-info-circle me-2"></i> Tidak ada data`;
+                return;
+            }
+            const startItem = (currentPage - 1) * perPage + 1;
+            const endItem = Math.min(currentPage * perPage, totalItems);
+            pageInfoText.innerHTML = `<i class="fas fa-info-circle me-2"></i> Menampilkan ${startItem}-${endItem} dari ${totalItems} data`;
+        }
+
+        // [PERBAIKAN] Fungsi untuk generate custom pagination HTML
+        function generateCustomPagination(paginationData) {
+            if (!paginationData || !paginationData.links) return '';
+
+            let paginationHTML = '<ul class="pagination">';
+
+            // Previous button
+            if (paginationData.has_previous) {
+                paginationHTML += `<li class="page-item">
+                    <a class="page-link" href="${paginationData.previous_url}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>`;
+            } else {
+                paginationHTML += `<li class="page-item disabled">
+                    <span class="page-link">&laquo;</span>
+                </li>`;
+            }
+
+            // Page numbers
+            paginationData.links.forEach(link => {
+                if (link.active) {
+                    paginationHTML += `<li class="page-item active">
+                        <span class="page-link">${link.title}</span>
+                    </li>`;
+                } else if (link.url) {
+                    paginationHTML += `<li class="page-item">
+                        <a class="page-link" href="${link.url}">${link.title}</a>
+                    </li>`;
+                } else {
+                    paginationHTML += `<li class="page-item disabled">
+                        <span class="page-link">${link.title}</span>
+                    </li>`;
+                }
+            });
+
+            // Next button
+            if (paginationData.has_next) {
+                paginationHTML += `<li class="page-item">
+                    <a class="page-link" href="${paginationData.next_url}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>`;
+            } else {
+                paginationHTML += `<li class="page-item disabled">
+                    <span class="page-link">&raquo;</span>
+                </li>`;
+            }
+
+            paginationHTML += '</ul>';
+            return paginationHTML;
+        }
+
+        // Fungsi Fetch Data Utama
         async function fetchData(url) {
             listContainer.innerHTML = '<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Memuat...</p></div>';
             try {
@@ -268,28 +432,42 @@
                     }
                 });
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
                 const data = await response.json();
 
+                // Update content
                 listContainer.innerHTML = data.list_view;
-                paginationContainer.innerHTML = data.pagination;
+
+                // [PERBAIKAN] Menggunakan custom pagination template jika tersedia
+                if (data.custom_pagination) {
+                    paginationNavContainer.innerHTML = generateCustomPagination(data.custom_pagination);
+                } else if (data.pagination) {
+                    paginationNavContainer.innerHTML = data.pagination;
+                }
+
                 resultCount.textContent = `Menampilkan total ${data.total} petani`;
+
+                // Update info pagination
+                const currentUrl = new URL(url, window.location.origin);
+                const currentPage = parseInt(currentUrl.searchParams.get('page_petani') || '1', 10);
+                updatePageInfo(data.total, perPageSelect.value, currentPage);
+
                 history.pushState(null, '', url);
                 updateExportLinks();
             } catch (error) {
                 console.error('Fetch error:', error);
-                listContainer.innerHTML = '<div class="text-center py-5 text-danger"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data. Periksa Console (F12).</p></div>';
+                listContainer.innerHTML = '<div class="text-center py-5 text-danger"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat data.</p></div>';
             }
         }
 
         function getFilterParams() {
             const params = new URLSearchParams();
-            if (searchInput) params.set('search', searchInput.value);
-            if (jenisKopiSelect) params.set('jenis_kopi', jenisKopiSelect.value);
+            params.set('search', searchInput.value);
+            params.set('jenis_kopi', jenisKopiSelect.value);
             return params;
         }
 
         function updateExportLinks() {
-            if (!exportExcelBtn || !exportPdfBtn) return;
             const params = getFilterParams();
             exportExcelBtn.href = `${baseExportUrl}/excel?${params.toString()}`;
             exportPdfBtn.href = `${baseExportUrl}/pdf?${params.toString()}`;
@@ -297,50 +475,40 @@
 
         function handleFilterChange() {
             const params = getFilterParams();
-            if (perPageSelect) params.set('per_page', perPageSelect.value);
+            params.set('per_page', perPageSelect.value);
             const newUrl = window.location.pathname + '?' + params.toString();
             fetchData(newUrl);
         }
 
-        // --- Event Listeners (Sudah Aman) ---
-        if (searchInput) {
-            searchInput.addEventListener('keyup', () => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(handleFilterChange, 500);
-            });
-        }
+        // --- Event Listeners ---
+        searchInput.addEventListener('keyup', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(handleFilterChange, 500);
+        });
 
-        if (jenisKopiSelect) {
-            jenisKopiSelect.addEventListener('change', handleFilterChange);
-        }
+        jenisKopiSelect.addEventListener('change', handleFilterChange);
+        perPageSelect.addEventListener('change', handleFilterChange);
 
-        if (perPageSelect) {
-            perPageSelect.addEventListener('change', handleFilterChange);
-        }
+        resetButton.addEventListener('click', () => {
+            searchInput.value = '';
+            jenisKopiSelect.value = '';
+            perPageSelect.value = '10';
+            handleFilterChange();
+        });
 
-        if (resetButton) {
-            resetButton.addEventListener('click', () => {
-                if (searchInput) searchInput.value = '';
-                if (jenisKopiSelect) jenisKopiSelect.value = '';
-                if (perPageSelect) perPageSelect.value = '10';
-                handleFilterChange();
-            });
-        }
+        // Event delegation untuk pagination
+        const paginationContainer = document.getElementById('pagination-container');
+        paginationContainer.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (link && link.href && link.closest('#pagination-nav-links')) {
+                e.preventDefault();
+                fetchData(link.href);
+            }
+        });
 
-        if (paginationContainer) {
-            paginationContainer.addEventListener('click', function(e) {
-                const link = e.target.closest('a');
-                if (link && link.href) {
-                    e.preventDefault();
-                    fetchData(link.href);
-                }
-            });
-        }
-
-        // --- Inisialisasi awal ---
-        if (resultCount) {
-            resultCount.textContent = `Menampilkan total <?= $petaniPager->getTotal('petani') ?> petani`;
-        }
+        // Inisialisasi awal
+        resultCount.textContent = `Menampilkan total <?= $petaniPager->getTotal('petani') ?> petani`;
+        updatePageInfo(<?= $petaniPager->getTotal('petani') ?>, <?= $perPage ?>, <?= $petaniPager->getCurrentPage('petani') ?>);
         updateExportLinks();
     });
 </script>

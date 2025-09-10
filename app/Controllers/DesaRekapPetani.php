@@ -65,6 +65,18 @@ class DesaRekapPetani extends KomersialRekapPetani
             'daftarJenisKopi'      => $daftarJenisKopi,
         ];
         $data['petaniListView'] = $this->_buildPetaniListView($rekapPetaniTerdaftar, $petaniPager);
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_desa'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan Rekap Petani',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-coffee fa-lg' // Ikon yang cocok untuk data master
+            ]
+        ];
 
         // PERBEDAAN UTAMA: Mengarahkan ke view yang berbeda untuk Desa
         return view('desa/laporan_komersial/petani', $data);

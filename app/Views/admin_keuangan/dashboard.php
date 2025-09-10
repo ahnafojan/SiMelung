@@ -72,7 +72,7 @@
             <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-filter me-2"></i>Filter Rentang Waktu</h6>
         </div>
         <div class="card-body">
-            <form action="<?= site_url('dashboard'); ?>" method="get">
+            <form action="<?= site_url('dashboard/dashboard_keuangan'); ?>" method="get">
                 <div class="row align-items-end g-3">
                     <div class="col-md-4 col-sm-6">
                         <label for="start_date" class="form-label">Tanggal Mulai:</label>

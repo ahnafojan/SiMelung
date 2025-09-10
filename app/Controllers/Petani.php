@@ -84,6 +84,18 @@ class Petani extends Controller
             'pager'       => $this->petaniModel->pager,
             'perPage'     => $perPage,
             'currentPage' => $this->petaniModel->pager->getCurrentPage('petani'),
+            'breadcrumbs' => [
+                [
+                    'title' => 'Dashboard',
+                    'url'   => site_url('/dashboard/dashboard_komersial'),
+                    'icon'  => 'fas fa-fw fa-tachometer-alt' // <-- Tambahkan ini
+                ],
+                [
+                    'title' => 'Data Petani',
+                    'url'   => '#',
+                    'icon'  => 'fas fa-users' // <-- Tambahkan ini (ikon untuk data orang)
+                ]
+            ]
         ];
 
         return view('admin_komersial/petani/index', $data);

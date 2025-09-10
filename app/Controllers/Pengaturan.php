@@ -90,6 +90,18 @@ class Pengaturan extends BaseController
             'title' => 'Pengaturan Laporan Komersial',
             'pengaturan' => $pengaturanModel->getAllAsArray()
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Pengaturan Export Laporan',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-cog fa-lg' // Ikon yang cocok untuk data master
+            ]
+        ];
         return view('pengaturan/komersial', $data);
     }
 
@@ -123,6 +135,18 @@ class Pengaturan extends BaseController
         $data = [
             'title' => 'Pengaturan Laporan BUMDES',
             'pengaturan' => $dataPengaturan
+        ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_bumdes'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Pengaturan Export Laporan',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-cog fa-lg' // Ikon yang cocok untuk data master
+            ]
         ];
         return view('pengaturan/bumdes', $data);
     }
@@ -160,6 +184,18 @@ class Pengaturan extends BaseController
         $data = [
             'title' => 'Pengaturan Laporan Pariwisata',
             'pengaturan' => $dataPengaturan
+        ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_pariwisata'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Pengaturan Export Laporan Pariwisata',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-cog fa-lg'
+            ]
         ];
         return view('pengaturan/pariwisata', $data);
     }

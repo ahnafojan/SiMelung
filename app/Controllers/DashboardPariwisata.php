@@ -63,6 +63,13 @@ class DashboardPariwisata extends BaseController
             'aset_per_tahun'  => $asetPerTahun,
             'aset_per_lokasi' => $asetPerLokasi,
             'aset_terbaru'    => $asetTerbaru,
+            'breadcrumbs' => [
+                [
+                    'title' => 'Dashboard',
+                    'url'   => '#', // Halaman aktif, tidak perlu link
+                    'icon'  => 'fas fa-fw fa-tachometer-alt'
+                ]
+            ]
         ];
 
         return view('dashboard/dashboard_pariwisata', $data);

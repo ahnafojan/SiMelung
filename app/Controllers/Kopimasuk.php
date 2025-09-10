@@ -57,6 +57,18 @@ class KopiMasuk extends Controller
                 $kopi['delete_status'] = $this->getPermissionStatus($kopi['id'], 'delete');
             }
         }
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Kopi Masuk',
+                'url'   => '#',
+                'icon'  => 'fas fa-seedling' // Ikon untuk stok atau barang masuk
+            ]
+        ];
 
         return view('admin_komersial/kopi/kopi-masuk', $data);
     }

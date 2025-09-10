@@ -140,6 +140,13 @@ class DashboardDesa extends BaseController
             'years' => $years,
             'bulan' => $bulan,
             'tahun' => $tahun,
+            'breadcrumbs' => [
+                [
+                    'title' => 'Dashboard',
+                    'url'   => '#', // Halaman aktif, tidak perlu link
+                    'icon'  => 'fas fa-fw fa-tachometer-alt'
+                ]
+            ]
         ];
 
         return view('dashboard/dashboard_desa', $data);

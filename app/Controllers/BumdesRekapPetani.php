@@ -77,6 +77,24 @@ class BumdesRekapPetani extends BaseController
         ];
         $data['petaniListView'] = $this->_buildPetaniListView($rekapPetaniTerdaftar, $petaniPager);
 
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_bumdes'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan BUMDES',
+                'url'   => site_url('bumdes/laporan'),
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ],
+            [
+                'title' => 'Laporan Rekap Petani',
+                'url'   => '#',
+                'icon'  => 'fas fa-users'
+            ]
+        ];
+
         // Mengarahkan ke view di dalam folder bumdes
         return view('bumdes/laporan/petani', $data);
     }

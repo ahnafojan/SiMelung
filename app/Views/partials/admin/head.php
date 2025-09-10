@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="<?= base_url('css/custom-laporan.css') ?>">
 
 
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- Bootstrap 4 CSS -->

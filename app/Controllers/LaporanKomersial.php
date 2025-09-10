@@ -33,6 +33,18 @@ class LaporanKomersial extends BaseController
             'totalAset'  => $totalAset,
             'totalStokKopi' => $totalStokKopi,
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan Komersial',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-file-alt' // Ikon yang cocok untuk data master
+            ]
+        ];
 
         // Menampilkan view utama yang berisi kartu statistik dan tombol navigasi
         return view('admin_komersial/laporan/index', $data);

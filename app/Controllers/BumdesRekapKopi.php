@@ -70,6 +70,23 @@ class BumdesRekapKopi extends BaseController
             'pagerStokAkhir'    => $pagerStokAkhir,
             'perPageStok'       => $perPageStok,
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_bumdes'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan BUMDES',
+                'url'   => site_url('bumdes/laporan'),
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ],
+            [
+                'title' => 'Laporan Rekap Kopi',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ]
+        ];
 
         // Mengarahkan ke view di dalam folder bumdes
         return view('bumdes/laporan/rekap_kopi', $data);

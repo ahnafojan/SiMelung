@@ -13,6 +13,9 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use App\Services\RekapKopiService;
 use App\Models\AsetKomersialModel;
 use App\Models\PengaturanModel;
+// Tambahkan baris ini di bawah 'use' statement lainnya
+use App\Models\ObjekWisataModel;
+use App\Models\AsetPariwisataModel;
 use Dompdf\Dompdf;
 
 // Asumsi class LaporanBumdes adalah base controller Anda
@@ -163,6 +166,82 @@ class ExportLaporanBumdes extends LaporanBumdes
         $writer->save('php://output');
         exit();
     }
+    // --- FUNGSI EXPORT PARIWISATA (BARU) ---
+
+    public function excelPariwisata()
+    {
+        $wisataId = $this->request->getGet('id');
+        if (!$wisataId) {
+            die('ID Objek Wisata tidak ditemukan.');
+        }
+
+        $objekWisataModel = new ObjekWisataModel();
+        $asetPariwisataModel = new AsetPariwisataModel();
+
+        $wisata = $objekWisataModel->find($wisataId);
+
+        $dataAset = $asetPariwisataModel
+            ->select('aset_pariwisata.*') // Pilih semua kolom dari tabel aset
+            ->join('aset_wisata', 'aset_wisata.aset_id = aset_pariwisata.id')
+            ->where('aset_wisata.wisata_id', $wisataId)
+            ->findAll();
+        // ====================================================================
+
+        $title = 'Laporan Aset Pariwisata';
+        $headers = ['No', 'Nama Aset', 'Jumlah', 'Kondisi', 'Tgl Perolehan', 'Keterangan'];
+
+        // Sesuaikan mapping jika nama kolom di DB berbeda
+        $dataMapping = ['nama_aset', 'jumlah', 'kondisi', 'tanggal_perolehan', 'keterangan'];
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $this->_generateExcelTemplate($sheet, $title, $headers, $dataAset, $dataMapping, null, ['lokasi_wisata' => $wisata['nama_wisata']]);
+
+        $filename = 'Laporan_Aset_Pariwisata_' . url_title($wisata['nama_wisata'], '_', true) . '.xlsx';
+        $writer = new Xlsx($spreadsheet);
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+        exit();
+    }
+
+    public function pdfPariwisata()
+    {
+        $wisataId = $this->request->getGet('id');
+        if (!$wisataId) {
+            die('ID Objek Wisata tidak ditemukan.');
+        }
+
+        $objekWisataModel = new ObjekWisataModel();
+        $asetPariwisataModel = new AsetPariwisataModel();
+
+        $wisata = $objekWisataModel->find($wisataId);
+
+        // KODE LAMA (DIHAPUS):
+        // $dataAset = $asetPariwisataModel->where('wisata_id', $wisataId)->findAll();
+
+        // ====================================================================
+        // KODE BARU DENGAN JOIN (diterapkan juga di sini):
+        $dataAset = $asetPariwisataModel
+            ->select('aset_pariwisata.*')
+            ->join('aset_wisata', 'aset_wisata.aset_id = aset_pariwisata.id')
+            ->where('aset_wisata.wisata_id', $wisataId)
+            ->findAll();
+        // ====================================================================
+
+        $data = [
+            'title'     => 'Laporan Aset Pariwisata',
+            'subtitle'  => 'Lokasi: ' . $wisata['nama_wisata'],
+            'asetData'  => $dataAset, // Nama variabel disamakan dengan view _pariwisata_export_pdf.php
+        ];
+
+        $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
+
+        $html = view('bumdes/laporan/_pariwisata_export_pdf', $data);
+        return $this->generatePdf($html, 'laporan_aset_pariwisata_' . url_title($wisata['nama_wisata'], '_', true) . '.pdf');
+    }
 
 
     // --- FUNGSI-FUNGSI EXPORT PDF ---
@@ -291,7 +370,10 @@ class ExportLaporanBumdes extends LaporanBumdes
             $periode = date('d/m/Y', strtotime($filter['start_date'])) . ' s/d ' . date('d/m/Y', strtotime($filter['end_date']));
         } elseif (!empty($filter['tahun_aset']) && $filter['tahun_aset'] != 'semua') {
             $periode = 'Tahun ' . $filter['tahun_aset'];
+        } elseif (!empty($filter['lokasi_wisata'])) {
+            $periode = 'Lokasi: ' . $filter['lokasi_wisata'];
         }
+        $sheet->mergeCells('A3:' . $endColStr . '3')->setCellValue('A3', 'DETAIL: ' . $periode); // Ganti kata 'PERIODE' agar lebih umum
         $sheet->mergeCells('A3:' . $endColStr . '3')->setCellValue('A3', 'PERIODE: ' . $periode);
         $sheet->getStyle('A1:A3')->getFont()->setBold(true);
         $sheet->getStyle('A1:A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);

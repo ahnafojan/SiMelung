@@ -7,7 +7,7 @@
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
             <h1 class="h3 text-dark font-weight-bolder">Dashboard Bumdes</h1>
-            <p class="text-secondary small">Ringkasan operasional dan visualisasi Komersial Bumdes Melung.</p>
+            <p class="text-secondary medium">Ringkasan operasional dan visualisasi Admin Komersial, Pariwisata, UMKM.</p>
         </div>
     </div>
 
@@ -55,7 +55,7 @@
 
                     <div class="col-md-3 d-grid">
                         <button type="submit" class="btn btn-primary btn-sm rounded-pill shadow-sm mt-3 mt-md-0">
-                            <i class="fas fa-filter me-2"></i>Filter
+                            <i class="fas fa-filter me-2"></i>
                         </button>
                     </div>
                 </div>

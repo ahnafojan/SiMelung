@@ -83,6 +83,23 @@ class BumdesRekapAset extends BaseController // DIUBAH: Nama class
             'filterTahun'   => $filterTahunAset,
             'perPageAset'   => $perPageAset,
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_bumdes'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan BUMDES',
+                'url'   => site_url('bumdes/laporan'),
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ],
+            [
+                'title' => 'Laporan Rekap Aset',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-tools'
+            ]
+        ];
 
         // DIUBAH: Path untuk view utama
         return view('bumdes/laporan/aset', $data);

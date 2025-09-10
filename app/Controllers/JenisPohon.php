@@ -28,6 +28,18 @@ class JenisPohon extends BaseController
                 $jenis['delete_status'] = $this->getPermissionStatus($jenis['id'], 'delete');
             }
         }
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt' // Ikon sesuai permintaan Anda
+            ],
+            [
+                'title' => 'Daftar Jenis Pohon',
+                'url'   => '#',
+                'icon'  => 'fas fa-tree' // Ikon yang relevan untuk pohon
+            ]
+        ];
         return view('admin_komersial/petani/daftarpohon', $data);
     }
 

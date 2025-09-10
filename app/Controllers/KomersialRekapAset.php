@@ -84,6 +84,23 @@ class KomersialRekapAset extends BaseController
             'filterTahun'   => $filterTahunAset,
             'perPageAset'   => $perPageAset,
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan Komersial',
+                'url'   => site_url('admin-komersial/laporan'),
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ],
+            [
+                'title' => 'Laporan Rekap Aset',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-tools'
+            ]
+        ];
 
         return view('admin_komersial/laporan/aset', $data);
     }

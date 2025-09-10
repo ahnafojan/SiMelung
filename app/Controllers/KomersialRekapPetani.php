@@ -81,6 +81,23 @@ class KomersialRekapPetani extends BaseController
             'daftarJenisKopi'      => $daftarJenisKopi,
         ];
         $data['petaniListView'] = $this->_buildPetaniListView($rekapPetaniTerdaftar, $petaniPager);
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan Komersial',
+                'url'   => site_url('admin-komersial/laporan'),
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ],
+            [
+                'title' => 'Laporan Rekap Petani',
+                'url'   => '#',
+                'icon'  => 'fas fa-users'
+            ]
+        ];
 
         return view('admin_komersial/laporan/petani', $data);
     }

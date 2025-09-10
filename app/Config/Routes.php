@@ -61,6 +61,11 @@ $routes->group('bumdes', ['namespace' => 'App\Controllers'], function ($routes) 
             $routes->get('excel', 'ExportLaporanBumdes::excelAset');
             $routes->get('pdf', 'ExportLaporanBumdes::pdfAset');
         });
+        //rute ekspor laporan pariwisata
+        $routes->group('pariwisata', function ($routes) {
+            $routes->get('pdf', 'ExportLaporanBumdes::pdfPariwisata');
+            $routes->get('excel', 'ExportLaporanBumdes::excelPariwisata');
+        });
     });
 });
 //Pengaturan BUMDES
@@ -88,10 +93,13 @@ $routes->post('/pengaturan/pariwisata/update', 'Pengaturan::updatePariwisata');
 
 
 //desa
-$routes->get('LaporanArusKas', 'LaporanArusKas::index');
+$routes->get('/desa/laporan_keuangan/laporan_aruskas', 'LaporanArusKas::index');
 $routes->get('LaporanLabaRugi', 'LaporanLabaRugi::index');
 $routes->get('LaporanModal', 'LaporanModal::index');
 $routes->get('LaporanNeraca', 'LaporanNeraca::index');
+$routes->get('LaporanBkuTahunan', 'LaporanBkuTahunan::index');
+$routes->get('LaporanBkuBulanan', 'LaporanBkuBulanan::index');
+$routes->get('desa/laporan_keuangan/bku_detail/(:num)', 'LaporanBkuBulanan::detail/$1');
 
 //komersial
 $routes->get('Petani', 'Petani::index');

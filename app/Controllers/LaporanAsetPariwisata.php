@@ -26,6 +26,19 @@ class LaporanAsetPariwisata extends BaseController
             'title'      => 'Laporan Aset Pariwisata',
             'pariwisata' => $objekWisataModel->orderBy('nama_wisata', 'ASC')->findAll(),
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_pariwisata'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan Aset Pariwisata',
+                'url'   => '#',
+                'icon'  => 'fas fa-file-alt'
+            ]
+        ];
+
         return view('admin_pariwisata/laporan', $data);
     }
 

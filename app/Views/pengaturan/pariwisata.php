@@ -2,7 +2,12 @@
 
 <?= $this->section('content'); ?>
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800"><?= $title; ?></h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1 page-title">Pengaturan export laporan Pariwisata</h1>
+            <p class="mb-0 page-subtitle">Fungsi: Membuat template pengaturan export Pariwisata.</p>
+        </div>
+    </div>
 
     <?php if (session()->getFlashdata('success')): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">

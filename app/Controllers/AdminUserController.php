@@ -15,10 +15,20 @@ class AdminUserController extends Controller
             ->join('user_roles', 'user_roles.user_id = users.id', 'left')
             ->groupBy('users.id')
             ->get()->getResultArray();
-
-
-        // Kirim data ke view form+list
-        return view('bumdes/akunuser/index', ['users' => $users]);
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_bumdes'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Manajemen User Admin',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-users fa-lg' // Ikon untuk stok atau barang masuk
+            ]
+        ];
+        $data['users'] = $users;
+        return view('bumdes/akunuser/index', $data);
     }
 
     public function create()

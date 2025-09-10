@@ -2,29 +2,28 @@
 <?= $this->section('content') ?>
 
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
         <div>
             <h1 class="h3 mb-1 page-title">Tambah Master Aset</h1>
             <p class="mb-0 page-subtitle text-muted">Mencatat aset BUMDes untuk mendukung kegiatan komersial.</p>
         </div>
-        <a href="<?= base_url('ManajemenAsetKomersial') ?>" class="btn btn-primary shadow-sm">
+        <a href="<?= base_url('ManajemenAsetKomersial') ?>" class="btn btn-outline-primary shadow-sm mt-2 mt-md-0">
             <i class="fas fa-list-ul me-1"></i> Lihat Daftar Aset
         </a>
     </div>
 
     <div class="card shadow-sm border-0">
-        <div class="card-body p-4">
+        <div class="card-body p-lg-4">
             <form action="<?= site_url('aset-komersial') ?>" method="post" enctype="multipart/form-data">
                 <?= csrf_field() ?>
 
-                <div class="row g-4">
-                    <div class="col-md-6">
+                <div class="row g-lg-4">
+                    <div class="col-lg-6 mb-4 mb-lg-0">
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-header bg-light border-bottom">
                                 <h6 class="mb-0 text-dark"><i class="fas fa-info-circle me-2"></i> Informasi Dasar Aset</h6>
                             </div>
-                            <div class="card-body">
-
+                            <div class="card-body p-3">
                                 <div class="mb-3">
                                     <label for="kategori_aset" class="form-label">Kategori Barang / Aset <span class="text-danger">*</span></label>
                                     <select name="kategori_aset" id="kategori_aset" class="form-select" required>
@@ -77,17 +76,16 @@
                                         <option value="Rusak">Rusak</option>
                                     </select>
                                 </div>
-
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-lg-6">
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-header bg-light border-bottom">
                                 <h6 class="mb-0 text-dark"><i class="fas fa-handshake me-2"></i> Detail Pengadaan & Bukti</h6>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body p-3">
                                 <div class="mb-3">
                                     <label for="metode_pengadaan" class="form-label">Metode Pengadaan <span class="text-danger">*</span></label>
                                     <select name="metode_pengadaan" id="metode_pengadaan" class="form-select" required>
@@ -103,10 +101,12 @@
                                     <label for="sumber_pengadaan" class="form-label">Sumber Pengadaan <span class="text-danger">*</span></label>
                                     <input type="text" name="sumber_pengadaan" id="sumber_pengadaan" class="form-control" placeholder="Contoh: Universitas Amikom Purwokerto" required>
                                 </div>
+
                                 <div class="mb-3">
                                     <label for="foto" class="form-label">Upload Foto Aset <span class="text-danger">*</span></label>
                                     <input type="file" name="foto" id="foto" class="form-control" accept="image/*" required>
-                                    <small class="text-muted mt-2">Format: JPG/PNG. Ukuran maks: 2MB.</small>
+                                    <small class="text-muted mt-2 d-block">Format: JPG/PNG. Ukuran maks: 2MB.</small>
+
                                     <div id="image-preview-container" class="mt-3" style="display: none;">
                                         <img id="image-preview" src="#" alt="Pratinjau Foto Aset" class="img-fluid rounded shadow-sm border border-2" style="max-height: 200px; object-fit: cover;">
                                     </div>
@@ -117,7 +117,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end mt-4">
-                    <button type="submit" class="btn btn-primary btn-md px-4">
+                    <button type="submit" class="btn btn-primary btn-lg px-5">
                         <i class="fas fa-save me-2"></i> Simpan Data Aset
                     </button>
                 </div>

@@ -46,6 +46,18 @@ class DesaRekapPariwisata extends BaseController
             'perPage'     => $perPage,
             'currentPage' => $this->objekWisataModel->pager->getCurrentPage('wisata'),
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_desa'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan Objek Wisata',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-map-marked-alt fa-lg' // Ikon yang cocok untuk data master
+            ]
+        ];
 
         return view('desa/laporan_pariwisata/objekwisata', $data);
     }
@@ -84,6 +96,19 @@ class DesaRekapPariwisata extends BaseController
             // Mengirim daftar wisata untuk dropdown di modal (jika ada)
             'list_wisata' => $this->objekWisataModel->orderBy('nama_wisata', 'ASC')->findAll(),
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_desa'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan Aset Pariwisata',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-map-marked-alt fa-lg' // Ikon yang cocok untuk data master
+            ]
+        ];
+
 
         return view('desa/laporan_pariwisata/asetpariwisata', $data);
     }
