@@ -9,7 +9,7 @@ use App\Models\PetaniPohonModel;
 use App\Models\StokKopiModel;
 use App\Models\PermissionRequestModel;
 
-class KopiMasuk extends Controller
+class Kopimasuk extends Controller
 {
     protected $kopiMasukModel;
     protected $petaniModel;

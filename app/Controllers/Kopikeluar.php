@@ -8,7 +8,7 @@ use App\Models\StokKopiModel;
 use App\Models\PermissionRequestModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
-class KopiKeluar extends BaseController
+class Kopikeluar extends BaseController
 {
     protected $kopiKeluarModel;
     protected $kopiMasukModel;
