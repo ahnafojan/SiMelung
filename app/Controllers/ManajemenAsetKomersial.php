@@ -81,7 +81,7 @@ class ManajemenAsetKomersial extends Controller
      */
     public function update($id)
     {
-        if (!$this->hasActivePermission($id, 'edit')) {
+        if ($this->getPermissionStatus($id, 'edit') !== 'approved') {
             session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengedit data ini.');
             return redirect()->to(site_url('/ManajemenAsetKomersial'));
         }
@@ -109,10 +109,20 @@ class ManajemenAsetKomersial extends Controller
 
             if ($fotoFile && $fotoFile->isValid() && !$fotoFile->hasMoved()) {
                 $fotoName = $fotoFile->getRandomName();
-                $fotoFile->move(FCPATH . 'uploads/foto_aset', $fotoName);
 
-                if (!empty($aset['foto']) && file_exists(FCPATH . 'uploads/foto_aset/' . $aset['foto'])) {
-                    unlink(FCPATH . 'uploads/foto_aset/' . $aset['foto']);
+                // ====================================================================
+                // KODE ADAPTIF UNTUK PATH UPLOAD
+                // ====================================================================
+                if (ENVIRONMENT === 'development') {
+                    $uploadPath = FCPATH . 'uploads/foto_aset';
+                } else {
+                    $uploadPath = ROOTPATH . '../public_html/uploads/foto_aset';
+                }
+                $fotoFile->move($uploadPath, $fotoName);
+
+                // Hapus file lama setelah yang baru berhasil diupload
+                if (!empty($aset['foto']) && file_exists($uploadPath . '/' . $aset['foto'])) {
+                    unlink($uploadPath . '/' . $aset['foto']);
                 }
             }
 
@@ -139,7 +149,7 @@ class ManajemenAsetKomersial extends Controller
 
     public function delete($id)
     {
-        if (!$this->hasActivePermission($id, 'delete')) {
+        if ($this->getPermissionStatus($id, 'delete') !== 'approved') {
             session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk menghapus data ini.');
             return redirect()->to(site_url('/ManajemenAsetKomersial'));
         }
@@ -149,8 +159,19 @@ class ManajemenAsetKomersial extends Controller
                 throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound('Data tidak ditemukan');
             }
 
-            if (!empty($aset['foto']) && file_exists(FCPATH . 'uploads/foto_aset/' . $aset['foto'])) {
-                unlink(FCPATH . 'uploads/foto_aset/' . $aset['foto']);
+            if (!empty($aset['foto'])) {
+                // ====================================================================
+                // KODE ADAPTIF UNTUK PATH FILE
+                // ====================================================================
+                if (ENVIRONMENT === 'development') {
+                    $uploadPath = FCPATH . 'uploads/foto_aset';
+                } else {
+                    $uploadPath = ROOTPATH . '../public_html/uploads/foto_aset';
+                }
+
+                if (file_exists($uploadPath . '/' . $aset['foto'])) {
+                    unlink($uploadPath . '/' . $aset['foto']);
+                }
             }
 
             $this->asetModel->delete($id);
