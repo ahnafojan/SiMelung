@@ -102,7 +102,14 @@ class AsetPariwisata extends BaseController
         $namaFoto = null;
         if ($fotoFile && $fotoFile->isValid() && !$fotoFile->hasMoved()) {
             $namaFoto = $fotoFile->getRandomName();
-            $fotoFile->move('uploads/aset_pariwisata/', $namaFoto);
+            if (ENVIRONMENT === 'development') {
+                // Path untuk localhost (XAMPP)
+                $uploadPath = FCPATH . 'uploads/aset_pariwisata';
+            } else {
+                // Path untuk server hosting
+                $uploadPath = ROOTPATH . '../public_html/uploads/aset_pariwisata';
+            }
+            $fotoFile->move($uploadPath, $namaFoto);
         }
 
         $nilaiPerolehan = preg_replace('/[^0-9]/', '', $this->request->getPost('nilai_perolehan'));
@@ -182,7 +189,14 @@ class AsetPariwisata extends BaseController
                 unlink('uploads/aset_pariwisata/' . $namaFoto);
             }
             $namaFoto = $fotoFile->getRandomName();
-            $fotoFile->move('uploads/aset_pariwisata/', $namaFoto);
+            if (ENVIRONMENT === 'development') {
+                // Path untuk localhost (XAMPP)
+                $uploadPath = FCPATH . 'uploads/aset_pariwisata';
+            } else {
+                // Path untuk server hosting
+                $uploadPath = ROOTPATH . '../public_html/uploads/aset_pariwisata';
+            }
+            $fotoFile->move($uploadPath, $namaFoto);
         }
 
         $nilaiPerolehan = preg_replace('/[^0-9]/', '', $this->request->getPost('nilai_perolehan'));
