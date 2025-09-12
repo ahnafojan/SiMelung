@@ -1,9 +1,17 @@
 <?php
-// Tentukan path foto petani
-$fotoPath = FCPATH . 'uploads/foto_petani/' . $petani['foto'];
-$fotoUrl  = base_url('uploads/foto_petani/' . $petani['foto']);
+// Cek environment untuk menentukan path fisik yang benar untuk file_exists()
+if (ENVIRONMENT === 'development') {
+    // Path untuk localhost (XAMPP)
+    $fotoPath = FCPATH . 'uploads/foto_petani/' . $petani['foto'];
+} else {
+    // Path untuk server hosting
+    $fotoPath = ROOTPATH . '../public_html/uploads/foto_petani/' . $petani['foto'];
+}
 
-// Default avatar kalau file tidak ada
+// URL untuk ditampilkan di browser selalu sama karena base_url() sudah benar
+$fotoUrl = base_url('uploads/foto_petani/' . $petani['foto']);
+
+// Cek jika nama file kosong atau file tidak ditemukan di path yang benar, gunakan default
 if (empty($petani['foto']) || !file_exists($fotoPath)) {
     $fotoUrl = base_url('uploads/foto_petani/default.png');
 }
