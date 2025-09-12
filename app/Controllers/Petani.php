@@ -168,9 +168,16 @@ class Petani extends Controller
             $fotoFile = $this->request->getFile('foto');
             if ($fotoFile && $fotoFile->isValid()) {
                 $fotoName = $fotoFile->getRandomName();
-                $fotoFile->move('uploads/foto_petani', $fotoName);
+                if (ENVIRONMENT === 'development') {
+                    // Path untuk localhost (XAMPP) -> public/uploads/foto_petani
+                    $uploadPath = FCPATH . 'uploads/foto_petani';
+                } else {
+                    // Path untuk server hosting -> public_html/uploads/foto_petani
+                    $uploadPath = ROOTPATH . '../public_html/uploads/foto_petani';
+                }
+                $fotoFile->move($uploadPath, $fotoName);
 
-                $imagePath = 'uploads/foto_petani/' . $fotoName;
+                $imagePath = $uploadPath . '/' . $fotoName;
                 \Config\Services::image()
                     ->withFile($imagePath)
                     ->resize(600, 600, true, 'height')
@@ -235,16 +242,24 @@ class Petani extends Controller
         $fotoFile = $this->request->getFile('foto');
         if ($fotoFile && $fotoFile->isValid() && !$fotoFile->hasMoved()) {
             $fotoName = $fotoFile->getRandomName();
-            $fotoFile->move(FCPATH . 'uploads/foto_petani', $fotoName);
+            // ====================================================================
+            if (ENVIRONMENT === 'development') {
+                // Path untuk localhost (XAMPP) -> public/uploads/foto_petani
+                $uploadPath = FCPATH . 'uploads/foto_petani';
+            } else {
+                // Path untuk server hosting -> public_html/uploads/foto_petani
+                $uploadPath = ROOTPATH . '../public_html/uploads/foto_petani';
+            }
+            $fotoFile->move($uploadPath, $fotoName);
 
-            $imagePath = FCPATH . 'uploads/foto_petani/' . $fotoName;
+            $imagePath = $uploadPath . '/' . $fotoName;
             \Config\Services::image()
                 ->withFile($imagePath)
                 ->resize(600, 600, true, 'height')
                 ->save($imagePath, 75);
 
-            if (!empty($petaniLama['foto']) && file_exists(FCPATH . 'uploads/foto_petani/' . $petaniLama['foto'])) {
-                unlink(FCPATH . 'uploads/foto_petani/' . $petaniLama['foto']);
+            if (!empty($petaniLama['foto']) && file_exists($uploadPath . '/' . $petaniLama['foto'])) {
+                unlink($uploadPath . '/' . $petaniLama['foto']);
             }
             $dataUpdate['foto'] = $fotoName;
         }
