@@ -125,7 +125,7 @@
 </section>
 
 <!-- UMKM Showcase -->
-<section id="umkm" class="py-5 bg-white scroll-section">
+<!--<section id="umkm" class="py-5 bg-white scroll-section">
     <div class="container">
         <div class="row">
             <div class="col-12 text-center mb-5">
@@ -224,7 +224,7 @@
             </div>
         </div>
     </div>
-</section>
+</section>  -->
 
 <section id="petani" class="py-5 bg-mountain-mist scroll-section">
     <div class="container">

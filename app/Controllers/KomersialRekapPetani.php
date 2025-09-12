@@ -155,7 +155,8 @@ class KomersialRekapPetani extends BaseController
 
         // Tampilan Desktop
         $desktopHtml = '<div class="card-body view-desktop p-0"><div class="table-responsive"><table class="table table-custom mb-0" width="100%">';
-        $desktopHtml .= '<thead><tr><th>No</th><th>Nama Petani</th><th>Alamat</th><th>No. HP</th><th>Jenis Kopi</th></tr></thead><tbody>';
+        // MODIFIED: Menambahkan class text-center pada header tabel
+        $desktopHtml .= '<thead><tr><th>No</th><th>Nama Petani</th><th class="text-center">Alamat</th><th class="text-center">No. HP</th><th class="text-center">Jenis Kopi</th></tr></thead><tbody>';
         $page = $pager->getCurrentPage('petani');
         $perPage = $pager->getPerPage('petani');
         $no = 1 + (($page - 1) * $perPage);
@@ -163,7 +164,8 @@ class KomersialRekapPetani extends BaseController
             $desktopHtml .= '<tr><td>' . $no++ . '</td>' .
                 '<td><div class="d-flex align-items-center"><div class="icon-circle bg-primary mr-3"><i class="fas fa-user text-white"></i></div>' .
                 '<div><div class="font-weight-bold text-gray-800">' . esc($petani['nama']) . '</div><div class="small text-muted">User ID: ' . esc($petani['user_id']) . '</div></div></div></td>' .
-                '<td>' . esc($petani['alamat']) . '</td><td>' . esc($petani['no_hp']) . '</td><td>' . esc($petani['jenis_kopi_list']) . '</td></tr>';
+                // MODIFIED: Menambahkan class text-center pada sel data (td)
+                '<td class="text-center">' . esc($petani['alamat']) . '</td><td class="text-center">' . esc($petani['no_hp']) . '</td><td class="text-center">' . esc($petani['jenis_kopi_list']) . '</td></tr>';
         }
         $desktopHtml .= '</tbody></table></div></div>';
 
