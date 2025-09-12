@@ -231,7 +231,8 @@ class AsetPariwisata extends BaseController
      */
     public function delete($id = null)
     {
-        if (!$this->hasActivePermission($id, 'delete')) {
+        // Disarankan untuk mengganti ini menjadi getPermissionStatus agar konsisten
+        if ($this->getPermissionStatus($id, 'delete') !== 'approved') {
             return redirect()->to('/asetpariwisata')->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk menghapus data ini.');
         }
 
@@ -242,8 +243,22 @@ class AsetPariwisata extends BaseController
         $aset = $this->asetModel->find($id);
 
         if ($aset) {
-            if (!empty($aset['foto_aset']) && file_exists('uploads/aset_pariwisata/' . $aset['foto_aset'])) {
-                unlink('uploads/aset_pariwisata/' . $aset['foto_aset']);
+            // Hapus file foto jika ada
+            if (!empty($aset['foto_aset'])) {
+                // ====================================================================
+                // KODE ADAPTIF UNTUK PATH FILE
+                // ====================================================================
+                if (ENVIRONMENT === 'development') {
+                    // Path untuk localhost (XAMPP)
+                    $uploadPath = FCPATH . 'uploads/aset_pariwisata';
+                } else {
+                    // Path untuk server hosting
+                    $uploadPath = ROOTPATH . '../public_html/uploads/aset_pariwisata';
+                }
+
+                if (file_exists($uploadPath . '/' . $aset['foto_aset'])) {
+                    unlink($uploadPath . '/' . $aset['foto_aset']);
+                }
             }
 
             if ($this->asetModel->deleteAsetAndRelation($id)) {
@@ -252,6 +267,7 @@ class AsetPariwisata extends BaseController
         }
         return redirect()->to('/asetpariwisata')->with('error', 'Gagal menghapus data aset.');
     }
+
 
     /**
      * Menangani permintaan izin via AJAX.
