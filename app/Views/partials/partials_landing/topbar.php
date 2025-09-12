@@ -58,7 +58,7 @@
         backdrop-filter: blur(0px);
         border-bottom: 1px solid transparent;
         transition: all 0.4s ease;
-        padding: 1.2rem 0;
+        padding: 0.5rem 0;
         z-index: 1000;
     }
 
@@ -146,17 +146,19 @@
         opacity: 0;
         visibility: hidden;
         transition: right .35s ease, opacity .35s ease, visibility .35s ease;
-        overflow-y: auto;
+        overflow-y: hidden;
         box-shadow: -10px 0 30px rgba(0, 0, 0, .3);
         display: flex;
         flex-direction: column;
         /* penting: biar footer nempel bawah */
+        justify-content: space-between;
     }
 
     #offcanvasMenu.show {
         right: 0;
         opacity: 1;
         visibility: visible;
+
     }
 
     .menu-header {
@@ -210,8 +212,11 @@
 
     .menu-list {
         list-style: none;
-        padding: 0;
+        padding: 1rem 0;
         margin: 1rem 0;
+        flex-grow: 1;
+        /* Membuat elemen ini mengisi sisa ruang vertikal */
+        overflow-y: auto;
     }
 
     .menu-list li {
