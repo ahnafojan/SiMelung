@@ -62,7 +62,7 @@ class KomersialRekapPetani extends BaseController
             // Kembalikan JSON dengan format yang benar sesuai harapan JavaScript
             return $this->response->setJSON([
                 'list_view'  => $list_view_html,
-                'pagination' => $petaniPager->links('petani', 'default_full'),
+                'pagination' => $petaniPager->links('petani', 'custom_pagination_template'),
                 'total'      => $petaniPager->getTotal('petani')
             ]);
         }

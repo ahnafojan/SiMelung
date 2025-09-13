@@ -35,10 +35,10 @@ class AsetPariwisata extends BaseController
 
         // Query dengan pagination
         $query = $this->asetModel->select('
-                aset_pariwisata.*, 
-                objek_wisata.nama_wisata,
-                aset_wisata.wisata_id AS objek_wisata_id
-            ')
+            aset_pariwisata.*, 
+            objek_wisata.nama_wisata,
+            aset_wisata.wisata_id AS objek_wisata_id
+        ')
             ->join('aset_wisata', 'aset_wisata.aset_id = aset_pariwisata.id', 'left')
             ->join('objek_wisata', 'objek_wisata.id = aset_wisata.wisata_id', 'left')
             ->orderBy('aset_pariwisata.id', 'DESC');
@@ -46,13 +46,52 @@ class AsetPariwisata extends BaseController
         $asets = $query->paginate($perPage, 'default');
         $pager = $this->asetModel->pager;
 
-        // Tambahkan flag can_edit dan can_delete ke setiap aset
-        if (!empty($asets)) {
-            foreach ($asets as &$aset) {
-                $aset['edit_status']   = $this->getPermissionStatus($aset['id'], 'edit');
-                $aset['delete_status'] = $this->getPermissionStatus($aset['id'], 'delete');
+        // ▼▼▼ MULAI BAGIAN OPTIMASI & CACHING ▼▼▼
+
+        // 1. Siapkan variabel yang dibutuhkan
+        $requesterId = session()->get('user_id');
+        $permissions = [];
+
+        // 2. Kumpulkan semua ID aset pariwisata dari data yang tampil
+        $asetPariwisataIds = array_column($asets, 'id');
+
+        if (!empty($asetPariwisataIds) && !empty($requesterId)) {
+            // 3. Buat cache key yang spesifik untuk 'aset_pariwisata'
+            $cacheKey = 'permissions_aset_pariwisata_user_' . $requesterId;
+
+            if (!$permissionData = cache($cacheKey)) {
+                // Jika cache kosong, ambil semua data izin untuk 'aset_pariwisata'
+                $permissionData = $this->permissionModel // Pastikan model ini di-load
+                    ->where('requester_id', $requesterId)
+                    ->where('target_type', 'aset_pariwisata') // <-- Target baru
+                    ->whereIn('status', ['approved', 'pending'])
+                    ->findAll();
+
+                // Simpan ke cache
+                cache()->save($cacheKey, $permissionData, 300);
+            }
+
+            // 4. Olah data izin agar mudah diakses
+            if (!empty($permissionData)) {
+                foreach ($permissionData as $perm) {
+                    if ($perm['status'] == 'approved' && strtotime($perm['expires_at']) > now('Asia/Jakarta')) {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'approved';
+                    } elseif ($perm['status'] == 'pending') {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'pending';
+                    }
+                }
             }
         }
+
+        // 5. Tetapkan status izin ke setiap baris data (tanpa query berulang)
+        if (!empty($asets)) {
+            foreach ($asets as &$aset) {
+                $aset['edit_status']   = $permissions[$aset['id']]['edit'] ?? 'none';
+                $aset['delete_status'] = $permissions[$aset['id']]['delete'] ?? 'none';
+            }
+        }
+
+        // ▲▲▲ SELESAI BAGIAN OPTIMASI & CACHING ▲▲▲
 
         $data = [
             'title'       => 'Manajemen Aset Pariwisata',

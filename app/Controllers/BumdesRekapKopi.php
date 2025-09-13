@@ -51,10 +51,16 @@ class BumdesRekapKopi extends BaseController
 
         list($rekapPetani, $pagerKopiMasuk) = $this->getRekapKopiMasuk($filter, $perPageMasuk, $pageMasuk);
         list($rekapPenjualan, $pagerKopiKeluar) = $this->getRekapKopiKeluar($filter, $perPageKeluar, $pageKeluar);
-        list($stokAkhirPerJenis, $pagerStokAkhir) = $this->getStokAkhir($filter, $perPageStok, $pageStok);
+        $stokAkhirPerJenis = [];
+        $totalStokGlobal = 0;
+        $pagerStokAkhir = null;
 
-        $allStokData = $this->getStokAkhir($filter, 0, 1, false);
-        $totalStokGlobal = array_sum(array_column($allStokData, 'stok_akhir'));
+        $petaniDipilihTanpaData = !empty($filter['petani']) && empty($rekapPetani);
+        if (!$petaniDipilihTanpaData) {
+            list($stokAkhirPerJenis, $pagerStokAkhir) = $this->getStokAkhir($filter, $perPageStok, $pageStok);
+            $allStokData = $this->getStokAkhir($filter, 0, 1, false);
+            $totalStokGlobal = array_sum(array_column($allStokData, 'stok_akhir'));
+        }
 
         $data = [
             'petaniList'        => $petaniList,

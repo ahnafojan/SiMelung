@@ -36,13 +36,52 @@ class ObjekWisata extends BaseController
         $list_wisata = $this->wisataModel->orderBy('nama_wisata', 'ASC')->paginate($perPage, 'default');
         $pager = $this->wisataModel->pager;
 
-        // Tambahkan flag can_edit dan can_delete ke setiap item wisata
-        if (!empty($list_wisata)) {
-            foreach ($list_wisata as &$wisata) {
-                $wisata['edit_status']   = $this->getPermissionStatus($wisata['id'], 'edit');
-                $wisata['delete_status'] = $this->getPermissionStatus($wisata['id'], 'delete');
+        // ▼▼▼ MULAI BAGIAN OPTIMASI & CACHING ▼▼▼
+
+        // 1. Siapkan variabel yang dibutuhkan
+        $requesterId = session()->get('user_id');
+        $permissions = [];
+
+        // 2. Kumpulkan semua ID objek wisata dari data yang tampil
+        $wisataIds = array_column($list_wisata, 'id');
+
+        if (!empty($wisataIds) && !empty($requesterId)) {
+            // 3. Buat cache key yang spesifik untuk 'objek_wisata'
+            $cacheKey = 'permissions_objek_wisata_user_' . $requesterId;
+
+            if (!$permissionData = cache($cacheKey)) {
+                // Jika cache kosong, ambil semua data izin untuk 'objek_wisata'
+                $permissionData = $this->permissionModel // Pastikan model ini di-load
+                    ->where('requester_id', $requesterId)
+                    ->where('target_type', 'objek_wisata') // <-- Target baru
+                    ->whereIn('status', ['approved', 'pending'])
+                    ->findAll();
+
+                // Simpan ke cache
+                cache()->save($cacheKey, $permissionData, 300);
+            }
+
+            // 4. Olah data izin agar mudah diakses
+            if (!empty($permissionData)) {
+                foreach ($permissionData as $perm) {
+                    if ($perm['status'] == 'approved' && strtotime($perm['expires_at']) > now('Asia/Jakarta')) {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'approved';
+                    } elseif ($perm['status'] == 'pending') {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'pending';
+                    }
+                }
             }
         }
+
+        // 5. Tetapkan status izin ke setiap baris data (tanpa query berulang)
+        if (!empty($list_wisata)) {
+            foreach ($list_wisata as &$wisata) {
+                $wisata['edit_status']   = $permissions[$wisata['id']]['edit'] ?? 'none';
+                $wisata['delete_status'] = $permissions[$wisata['id']]['delete'] ?? 'none';
+            }
+        }
+
+        // ▲▲▲ SELESAI BAGIAN OPTIMASI & CACHING ▲▲▲
 
         $data = [
             'title'       => 'Manajemen Objek Wisata',
@@ -58,7 +97,7 @@ class ObjekWisata extends BaseController
                 'icon'  => 'fas fa-fw fa-tachometer-alt'
             ],
             [
-                'title' => 'Manajemen Aset Pariwisata',
+                'title' => 'Manajemen Objek Wisata', // Judul breadcrumb disesuaikan
                 'url'   => '#',
                 'icon'  => 'fas fa-mountain'
             ]

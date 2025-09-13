@@ -172,14 +172,13 @@
         justify-content: center;
     }
 </style>
-
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <div>
             <h1 class="h3 page-title">Laporan Petani</h1>
             <p class="mb-0 page-subtitle">Detail data petani yang terdaftar di sistem.</p>
         </div>
-        <a href="<?= base_url('bumdes/laporan') ?>" class="btn btn-sm btn-outline-secondary shadow-sm">
+        <a href="<?= base_url('admin-komersial/laporan') ?>" class="btn btn-sm btn-outline-secondary shadow-sm">
             <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
         </a>
     </div>
@@ -188,36 +187,27 @@
         <div class="col-12">
             <div class="card p-3 filter-card shadow-sm">
                 <div class="row align-items-end">
-                    <div class="col-lg-3 col-md-6 mb-2">
+                    <div class="col-lg-4 col-md-6 mb-2">
                         <label for="filter-search" class="filter-label">Cari Nama Petani</label>
                         <input type="text" class="form-control form-control-sm" id="filter-search" placeholder="Ketik nama..." value="<?= esc($filters['search']) ?>">
                     </div>
-                    <div class="col-lg-3 col-md-6 mb-2">
+                    <div class="col-lg-4 col-md-6 mb-2">
                         <label for="filter-jenis-kopi" class="filter-label">Filter Jenis Kopi</label>
                         <select class="form-control form-control-sm" id="filter-jenis-kopi">
                             <option value="">Semua Jenis</option>
-                            <?php foreach ($daftarJenisKopi as $kopi) : ?>
+                            <?php foreach ($daftarJenisKopi as $kopi): ?>
                                 <option value="<?= esc($kopi['nama_jenis']) ?>" <?= ($filters['jenis_kopi'] === $kopi['nama_jenis']) ? 'selected' : '' ?>><?= esc($kopi['nama_jenis']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-lg-2 col-md-4 mb-2">
-                        <label for="per_page_select" class="filter-label">Item/Halaman</label>
-                        <select class="form-control form-control-sm" id="per_page_select">
-                            <option value="10" <?= ($perPage == 10) ? 'selected' : '' ?>>10</option>
-                            <option value="25" <?= ($perPage == 25) ? 'selected' : '' ?>>25</option>
-                            <option value="50" <?= ($perPage == 50) ? 'selected' : '' ?>>50</option>
-                            <option value="100" <?= ($perPage == 100) ? 'selected' : '' ?>>100</option>
-                        </select>
-                    </div>
-                    <div class="col-lg-2 col-md-4 mb-2">
+                    <div class="col-lg-2 col-md-6 mb-2">
                         <label class="filter-label">&nbsp;</label>
                         <div class="btn-group w-100">
                             <a id="export-excel" href="#" class="btn btn-sm btn-success" title="Export ke Excel"><i class="fas fa-file-excel"></i></a>
                             <a id="export-pdf" href="#" class="btn btn-sm btn-danger" title="Export ke PDF"><i class="fas fa-file-pdf"></i></a>
                         </div>
                     </div>
-                    <div class="col-lg-2 col-md-4 mb-2">
+                    <div class="col-lg-2 col-md-6 mb-2">
                         <label class="filter-label">&nbsp;</label>
                         <button class="btn btn-sm btn-outline-secondary w-100" id="reset-filter">
                             <i class="fas fa-eraser mr-1"></i> Reset
@@ -237,11 +227,43 @@
         <div id="petani-list-container">
             <?= $petaniListView ?>
         </div>
-        <div class="card-footer d-flex justify-content-end" id="pagination-container">
-            <?= $petaniPager->links('petani', 'default_full') ?>
+
+        <div class="card-footer" id="pagination-container">
+            <div class="row align-items-center">
+                <!-- Kolom Kiri: Pilihan Data per Halaman -->
+                <div class="col-lg-4 col-md-12 mb-2 mb-lg-0">
+                    <div class="per-page-selector d-flex align-items-center justify-content-center justify-content-lg-start">
+                        <label class="per-page-label mb-0 mr-2"><i class="fas fa-list-ul mr-1"></i> Tampilkan</label>
+                        <select id="per_page_select" class="form-control form-control-sm mr-2" style="width: auto;">
+                            <option value="10" <?= ($perPage == 10) ? 'selected' : '' ?>>10</option>
+                            <option value="25" <?= ($perPage == 25) ? 'selected' : '' ?>>25</option>
+                            <option value="50" <?= ($perPage == 50) ? 'selected' : '' ?>>50</option>
+                            <option value="100" <?= ($perPage == 100) ? 'selected' : '' ?>>100</option>
+                        </select>
+                        <span class="per-page-suffix">data per halaman</span>
+                    </div>
+                </div>
+
+                <!-- Kolom Tengah: Navigasi Halaman -->
+                <div class="col-lg-4 col-md-12 mb-2 mb-lg-0">
+                    <nav class="pagination-nav d-flex justify-content-center" id="pagination-nav-links" aria-label="Navigasi Halaman Petani">
+                        <?= $petaniPager->links('petani', 'custom_pagination_template') ?>
+                    </nav>
+                </div>
+
+                <!-- Kolom Kanan: Info Halaman -->
+                <div class="col-lg-4 col-md-12">
+                    <div class="page-info d-flex align-items-center justify-content-center justify-content-lg-end">
+                        <span class="info-text" id="page-info-text">
+                            <i class="fas fa-info-circle mr-1"></i> Memuat info...
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // --- Definisi Elemen ---
@@ -256,10 +278,31 @@
         const exportPdfBtn = document.getElementById('export-pdf');
         let searchTimeout;
 
-        // URL untuk export disesuaikan ke rute bumdes
         const baseExportUrl = "<?= site_url('bumdes/export/petani') ?>";
 
         // --- Definisi Fungsi ---
+
+        /**
+         * Memperbarui teks informasi paginasi.
+         * @param {number} total Total data.
+         * @param {number} currentPage Halaman saat ini.
+         * @param {number} perPage Data per halaman.
+         */
+        function updatePageInfo(total, currentPage, perPage) {
+            const pageInfoText = document.getElementById('page-info-text');
+            if (pageInfoText) {
+                let infoText;
+                if (total > 0) {
+                    const start = (currentPage - 1) * perPage + 1;
+                    const end = Math.min((start + perPage - 1), total);
+                    infoText = `Menampilkan ${start} - ${end} dari ${total} data`;
+                } else {
+                    infoText = `Tidak ada data`;
+                }
+                pageInfoText.innerHTML = `<i class="fas fa-info-circle mr-1"></i> ${infoText}`;
+            }
+        }
+
         async function fetchData(url) {
             listContainer.innerHTML = '<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Memuat...</p></div>';
             try {
@@ -271,9 +314,19 @@
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
 
+                // BARIS DEBUGGING: Tampilkan data yang diterima di console browser (F12)
+                console.log('Data diterima dari server:', data);
+
                 listContainer.innerHTML = data.list_view;
-                paginationContainer.innerHTML = data.pagination;
+
+                const navLinksContainer = document.getElementById('pagination-nav-links');
+                if (navLinksContainer) {
+                    navLinksContainer.innerHTML = data.pagination;
+                }
+
                 resultCount.textContent = `Menampilkan total ${data.total} petani`;
+                updatePageInfo(data.total, data.currentPage, data.perPage);
+
                 history.pushState(null, '', url);
                 updateExportLinks();
             } catch (error) {
@@ -310,15 +363,12 @@
                 searchTimeout = setTimeout(handleFilterChange, 500);
             });
         }
-
         if (jenisKopiSelect) {
             jenisKopiSelect.addEventListener('change', handleFilterChange);
         }
-
         if (perPageSelect) {
             perPageSelect.addEventListener('change', handleFilterChange);
         }
-
         if (resetButton) {
             resetButton.addEventListener('click', () => {
                 if (searchInput) searchInput.value = '';
@@ -327,7 +377,6 @@
                 handleFilterChange();
             });
         }
-
         if (paginationContainer) {
             paginationContainer.addEventListener('click', function(e) {
                 const link = e.target.closest('a');
@@ -339,11 +388,13 @@
         }
 
         // --- Inisialisasi awal ---
-        if (resultCount) {
-            resultCount.textContent = `Menampilkan total <?= $petaniPager->getTotal('petani') ?> petani`;
-        }
+        const initialTotal = <?= $petaniPager->getTotal('petani') ?>;
+        const initialCurrentPage = <?= $petaniPager->getCurrentPage('petani') ?>;
+        const initialPerPage = <?= $petaniPager->getPerPage('petani') ?>;
+
+        updatePageInfo(initialTotal, initialCurrentPage, initialPerPage);
+        resultCount.textContent = `Menampilkan total ${initialTotal} petani`;
         updateExportLinks();
     });
 </script>
-
 <?= $this->endSection() ?>

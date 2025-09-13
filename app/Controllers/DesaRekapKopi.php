@@ -36,11 +36,28 @@ class DesaRekapKopi extends KomersialRekapKopi // <-- Kunci utamanya ada di sini
         // Memanggil method dari PARENT untuk mengambil data
         list($rekapPetani, $pagerKopiMasuk) = $this->getRekapKopiMasuk($filter, $perPageMasuk, $pageMasuk);
         list($rekapPenjualan, $pagerKopiKeluar) = $this->getRekapKopiKeluar($filter, $perPageKeluar, $pageKeluar);
-        list($stokAkhirPerJenis, $pagerStokAkhir) = $this->getStokAkhir($filter, $perPageStok, $pageStok);
+        list($rekapPetani, $pagerKopiMasuk) = $this->getRekapKopiMasuk($filter, $perPageMasuk, $pageMasuk);
+        list($rekapPenjualan, $pagerKopiKeluar) = $this->getRekapKopiKeluar($filter, $perPageKeluar, $pageKeluar);
 
-        $allStokData = $this->getStokAkhir($filter, 0, 1, false);
-        $totalStokGlobal = array_sum(array_column($allStokData, 'stok_akhir'));
+        // [AWAL PERUBAHAN] - Logika untuk mencegah kalkulasi stok yang tidak perlu
+        // 1. Inisialisasi variabel stok dengan nilai default (kosong/nol)
+        $stokAkhirPerJenis = [];
+        $totalStokGlobal = 0;
+        $pagerStokAkhir = null;
 
+        // 2. Buat kondisi: true jika petani dipilih TAPI tidak punya data kopi masuk
+        $petaniDipilihTanpaData = !empty($filter['petani']) && empty($rekapPetani);
+
+        // 3. Hanya jalankan perhitungan stok jika kondisi di atas TIDAK terpenuhi
+        if (!$petaniDipilihTanpaData) {
+            list($stokAkhirPerJenis, $pagerStokAkhir) = $this->getStokAkhir($filter, $perPageStok, $pageStok);
+
+            // Pastikan $stokAkhirPerJenis tidak kosong sebelum menghitung total global
+            if (!empty($stokAkhirPerJenis)) {
+                $allStokData = $this->getStokAkhir($filter, 0, 1, false);
+                $totalStokGlobal = array_sum(array_column($allStokData, 'stok_akhir'));
+            }
+        }
         $data = [
             'title'             => 'Rekap Kopi Desa', // Title yang berbeda
             'petaniList'        => $petaniList,
