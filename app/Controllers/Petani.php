@@ -38,24 +38,25 @@ class Petani extends Controller
 
         $petaniIds = array_column($petani, 'id');
         $permissions = [];
-
         if (!empty($petaniIds) && !empty($requesterId)) {
-            // ===== MULAI OPTIMISASI CACHING (diperbarui) =====
-
-            $cacheKey = 'perms_user' . $requesterId . '_petani_' . md5(implode(',', $petaniIds));
+            // ▼▼▼ PERUBAHAN DI SINI ▼▼▼
+            // Gunakan cache key yang lebih sederhana, hanya berdasarkan user ID.
+            $cacheKey = 'permissions_petani_user_' . $requesterId;
 
             if (!$permissionData = cache($cacheKey)) {
-                // Ambil data untuk status 'approved' DAN 'pending' sekaligus
+                // Ambil SEMUA izin aktif/pending milik user ini untuk target_type 'petani'
                 $permissionData = $this->permissionModel
                     ->where('requester_id', $requesterId)
                     ->where('target_type', 'petani')
-                    ->whereIn('status', ['approved', 'pending']) // Diubah untuk mengambil keduanya
-                    ->whereIn('target_id', $petaniIds)
+                    ->whereIn('status', ['approved', 'pending'])
+                    // Hapus whereIn target_id agar kita cache semua izin user, bukan per halaman.
+                    // ->whereIn('target_id', $petaniIds) 
                     ->findAll();
 
                 // Simpan hasil query ke dalam cache selama 5 menit (300 detik).
                 cache()->save($cacheKey, $permissionData, 300);
             }
+            // ▲▲▲ AKHIR PERUBAH
 
             // ===== SELESAI OPTIMISASI CACHING =====
 

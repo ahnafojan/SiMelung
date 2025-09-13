@@ -31,42 +31,73 @@ class Kopimasuk extends Controller
     {
         if (!session()->get('user_id')) {
             session()->setFlashdata('error', 'Anda harus login untuk mengakses halaman ini.');
-            return redirect()->to('/login'); // Arahkan ke halaman login Anda
+            return redirect()->to('/login');
         }
-        // [MODIFIKASI] Ambil jumlah per halaman dari URL, default-nya 10
+
         $perPage = $this->request->getGet('per_page') ?? 10;
-
-        // Ambil data kopi masuk menggunakan paginate
         $data['kopiMasuk'] = $this->kopiMasukModel->getAllWithPagination($perPage);
-
-        // Ambil pager dari model
         $data['pager'] = $this->kopiMasukModel->pager;
-
-        // [MODIFIKASI] Kirim variabel perPage dan currentPage ke view
         $data['currentPage'] = $data['pager']->getCurrentPage();
         $data['perPage'] = $perPage;
-
-        // untuk dropdown petani
         $data['petani'] = $this->petaniModel->orderBy('nama', 'ASC')->findAll();
 
-        // Cek izin untuk setiap item di halaman saat ini
-        // KODE BARU YANG BENAR
-        if (!empty($data['kopiMasuk'])) {
-            foreach ($data['kopiMasuk'] as &$kopi) {
-                $kopi['edit_status']   = $this->getPermissionStatus($kopi['id'], 'edit');
-                $kopi['delete_status'] = $this->getPermissionStatus($kopi['id'], 'delete');
+        // ▼▼▼ MULAI BAGIAN OPTIMASI & CACHING ▼▼▼
+
+        // 1. Siapkan variabel yang dibutuhkan
+        $requesterId = session()->get('user_id');
+        $permissions = [];
+
+        // 2. Kumpulkan semua ID kopi_masuk dari data yang tampil di halaman ini
+        $kopiMasukIds = array_column($data['kopiMasuk'], 'id');
+
+        if (!empty($kopiMasukIds) && !empty($requesterId)) {
+            // 3. Buat cache key yang spesifik untuk 'kopi_masuk'
+            $cacheKey = 'permissions_kopi_masuk_user_' . $requesterId;
+
+            if (!$permissionData = cache($cacheKey)) {
+                // Jika cache kosong, ambil semua data izin untuk 'kopi_masuk'
+                $permissionData = $this->permissionModel // Pastikan model ini di-load
+                    ->where('requester_id', $requesterId)
+                    ->where('target_type', 'kopi_masuk') // <-- Target baru
+                    ->whereIn('status', ['approved', 'pending'])
+                    ->findAll();
+
+                // Simpan ke cache
+                cache()->save($cacheKey, $permissionData, 300);
+            }
+
+            // 4. Olah data izin agar mudah diakses
+            if (!empty($permissionData)) {
+                foreach ($permissionData as $perm) {
+                    if ($perm['status'] == 'approved' && strtotime($perm['expires_at']) > now('Asia/Jakarta')) {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'approved';
+                    } elseif ($perm['status'] == 'pending') {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'pending';
+                    }
+                }
             }
         }
+
+        // 5. Tetapkan status izin ke setiap baris data (tanpa query berulang)
+        if (!empty($data['kopiMasuk'])) {
+            foreach ($data['kopiMasuk'] as &$kopi) {
+                $kopi['edit_status']   = $permissions[$kopi['id']]['edit'] ?? 'none';
+                $kopi['delete_status'] = $permissions[$kopi['id']]['delete'] ?? 'none';
+            }
+        }
+
+        // ▲▲▲ SELESAI BAGIAN OPTIMASI & CACHING ▲▲▲
+
         $data['breadcrumbs'] = [
             [
                 'title' => 'Dashboard',
-                'url'   => site_url('/dashboard/dashboard_komersial'), // Sesuaikan URL dashboard Anda
+                'url'   => site_url('/dashboard/dashboard_komersial'),
                 'icon'  => 'fas fa-fw fa-tachometer-alt'
             ],
             [
                 'title' => 'Kopi Masuk',
                 'url'   => '#',
-                'icon'  => 'fas fa-seedling' // Ikon untuk stok atau barang masuk
+                'icon'  => 'fas fa-seedling'
             ]
         ];
 

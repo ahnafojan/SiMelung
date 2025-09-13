@@ -95,13 +95,18 @@ class PersetujuanKomersial extends BaseController
 
     public function respond()
     {
-        // Fungsi respond tidak perlu diubah, biarkan seperti sebelumnya
         if ($this->request->isAJAX()) {
             $requestId = $this->request->getPost('request_id');
             $decision  = $this->request->getPost('decision');
 
             if (empty($requestId) || !in_array($decision, ['approve', 'reject'])) {
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Input tidak valid.'])->setStatusCode(400);
+            }
+
+            // Ambil data request untuk mendapatkan requester_id dan target_type
+            $requestData = $this->permissionModel->find($requestId);
+            if (!$requestData) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Request tidak ditemukan.'])->setStatusCode(404);
             }
 
             $responderId = session()->get('user_id');
@@ -117,6 +122,21 @@ class PersetujuanKomersial extends BaseController
             }
 
             if ($this->permissionModel->update($requestId, $updateData)) {
+
+                // ▼▼▼ BAGIAN LOGIKA PENGHAPUSAN CACHE ▼▼▼
+                // Logika ini secara dinamis menentukan cache mana yang harus dihapus.
+                $targetType = $requestData['target_type'];
+                $requesterId = $requestData['requester_id'];
+
+                // Buat nama cache key berdasarkan target_type
+                // Contoh: 'permissions_petani_user_1', 'permissions_pohon_user_1', dll.
+                $cacheKey = 'permissions_' . $targetType . '_user_' . $requesterId;
+
+                // Hapus cache yang sesuai
+                cache()->delete($cacheKey);
+
+                // ▲▲▲ AKHIR BAGIAN LOGIKA PENGHAPUSAN CACHE ▲▲▲
+
                 return $this->response->setJSON(['status' => 'success', 'message' => 'Permintaan berhasil direspon.']);
             } else {
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Gagal memperbarui database.'])->setStatusCode(500);

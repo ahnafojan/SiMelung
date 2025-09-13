@@ -20,24 +20,65 @@ class JenisPohon extends BaseController
     public function index()
     {
         $data['jenisPohon'] = $this->jenisPohonModel->findAll();
-        if (!empty($data['jenisPohon'])) {
-            foreach ($data['jenisPohon'] as &$jenis) {
-                // Mengganti 'can_edit' menjadi 'edit_status' yang lebih deskriptif
-                $jenis['edit_status'] = $this->getPermissionStatus($jenis['id'], 'edit');
-                // Mengganti 'can_delete' menjadi 'delete_status'
-                $jenis['delete_status'] = $this->getPermissionStatus($jenis['id'], 'delete');
+
+        // ▼▼▼ MULAI BAGIAN OPTIMASI ▼▼▼
+
+        // 1. Siapkan variabel yang dibutuhkan
+        $requesterId = session()->get('user_id');
+        $permissions = [];
+
+        // 2. Kumpulkan semua ID jenis pohon yang ada
+        $jenisPohonIds = array_column($data['jenisPohon'], 'id');
+
+        if (!empty($jenisPohonIds) && !empty($requesterId)) {
+
+            // 3. Buat cache key yang spesifik untuk 'jenis_pohon'
+            $cacheKey = 'permissions_jenis_pohon_user_' . $requesterId;
+
+            if (!$permissionData = cache($cacheKey)) {
+                // Jika cache kosong, ambil semua data izin untuk 'jenis_pohon' dalam 1 query
+                $permissionData = $this->permissionModel // Pastikan model ini sudah di-load
+                    ->where('requester_id', $requesterId)
+                    ->where('target_type', 'jenis_pohon') // <-- Target baru
+                    ->whereIn('status', ['approved', 'pending'])
+                    ->findAll();
+
+                // Simpan ke cache
+                cache()->save($cacheKey, $permissionData, 300);
+            }
+
+            // 4. Olah data izin agar mudah diakses
+            if (!empty($permissionData)) {
+                foreach ($permissionData as $perm) {
+                    if ($perm['status'] == 'approved' && strtotime($perm['expires_at']) > now('Asia/Jakarta')) {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'approved';
+                    } elseif ($perm['status'] == 'pending') {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'pending';
+                    }
+                }
             }
         }
+
+        // 5. Tetapkan status izin ke setiap jenis pohon (tanpa query ke DB)
+        if (!empty($data['jenisPohon'])) {
+            foreach ($data['jenisPohon'] as &$jenis) {
+                $jenis['edit_status']   = $permissions[$jenis['id']]['edit'] ?? 'none';
+                $jenis['delete_status'] = $permissions[$jenis['id']]['delete'] ?? 'none';
+            }
+        }
+
+        // ▲▲▲ SELESAI BAGIAN OPTIMASI ▲▲▲
+
         $data['breadcrumbs'] = [
             [
                 'title' => 'Dashboard',
-                'url'   => site_url('/dashboard/dashboard_komersial'), // Sesuaikan URL dashboard Anda
-                'icon'  => 'fas fa-fw fa-tachometer-alt' // Ikon sesuai permintaan Anda
+                'url'   => site_url('/dashboard/dashboard_komersial'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
             ],
             [
                 'title' => 'Daftar Jenis Pohon',
                 'url'   => '#',
-                'icon'  => 'fas fa-tree' // Ikon yang relevan untuk pohon
+                'icon'  => 'fas fa-tree'
             ]
         ];
         return view('admin_komersial/petani/daftarpohon', $data);

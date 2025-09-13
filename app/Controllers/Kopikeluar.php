@@ -31,16 +31,55 @@ class Kopikeluar extends BaseController
         // Ambil jumlah item per halaman dari URL, default-nya 10
         $perPage = $this->request->getVar('per_page') ?? 10;
 
-        // Ambil data menggunakan method pagination yang baru dibuat di model
+        // Ambil data menggunakan method pagination
         $kopikeluar = $this->kopiKeluarModel->getAllWithPagination($perPage);
 
-        // Cek izin untuk setiap item di halaman saat ini
-        if (!empty($kopikeluar)) {
-            foreach ($kopikeluar as &$kopi) {
-                $kopi['edit_status']   = $this->getPermissionStatus($kopi['id'], 'edit');
-                $kopi['delete_status'] = $this->getPermissionStatus($kopi['id'], 'delete');
+        // ▼▼▼ MULAI BAGIAN OPTIMASI & CACHING ▼▼▼
+
+        // 1. Siapkan variabel yang dibutuhkan
+        $requesterId = session()->get('user_id');
+        $permissions = [];
+
+        // 2. Kumpulkan semua ID kopi_keluar dari data yang tampil
+        $kopiKeluarIds = array_column($kopikeluar, 'id');
+
+        if (!empty($kopiKeluarIds) && !empty($requesterId)) {
+            // 3. Buat cache key yang spesifik untuk 'kopi_keluar'
+            $cacheKey = 'permissions_kopi_keluar_user_' . $requesterId;
+
+            if (!$permissionData = cache($cacheKey)) {
+                // Jika cache kosong, ambil semua data izin untuk 'kopi_keluar'
+                $permissionData = $this->permissionModel // Pastikan model ini di-load
+                    ->where('requester_id', $requesterId)
+                    ->where('target_type', 'kopi_keluar') // <-- Target baru
+                    ->whereIn('status', ['approved', 'pending'])
+                    ->findAll();
+
+                // Simpan ke cache
+                cache()->save($cacheKey, $permissionData, 300);
+            }
+
+            // 4. Olah data izin agar mudah diakses
+            if (!empty($permissionData)) {
+                foreach ($permissionData as $perm) {
+                    if ($perm['status'] == 'approved' && strtotime($perm['expires_at']) > now('Asia/Jakarta')) {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'approved';
+                    } elseif ($perm['status'] == 'pending') {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'pending';
+                    }
+                }
             }
         }
+
+        // 5. Tetapkan status izin ke setiap baris data (tanpa query berulang)
+        if (!empty($kopikeluar)) {
+            foreach ($kopikeluar as &$kopi) {
+                $kopi['edit_status']   = $permissions[$kopi['id']]['edit'] ?? 'none';
+                $kopi['delete_status'] = $permissions[$kopi['id']]['delete'] ?? 'none';
+            }
+        }
+
+        // ▲▲▲ SELESAI BAGIAN OPTIMASI & CACHING ▲▲▲
 
         // Kalkulasi total stok (logika ini tetap sama)
         $totalMasuk = $this->kopiMasukModel->selectSum('jumlah')->first()['jumlah'] ?? 0;
@@ -52,20 +91,20 @@ class Kopikeluar extends BaseController
             'kopikeluar'  => $kopikeluar,
             'stokKopi'    => $this->stokKopiModel->getWithJenis(),
             'stok'        => $stok,
-            'pager'       => $this->kopiKeluarModel->pager, // Mengambil objek pager
-            'perPage'     => $perPage, // Mengirimkan nilai perPage ke view
-            'currentPage' => $this->kopiKeluarModel->pager->getCurrentPage('kopikeluar'), // Mengambil halaman saat ini
+            'pager'       => $this->kopiKeluarModel->pager,
+            'perPage'     => $perPage,
+            'currentPage' => $this->kopiKeluarModel->pager->getCurrentPage('kopikeluar'),
         ];
         $data['breadcrumbs'] = [
             [
                 'title' => 'Dashboard',
-                'url'   => site_url('/dashboard/dashboard_komersial'), // Sesuaikan URL dashboard Anda
+                'url'   => site_url('/dashboard/dashboard_komersial'),
                 'icon'  => 'fas fa-fw fa-tachometer-alt'
             ],
             [
                 'title' => 'Kopi Keluar',
                 'url'   => '#',
-                'icon'  => 'fas fa-seedling' // Ikon untuk stok atau barang masuk
+                'icon'  => 'fas fa-seedling'
             ]
         ];
         return view('admin_komersial/kopi/kopi-keluar', $data);

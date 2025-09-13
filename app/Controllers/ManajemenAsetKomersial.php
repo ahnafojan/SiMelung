@@ -25,9 +25,9 @@ class ManajemenAsetKomersial extends Controller
     {
         if (!session()->get('user_id')) {
             session()->setFlashdata('error', 'Anda harus login untuk mengakses halaman ini.');
-            return redirect()->to('/login'); // Arahkan ke halaman login Anda
+            return redirect()->to('/login');
         }
-        // Daftar kategori aset untuk dropdown.
+
         $kategoriAset = [
             'Mesin Giling',
             'Mesin Pengupas Kopi',
@@ -37,21 +37,57 @@ class ManajemenAsetKomersial extends Controller
             'Peralatan Pertanian',
         ];
 
-        // Ambil jumlah item per halaman dari URL, default-nya 10
         $perPage = $this->request->getVar('per_page') ?? 10;
-
-        // Ambil data aset menggunakan paginate dengan grup 'asets'
         $asets = $this->asetModel->orderBy('id_aset', 'DESC')->paginate($perPage, 'asets');
 
-        // Cek izin untuk setiap item di halaman saat ini
-        if (!empty($asets)) {
-            foreach ($asets as &$aset) {
-                // Mengganti 'can_edit' menjadi 'edit_status' yang lebih deskriptif
-                $aset['edit_status'] = $this->getPermissionStatus($aset['id_aset'], 'edit');
-                // Mengganti 'can_delete' menjadi 'delete_status'
-                $aset['delete_status'] = $this->getPermissionStatus($aset['id_aset'], 'delete');
+        // ▼▼▼ MULAI BAGIAN OPTIMASI & CACHING ▼▼▼
+
+        // 1. Siapkan variabel yang dibutuhkan
+        $requesterId = session()->get('user_id');
+        $permissions = [];
+
+        // 2. Kumpulkan semua ID aset dari data yang tampil
+        // Perhatikan kita menggunakan 'id_aset' sesuai dengan kolom di tabel Anda
+        $asetIds = array_column($asets, 'id_aset');
+
+        if (!empty($asetIds) && !empty($requesterId)) {
+            // 3. Buat cache key yang spesifik untuk 'aset'
+            $cacheKey = 'permissions_aset_user_' . $requesterId;
+
+            if (!$permissionData = cache($cacheKey)) {
+                // Jika cache kosong, ambil semua data izin untuk 'aset'
+                $permissionData = $this->permissionModel // Pastikan model ini di-load
+                    ->where('requester_id', $requesterId)
+                    ->where('target_type', 'aset') // <-- Target baru
+                    ->whereIn('status', ['approved', 'pending'])
+                    ->findAll();
+
+                // Simpan ke cache
+                cache()->save($cacheKey, $permissionData, 300);
+            }
+
+            // 4. Olah data izin agar mudah diakses
+            if (!empty($permissionData)) {
+                foreach ($permissionData as $perm) {
+                    if ($perm['status'] == 'approved' && strtotime($perm['expires_at']) > now('Asia/Jakarta')) {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'approved';
+                    } elseif ($perm['status'] == 'pending') {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'pending';
+                    }
+                }
             }
         }
+
+        // 5. Tetapkan status izin ke setiap baris data (tanpa query berulang)
+        if (!empty($asets)) {
+            foreach ($asets as &$aset) {
+                // Gunakan 'id_aset' sebagai kunci untuk mencari di array permissions
+                $aset['edit_status']   = $permissions[$aset['id_aset']]['edit'] ?? 'none';
+                $aset['delete_status'] = $permissions[$aset['id_aset']]['delete'] ?? 'none';
+            }
+        }
+
+        // ▲▲▲ SELESAI BAGIAN OPTIMASI & CACHING ▲▲▲
 
         $data = [
             'kategoriAset' => $kategoriAset,
@@ -63,13 +99,13 @@ class ManajemenAsetKomersial extends Controller
         $data['breadcrumbs'] = [
             [
                 'title' => 'Dashboard',
-                'url'   => site_url('/dashboard/dashboard_komersial'), // Sesuaikan URL dashboard Anda
+                'url'   => site_url('/dashboard/dashboard_komersial'),
                 'icon'  => 'fas fa-fw fa-tachometer-alt'
             ],
             [
                 'title' => 'Manajemen Aset',
                 'url'   => '#',
-                'icon'  => 'fas fa-fw fa-tools' // Ikon yang cocok untuk data master
+                'icon'  => 'fas fa-fw fa-tools'
             ]
         ];
 

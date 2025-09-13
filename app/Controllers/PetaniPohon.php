@@ -39,17 +39,53 @@ class PetaniPohon extends BaseController
             ->where('petani_pohon.user_id', $user_id)
             ->findAll();
 
-        if (!empty($detailPohon)) {
-            foreach ($detailPohon as &$pohon) {
-                // Mengganti 'can_delete' menjadi 'delete_status' yang berisi ('approved', 'pending', atau 'none')
-                $pohon['delete_status'] = $this->getPermissionStatus($pohon['id'], 'delete');
+        // 1. Ambil ID admin yang sedang login
+        $requesterId = session()->get('user_id');
+        $permissions = []; // Siapkan array untuk menampung status izin
+
+        // 2. Kumpulkan semua ID pohon yang akan ditampilkan di halaman ini
+        $pohonIds = array_column($detailPohon, 'id');
+
+        if (!empty($pohonIds) && !empty($requesterId)) {
+
+            // 3. Gunakan cache key yang konsisten untuk izin 'pohon'
+            //    Pastikan cache ini juga dihapus saat ada persetujuan untuk target 'pohon'
+            $cacheKey = 'permissions_pohon_user_' . $requesterId;
+
+            if (!$permissionData = cache($cacheKey)) {
+                // Jika tidak ada di cache, ambil SEMUA izin 'pohon' milik user ini dalam 1 query
+                $permissionData = $this->permissionModel // Pastikan Anda punya $this->permissionModel
+                    ->where('requester_id', $requesterId)
+                    ->where('target_type', 'pohon') // Fokus pada izin untuk pohon
+                    ->whereIn('status', ['approved', 'pending'])
+                    ->findAll();
+
+                // Simpan ke cache selama 5 menit
+                cache()->save($cacheKey, $permissionData, 300);
+            }
+            if (!empty($permissionData)) {
+                foreach ($permissionData as $perm) {
+                    // Cek izin 'approved' yang masih aktif (belum kedaluwarsa)
+                    if ($perm['status'] == 'approved' && strtotime($perm['expires_at']) > now('Asia/Jakarta')) {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'approved';
+                    } elseif ($perm['status'] == 'pending') {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'pending';
+                    }
+                }
             }
         }
+        if (!empty($detailPohon)) {
+            foreach ($detailPohon as &$pohon) {
+                // Hanya menetapkan delete_status sesuai kebutuhan
+                $pohon['delete_status'] = $permissions[$pohon['id']]['delete'] ?? 'none';
+            }
+        }
+        // ▲▲▲ SELESAI BAGIAN OPTIMASI ▲▲▲
 
         return view('admin_komersial/petani/petanipohon', [
             'petani'      => $petani,
             'jenisPohon'  => $jenisPohon,
-            'detailPohon' => $detailPohon,
+            'detailPohon' => $detailPohon, // Sekarang sudah berisi 'delete_status'
             'validation'  => \Config\Services::validation(),
         ]);
     }
