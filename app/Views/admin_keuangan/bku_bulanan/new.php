@@ -155,7 +155,7 @@
     </form>
 </div>
 
-<script src="https://unpkg.com/imask"></script>
+<script src="https://unpkg.com/imask" defer></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -182,6 +182,8 @@
             const bulan = bulanDropdown.value;
             const tahun = tahunDropdown.value;
             saldoBulanLaluInput.value = "Mencari...";
+            bulanDropdown.disabled = true;
+            tahunDropdown.disabled = true;
 
             // Ambil token CSRF dari hidden input di dalam form
             const csrfHash = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
@@ -211,6 +213,10 @@
             } catch (error) {
                 saldoBulanLaluInput.value = "Gagal memuat";
                 console.error("Error saat mengambil saldo:", error);
+            } finally {
+                // Blok finally akan selalu dijalankan, baik sukses maupun error
+                bulanDropdown.disabled = false; // Aktifkan kembali
+                tahunDropdown.disabled = false;
             }
         }
 
