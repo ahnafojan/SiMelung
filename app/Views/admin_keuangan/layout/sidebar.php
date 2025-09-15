@@ -171,7 +171,7 @@ function is_sidebar_active(array $segments)
 
         <li class="nav-item">
             <a class="nav-link <?= is_sidebar_active(['pengaturan-keuangan']) ? 'active' : '' ?>" href="<?= site_url('pengaturan-keuangan'); ?>">
-                <i class="fas fa-cog fa-fw me-2"></i> Pengaturan
+                <i class="fas fa-cog fa-fw me-2"></i> Tanda Tangan
             </a>
         </li>
 

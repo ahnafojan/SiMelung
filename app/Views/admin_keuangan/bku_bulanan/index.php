@@ -133,13 +133,19 @@
                                         <?= 'Rp ' . number_format($row['saldo_akhir'], 0, ',', '.'); ?>
                                     </td>
                                     <td data-label="Aksi" class="text-center">
-                                        <div class="btn-group" role="group">
-                                            <a href="<?= site_url('/bku-bulanan/detail/' . $row['id']); ?>" class="btn btn-info btn-sm" title="Lihat Detail"><i class="fas fa-eye"></i></a>
-                                            <a href="<?= site_url('/bku-bulanan/' . $row['id'] . '/edit'); ?>" class="btn btn-warning btn-sm" title="Edit Laporan"><i class="fas fa-edit"></i></a>
-                                            <form action="<?= site_url('/bku-bulanan/' . $row['id']); ?>" method="post" class="d-inline">
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a href="<?= site_url('/bku-bulanan/detail/' . $row['id']); ?>" class="btn btn-info btn-sm flex-fill" title="Lihat Detail">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="<?= site_url('/bku-bulanan/' . $row['id'] . '/edit'); ?>" class="btn btn-warning btn-sm flex-fill" title="Edit Laporan">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form action="<?= site_url('/bku-bulanan/' . $row['id']); ?>" method="post" class="flex-fill">
                                                 <?= csrf_field(); ?>
                                                 <input type="hidden" name="_method" value="DELETE">
-                                                <button type="submit" class="btn btn-danger btn-sm" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus laporan periode ini? Semua data rinciannya juga akan terhapus permanen.')"><i class="fas fa-trash-alt"></i></button>
+                                                <button type="submit" class="btn btn-danger btn-sm w-100" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus laporan periode ini? Semua data rinciannya juga akan terhapus permanen.')">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
                                             </form>
                                         </div>
                                     </td>
