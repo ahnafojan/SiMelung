@@ -183,11 +183,24 @@ class BkuBulanan extends BaseController
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', true);
 
-        $dompdf = new Dompdf($options);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'landscape'); // Orientasi landscape
-        $dompdf->render();
-        $dompdf->stream($filename, ['Attachment' => false]); // Tampilkan pratinjau
+        // ✅ FIX: Tambahkan penanganan error sederhana
+        try {
+            $dompdf = new Dompdf($options);
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'landscape');
+            $dompdf->render();
+
+            // ✅ FIX: Tambahkan ob_end_clean() untuk mencegah output korup di hosting
+            ob_end_clean();
+
+            $dompdf->stream($filename, ['Attachment' => false]);
+
+            // ✅ FIX: Tambahkan exit() untuk best practice, sama seperti BKU Tahunan
+            exit();
+        } catch (\Exception $e) {
+            // Jika terjadi error saat render PDF, tampilkan pesan
+            die('Error saat membuat PDF: ' . $e->getMessage());
+        }
     }
 
     /**
