@@ -8,6 +8,7 @@ use App\Models\MasterArusKasModel;
 use App\Models\DetailArusKasModel;
 use App\Models\RekapArusKasModel;
 use Dompdf\Dompdf;
+use Dompdf\Options;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -220,15 +221,36 @@ class ArusKas extends BaseController
 
     public function exportPdf($tahun = null)
     {
-        if (!$tahun) return redirect()->to('/arus-kas');
+        if (!$tahun) {
+            return redirect()->to('/arus-kas');
+        }
+
         $this->logAktivitas('Cetak PDF Arus Kas', "Pengguna mencetak Laporan Arus Kas dalam format Pdf untuk tahun {$tahun}.");
+
+        // 1. Ambil data laporan
         $data = $this->getArusKasData($tahun);
-        $dompdf = new Dompdf();
+
+        // 2. Siapkan opsi untuk Dompdf
+        $options = new Options();
+        // PENTING: Aktifkan opsi ini agar Dompdf bisa memuat CSS dan gambar dari URL
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'Arial'); // Set font default untuk konsistensi
+
+        // 3. Buat instance Dompdf dengan opsi yang sudah disiapkan
+        $dompdf = new Dompdf($options);
+
+        // 4. Render view ke dalam variabel HTML
         $html = view('admin_keuangan/arus_kas/cetak_pdf_modern', $data);
+
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
+
+        // 5. Stream file ke browser
         $filename = 'Laporan_Arus_Kas_' . $tahun . '.pdf';
         $dompdf->stream($filename, ['Attachment' => 0]);
+
+        // 6. Hentikan eksekusi script untuk mencegah output lain
+        exit();
     }
 }

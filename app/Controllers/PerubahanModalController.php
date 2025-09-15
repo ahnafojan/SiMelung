@@ -9,6 +9,7 @@ use App\Models\BkuBulananModel; // Ditambahkan untuk mengambil daftar tahun
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Dompdf\Dompdf;
+use Dompdf\Options;
 use App\Models\LogAktivitasModel;
 
 class PerubahanModalController extends BaseController
@@ -239,14 +240,31 @@ class PerubahanModalController extends BaseController
 
     public function exportPdf($tahun)
     {
+        // 1. Logging dan pengambilan data
         $this->logAktivitas('CETAK PDF', "Mencetak laporan Perubahan Modal (PDF) untuk periode {$tahun}");
         $data = $this->_getLaporanData($tahun);
-        $dompdf = new Dompdf();
+
+        // 2. [PERBAIKAN] Siapkan opsi untuk Dompdf
+        $options = new Options();
+        // Mengizinkan Dompdf memuat CSS, gambar, dll. dari URL eksternal
+        $options->set('isRemoteEnabled', true);
+        // Menetapkan font default untuk menghindari masalah rendering font
+        $options->set('defaultFont', 'Arial');
+
+        // 3. [PERBAIKAN] Buat instance Dompdf dengan opsi yang sudah disiapkan
+        $dompdf = new Dompdf($options);
+
+        // 4. Proses render HTML dari view
         $html = view('admin_keuangan/perubahan_modal/cetak_pdf', $data);
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
+
+        // 5. Kirim PDF ke browser
         $filename = 'laporan-perubahan-modal-' . $data['tahun'] . '.pdf';
         $dompdf->stream($filename, ['Attachment' => 0]);
+
+        // 6. [PERBAIKAN] Hentikan eksekusi script setelah PDF dikirim
+        exit();
     }
 }
