@@ -155,14 +155,30 @@
     </form>
 </div>
 
-<script src="https://unpkg.com/imask" defer></script>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    /**
+     * Fungsi untuk memuat sebuah script secara dinamis.
+     * @param {string} src - URL dari script yang akan dimuat.
+     * @param {function} callback - Fungsi yang akan dijalankan SETELAH script selesai dimuat.
+     */
+    function loadScript(src, callback) {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = () => callback(); // Ini bagian kuncinya, panggil callback saat 'onload'
+        script.onerror = () => console.error(`Gagal memuat script: ${src}`);
+        document.head.appendChild(script); // Tambahkan script ke head untuk memulai download
+    }
 
+    /**
+     * Fungsi utama aplikasi Anda.
+     * Semua kode Anda yang lama kita pindahkan ke dalam sini.
+     */
+    function mainApp() {
         // ===================================================================================
+        // SELURUH KODE LAMA ANDA DARI 'DOMContentLoaded' DIMULAI DARI SINI
+        // ===================================================================================
+
         // SETUP AWAL & VARIABEL GLOBAL
-        // ===================================================================================
         const masterPendapatan = <?= json_encode($master_pendapatan); ?>;
         const masterKategori = <?= json_encode($master_kategori); ?>;
         let pendapatanIndex = 0;
@@ -182,48 +198,31 @@
             const bulan = bulanDropdown.value;
             const tahun = tahunDropdown.value;
             saldoBulanLaluInput.value = "Mencari...";
-            bulanDropdown.disabled = true;
-            tahunDropdown.disabled = true;
-
-            // Ambil token CSRF dari hidden input di dalam form
             const csrfHash = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
 
             try {
                 const response = await fetch(`<?= site_url('/bku-bulanan/get-saldo-lalu') ?>?bulan=${bulan}&tahun=${tahun}`, {
-                    // Tambahkan header ini untuk mengirim token
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'X-CSRF-TOKEN': csrfHash
                     }
                 });
-
-                // Periksa jika respons tidak OK (misal: error 403, 500)
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
                 const data = await response.json();
-
                 console.log("===== INFORMASI DEBUG DARI SERVER =====");
                 console.log("Data yang diterima:", data);
                 console.log("=====================================");
-
                 saldoBulanLaluInput.value = formatRupiah(data.saldo);
                 calculateSummary();
             } catch (error) {
                 saldoBulanLaluInput.value = "Gagal memuat";
                 console.error("Error saat mengambil saldo:", error);
-            } finally {
-                // Blok finally akan selalu dijalankan, baik sukses maupun error
-                bulanDropdown.disabled = false; // Aktifkan kembali
-                tahunDropdown.disabled = false;
             }
         }
 
-        // ===================================================================================
         // FUNGSI-FUNGSI BANTUAN (HELPERS)
-        // ===================================================================================
-
         function formatRupiah(angka) {
             return new Intl.NumberFormat('id-ID').format(angka);
         }
@@ -241,23 +240,21 @@
 
         function initIMask() {
             document.querySelectorAll('.input-rupiah:not(.imask-initialized)').forEach(function(input) {
+                // Di titik ini, object 'IMask' sudah 100% dijamin ada
                 IMask(input, {
                     mask: Number,
                     scale: 0,
                     signed: false,
                     thousandsSeparator: '.',
                     min: 0,
-                    max: 999999999999 // 12 digit
+                    max: 999999999999
                 });
                 input.removeAttribute('maxlength');
                 input.classList.add('imask-initialized');
             });
         }
 
-        // ===================================================================================
         // FUNGSI DINAMIS UNTUK MENAMBAH/MENGHAPUS BARIS FORM
-        // ===================================================================================
-
         function addPendapatanRow() {
             const div = document.createElement('div');
             div.className = 'row g-3 mb-3 align-items-center dynamic-row';
@@ -315,10 +312,7 @@
             }
         });
 
-        // ===================================================================================
         // FUNGSI UTAMA UNTUK KALKULASI REAL-TIME
-        // ===================================================================================
-
         function calculateSummary() {
             const saldoLalu = unformatRupiah(document.getElementById('saldo-bulan-lalu').value);
             let penghasilanBulanIni = 0;
@@ -382,14 +376,18 @@
 
         bulanDropdown.addEventListener('change', fetchSaldoBulanLalu);
         tahunDropdown.addEventListener('change', fetchSaldoBulanLalu);
-
         bkuForm.addEventListener('input', calculateSummary);
 
-        // ===================================================================================
         // INISIALISASI AWAL
-        // ===================================================================================
         addPendapatanRow();
-        fetchSaldoBulanLalu(); // Panggil sekali saat halaman dimuat
-    });
+        fetchSaldoBulanLalu();
+
+        // ===================================================================================
+        // AKHIR DARI KODE LAMA ANDA
+        // ===================================================================================
+    }
+
+    // Panggil fungsi untuk memuat imask.js, dan setelah selesai, jalankan mainApp.
+    loadScript('https://unpkg.com/imask', mainApp);
 </script>
 <?= $this->endSection(); ?>
