@@ -277,7 +277,7 @@
             <p><strong><u><?= $ketua; ?></u></strong></p>
         </div>
         <div class="signature-block right">
-            <p><?= $lokasi; ?>, 02 Agustus 2025</p>
+            <p><?= $lokasi; ?>, <?= $tanggalCetak; ?></p>
             <p>Bendahara BUMDES</p>
             <div class="signature-space"></div>
             <p><strong><u><?= $bendahara; ?></u></strong></p>

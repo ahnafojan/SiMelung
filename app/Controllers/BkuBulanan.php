@@ -61,14 +61,11 @@ class BkuBulanan extends BaseController
         // =======================================================================================
 
         // LANGKAH 1: Tambahkan Array Konfigurasi
-        // Peta untuk mendefinisikan hierarki kategori pengeluaran.
-
         $konfigurasiHierarki = [
             'OPERASIONAL PENGELOLAAN' => [
                 'KESEKRETARIATAN',
                 'PROMOSI'
             ],
-            // Tambahkan induk lain jika ada di masa depan
         ];
 
         // LANGKAH 2: Ambil semua data yang dibutuhkan dari database
@@ -96,46 +93,39 @@ class BkuBulanan extends BaseController
         $namaBulan = $bulanIndonesia[(int)$laporan['bulan']];
 
         $this->logAktivitas('CETAK PDF', "Mencetak laporan BKU (PDF) untuk periode {$namaBulan} {$laporan['tahun']}", $id);
+
         // LANGKAH 3: Proses data untuk membuat struktur hierarki dan pemetaan kolom
         $kategoriHierarki = [];
-        $kategoriColumnMap = []; // Peta dari ID kategori ke indeks kolomnya
+        $kategoriColumnMap = [];
         $kategoriSudahDiProses = [];
-
-        // Buat peta nama kategori ke datanya untuk pencarian cepat
         $kategoriByName = [];
         foreach ($masterKategori as $kat) {
             $kategoriByName[$kat['nama_kategori']] = $kat;
         }
 
-        // Bangun struktur hierarki
         foreach ($masterKategori as $kat) {
             $namaKategori = $kat['nama_kategori'];
             if (in_array($namaKategori, $kategoriSudahDiProses)) {
-                continue; // Lewati jika sudah diproses sebagai anak
+                continue;
             }
-
-            // Cek apakah kategori ini adalah induk berdasarkan konfigurasi
             if (isset($konfigurasiHierarki[$namaKategori])) {
                 $childrenData = [];
                 foreach ($konfigurasiHierarki[$namaKategori] as $namaAnak) {
                     if (isset($kategoriByName[$namaAnak])) {
                         $childrenData[] = $kategoriByName[$namaAnak];
-                        $kategoriSudahDiProses[] = $namaAnak; // Tandai sebagai sudah diproses
+                        $kategoriSudahDiProses[] = $namaAnak;
                     }
                 }
                 $kat['children'] = $childrenData;
                 $kategoriHierarki[] = $kat;
-            }
-            // Hanya proses sebagai 'induk' mandiri jika bukan bagian dari konfigurasi
-            elseif (!in_array($namaKategori, $kategoriSudahDiProses)) {
+            } elseif (!in_array($namaKategori, $kategoriSudahDiProses)) {
                 $kat['children'] = [];
                 $kategoriHierarki[] = $kat;
             }
         }
 
-        // Hitung total kolom pengeluaran dan buat pemetaan kolom
         $totalKolomPengeluaran = 0;
-        $columnIndex = 1; // Mulai dari indeks 1 untuk kolom pengeluaran
+        $columnIndex = 1;
         foreach ($kategoriHierarki as $kat) {
             if (empty($kat['children'])) {
                 $totalKolomPengeluaran++;
@@ -148,16 +138,19 @@ class BkuBulanan extends BaseController
             }
         }
 
-        // Hitung total kolom keseluruhan pada tabel
-        // 4 kolom awal (No, Tgl, Uraian, Pendapatan) + total kolom pengeluaran + 2 kolom akhir (Komulatif, Saldo)
         $totalKolomTabel = 4 + $totalKolomPengeluaran + 2;
 
-
         // =======================================================================================
-        // AKHIR DARI BAGIAN YANG DIMODIFIKASI
+        // ▼▼▼ BAGIAN YANG DIPERBAIKI ▼▼▼
+        // =======================================================================================
+        // LANGKAH 4: Siapkan tanggal cetak dinamis sesuai format Excel
+        $namaBulanSaatIni = $bulanIndonesia[date('n')]; // 'n' untuk bulan saat ini (angka 1-12)
+        $tanggalCetak = date('d') . ' ' . $namaBulanSaatIni . ' ' . date('Y');
+        // =======================================================================================
+        // ▲▲▲ AKHIR BAGIAN YANG DIPERBAIKI ▲▲▲
         // =======================================================================================
 
-        // LANGKAH 4: Siapkan semua data untuk dikirim ke view
+        // LANGKAH 5: Siapkan semua data untuk dikirim ke view
         $data = [
             'laporan' => $laporan,
             'rincianPendapatan' => $rincianPendapatan,
@@ -167,15 +160,14 @@ class BkuBulanan extends BaseController
             'bendahara' => $bendahara,
             'lokasi' => $lokasi,
             'namaBulan' => $namaBulan,
-
-            // Data baru yang sudah diproses untuk layout
+            'tanggalCetak' => $tanggalCetak, // <-- Menggunakan variabel yang sudah diformat
             'kategoriHierarki' => $kategoriHierarki,
             'kategoriColumnMap' => $kategoriColumnMap,
             'totalKolomPengeluaran' => $totalKolomPengeluaran,
             'totalKolomTabel' => $totalKolomTabel,
         ];
 
-        // LANGKAH 5: Render view ke HTML menggunakan library Dompdf
+        // LANGKAH 6: Render view ke HTML menggunakan library Dompdf
         $filename = 'BKU_Bulanan_' . $namaBulan . '_' . $laporan['tahun'] . '.pdf';
         $html = view('admin_keuangan/bku_bulanan/cetak_pdf', $data);
 
@@ -183,22 +175,15 @@ class BkuBulanan extends BaseController
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', true);
 
-        // ✅ FIX: Tambahkan penanganan error sederhana
         try {
             $dompdf = new Dompdf($options);
             $dompdf->loadHtml($html);
             $dompdf->setPaper('A4', 'landscape');
             $dompdf->render();
-
-            // ✅ FIX: Tambahkan ob_end_clean() untuk mencegah output korup di hosting
             ob_end_clean();
-
             $dompdf->stream($filename, ['Attachment' => false]);
-
-            // ✅ FIX: Tambahkan exit() untuk best practice, sama seperti BKU Tahunan
             exit();
         } catch (\Exception $e) {
-            // Jika terjadi error saat render PDF, tampilkan pesan
             die('Error saat membuat PDF: ' . $e->getMessage());
         }
     }
@@ -442,9 +427,15 @@ class BkuBulanan extends BaseController
         $sheet->getStyle('A' . ($row + 5))->getFont()->setBold(true)->setUnderline(true);
 
         $startColKananIndex = max(6, $endColPengeluaran - 1);
+        // KODE BARU YANG SUDAH DIPERBAIKI
+        // Mengambil nama bulan SAAT INI (seperti di PDF)
+        $namaBulanSaatIni = $bulanIndonesia[date('n')];
+        $tanggalCetak = $lokasi . ', ' . date('d') . ' ' . $namaBulanSaatIni . ' ' . date('Y');
+
+        // Mengisi sel dengan tanggal yang sudah benar
         $startColKananStr = Coordinate::stringFromColumnIndex($startColKananIndex);
         $sheet->mergeCells($startColKananStr . $row . ':' . $endColTotalStr . $row)
-            ->setCellValue($startColKananStr . $row, $lokasi . ', ' . date('d ') . $namaBulan . date(' Y'));
+            ->setCellValue($startColKananStr . $row, $tanggalCetak);
         $sheet->mergeCells($startColKananStr . ($row + 1) . ':' . $endColTotalStr . ($row + 1))
             ->setCellValue($startColKananStr . ($row + 1), 'Bendahara BUMDES');
         $sheet->mergeCells($startColKananStr . ($row + 5) . ':' . $endColTotalStr . ($row + 5))
