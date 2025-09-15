@@ -418,7 +418,7 @@ class BkuBulanan extends BaseController
         $sheet->setCellValue($komulatifColStr . $jumlahPengeluaranRow, $laporan['total_pengeluaran']);
         $sheet->setCellValue($saldoColStr . $sisaSaldoRow, $laporan['saldo_akhir']);
 
-        // 7. Blok Tanda Tangan (Tidak ada perubahan)
+
         $row = $sisaSaldoRow + 3;
         $sheet->mergeCells('A' . $row . ':D' . $row)->setCellValue('A' . $row, 'Mengetahui,');
         $sheet->mergeCells('A' . ($row + 1) . ':D' . ($row + 1))->setCellValue('A' . ($row + 1), 'Ketua BUMDES');
