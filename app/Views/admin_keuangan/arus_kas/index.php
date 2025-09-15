@@ -257,62 +257,65 @@
 
 
 <?= $this->section('scripts') ?>
-<script src="https://cdn.jsdelivr.net/npm/imask@7.6.1/dist/imask.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        function parseNumber(str) {
-            return parseFloat(String(str).replace(/[^\d-]/g, '')) || 0;
-        }
+<?php if (isset($tahunDipilih)) : // Tambahkan kondisi ini 
+?>
+    <script src="https://cdn.jsdelivr.net/npm/imask@7.6.1/dist/imask.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function parseNumber(str) {
+                return parseFloat(String(str).replace(/[^\d-]/g, '')) || 0;
+            }
 
-        function formatRupiah(num) {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(num).replace('Rp', 'Rp ');
-        }
+            function formatRupiah(num) {
+                return new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0
+                }).format(num).replace('Rp', 'Rp ');
+            }
 
-        function calculateTotals() {
-            let pendapatanUtama = parseNumber(document.getElementById('pendapatan-utama').value);
-            let pembelianBarang = parseNumber(document.getElementById('pembelian-barang').value);
-            let bebanGaji = parseNumber(document.getElementById('beban-gaji').value);
-            let pad = parseNumber(document.getElementById('pad').value);
+            function calculateTotals() {
+                let pendapatanUtama = parseNumber(document.getElementById('pendapatan-utama').value);
+                let pembelianBarang = parseNumber(document.getElementById('pembelian-barang').value);
+                let bebanGaji = parseNumber(document.getElementById('beban-gaji').value);
+                let pad = parseNumber(document.getElementById('pad').value);
 
-            let totalDinamisMasuk = 0;
-            let totalDinamisKeluar = 0;
+                let totalDinamisMasuk = 0;
+                let totalDinamisKeluar = 0;
 
-            document.querySelectorAll('.rupiah-input').forEach(input => {
-                let nilai = parseNumber(input.value);
-                if (input.dataset.kategori === 'masuk') {
-                    totalDinamisMasuk += nilai;
-                } else if (input.dataset.kategori === 'keluar') {
-                    totalDinamisKeluar += nilai;
-                }
+                document.querySelectorAll('.rupiah-input').forEach(input => {
+                    let nilai = parseNumber(input.value);
+                    if (input.dataset.kategori === 'masuk') {
+                        totalDinamisMasuk += nilai;
+                    } else if (input.dataset.kategori === 'keluar') {
+                        totalDinamisKeluar += nilai;
+                    }
+                });
+
+                let totalKasMasuk = pendapatanUtama + totalDinamisMasuk;
+                let totalKasKeluar = pembelianBarang + bebanGaji + pad + totalDinamisKeluar;
+                let saldoAkhir = totalKasMasuk - totalKasKeluar;
+
+                document.getElementById('total-kas-masuk').innerText = formatRupiah(totalKasMasuk);
+                document.getElementById('total-kas-keluar').innerText = `Rp (${new Intl.NumberFormat('id-ID').format(totalKasKeluar)})`;
+                document.getElementById('saldo-akhir').innerText = formatRupiah(saldoAkhir);
+            }
+
+            document.querySelectorAll('.rupiah-input').forEach(function(input) {
+                const mask = new IMask(input, {
+                    mask: Number,
+                    scale: 0,
+                    signed: false,
+                    thousandsSeparator: '.',
+                    min: 0
+                });
+                mask.on('accept', function() {
+                    calculateTotals();
+                });
             });
 
-            let totalKasMasuk = pendapatanUtama + totalDinamisMasuk;
-            let totalKasKeluar = pembelianBarang + bebanGaji + pad + totalDinamisKeluar;
-            let saldoAkhir = totalKasMasuk - totalKasKeluar;
-
-            document.getElementById('total-kas-masuk').innerText = formatRupiah(totalKasMasuk);
-            document.getElementById('total-kas-keluar').innerText = `Rp (${new Intl.NumberFormat('id-ID').format(totalKasKeluar)})`;
-            document.getElementById('saldo-akhir').innerText = formatRupiah(saldoAkhir);
-        }
-
-        document.querySelectorAll('.rupiah-input').forEach(function(input) {
-            const mask = new IMask(input, {
-                mask: Number,
-                scale: 0,
-                signed: false,
-                thousandsSeparator: '.',
-                min: 0
-            });
-            mask.on('accept', function() {
-                calculateTotals();
-            });
+            calculateTotals();
         });
-
-        calculateTotals();
-    });
-</script>
-<?= $this->endSection() ?>
+        <?php endif; ?>
+    </script>
+    <?= $this->endSection() ?>
