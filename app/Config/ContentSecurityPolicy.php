@@ -56,6 +56,12 @@ class ContentSecurityPolicy extends BaseConfig
      */
     public $scriptSrc = 'self';
 
+    public array $ContentSecurityPolicy = [
+        'default-src' => 'self',
+        'script-src'  => 'self \'unsafe-inline\' https://code.jquery.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com https://cdnjs.cloudflare.com https://unpkg.com',
+        // ... aturan lainnya
+    ];
+
     /**
      * Lists allowed stylesheets' URLs.
      *
