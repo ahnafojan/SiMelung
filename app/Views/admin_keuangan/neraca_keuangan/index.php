@@ -371,7 +371,7 @@
 
 <?= $this->section('scripts') ?>
 <?php if (isset($tahunDipilih)): ?>
-    <script src="https://unpkg.com/imask"></script>
+    <script src="https://cdn.jsdelivr.net/npm/imask@7.6.1/dist/imask.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             function formatRupiah(angka) {
