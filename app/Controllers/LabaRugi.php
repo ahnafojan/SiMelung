@@ -14,6 +14,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use App\Models\LabaRugiTahunModel;
 use App\Models\LogAktivitasModel;
+use Dompdf\Options;
 
 class LabaRugi extends BaseController
 {
@@ -185,21 +186,48 @@ class LabaRugi extends BaseController
 
     public function cetakPdf($tahun = null)
     {
-        if (!$tahun) return redirect()->to('/laba-rugi');
+        // 1. Validasi input di awal
+        if (empty($tahun)) {
+            return redirect()->to('/laba-rugi');
+        }
 
-        $this->logAktivitas('Cetak PDF Laba Rugi', "Pengguna mencetak Laporan Laba Rugi dalam format PDF untuk tahun {$tahun}.");
+        // 2. Siapkan data terlebih dahulu
         $data = $this->getLaporanLabaRugiData($tahun);
         $data['title'] = "Laporan Laba Rugi Tahun {$tahun}";
         $data['tahunDipilih'] = $tahun;
 
-        $filename = 'Laporan_Laba_Rugi_' . $tahun . '.pdf';
-        $html = view('admin_keuangan/laba_rugi/cetak_pdf', $data);
+        // 3. Panggil fungsi lain (seperti logging) SEBELUM memulai output PDF
+        $this->logAktivitas('Cetak PDF Laba Rugi', "Pengguna mencetak Laporan Laba Rugi dalam format PDF untuk tahun {$tahun}.");
 
-        $dompdf = new Dompdf();
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
-        $dompdf->stream($filename, ['Attachment' => false]); // Pratinjau di browser
+        // 4. Proses pembuatan PDF
+        try {
+            $filename = 'Laporan_Laba_Rugi_' . $tahun . '.pdf';
+
+            // Opsi untuk mengizinkan Dompdf mengakses file/gambar eksternal (jika ada)
+            $options = new Options();
+            $options->set('isRemoteEnabled', true);
+
+            $dompdf = new Dompdf($options);
+
+            // Render view ke dalam variabel HTML
+            $html = view('admin_keuangan/laba_rugi/cetak_pdf', $data);
+
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+
+            // Mengirim PDF ke browser untuk ditampilkan (pratinjau)
+            // Header Content-Type: application/pdf akan diatur oleh fungsi stream()
+            $dompdf->stream($filename, ['Attachment' => false]);
+
+            // 💡 PENTING: Hentikan eksekusi script setelah PDF dikirim!
+            // Ini mencegah output lain (seperti dari template CI atau debug) merusak file PDF.
+            exit();
+        } catch (\Exception $e) {
+            // Tangani error jika pembuatan PDF gagal
+            // log_message('error', 'Gagal membuat PDF: ' . $e->getMessage());
+            die('Maaf, terjadi kesalahan saat membuat PDF.');
+        }
     }
 
     /**
