@@ -251,14 +251,18 @@
                 </div>
             </div>
         </form>
+    <?php else : ?>
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            Silakan pilih tahun periode terlebih dahulu untuk menampilkan laporan.
+        </div>
     <?php endif; ?>
 </div>
 <?= $this->endSection() ?>
 
 
 <?= $this->section('scripts') ?>
-<?php if (isset($tahunDipilih)) : // Tambahkan kondisi ini 
-?>
+<?php if (isset($tahunDipilih)) : ?>
     <script src="https://cdn.jsdelivr.net/npm/imask@7.6.1/dist/imask.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -316,6 +320,7 @@
 
             calculateTotals();
         });
-        <?php endif; ?>
     </script>
-    <?= $this->endSection() ?>
+<?php endif; // <-- INI BAGIAN YANG DIPERBAIKI 
+?>
+<?= $this->endSection() ?>

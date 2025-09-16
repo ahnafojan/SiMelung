@@ -223,9 +223,9 @@ class BkuTahunan extends BaseController
         $ketua = $pengaturan['ketua_bumdes'] ?? 'NAMA KETUA';
         $bendahara = $pengaturan['bendahara_bumdes'] ?? 'NAMA BENDAHARA';
         $lokasi = $pengaturan['lokasi_laporan'] ?? 'LOKASI';
-        $kepala_desa = $pengaturan['kepala_desa'] ?? 'Nama Kepala Desa';
-        $penasihat = $pengaturan['penasihat'] ?? 'Nama Penasihat';
-        $pengawas = $pengaturan['pengawas'] ?? 'Nama Pengawas';
+        $kepala_desa = $pengaturan['nama_kepala_desa'] ?? 'Nama Kepala Desa';
+        $penasihat = $pengaturan['nama_penasihat'] ?? 'Nama Penasihat';
+        $pengawas = $pengaturan['nama_pengawas'] ?? 'Nama Pengawas';
         $bulanIndonesia = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'];
 
         $spreadsheet = new Spreadsheet();

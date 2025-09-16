@@ -63,7 +63,7 @@
                     <div class="col-md-4">
                         <label for="tahun" class="form-label">Pilih Tahun:</label>
                         <select name="tahun" id="tahun" class="form-select" required>
-                            <option value="">-- Pilih Tahun --</option>
+                            <option value="">Pilih Tahun</option>
                             <?php foreach ($daftar_tahun as $item): ?>
                                 <option value="<?= $item['tahun']; ?>" <?= (isset($tahunDipilih) && $tahunDipilih == $item['tahun']) ? 'selected' : ''; ?>>
                                     <?= $item['tahun']; ?>
@@ -365,6 +365,11 @@
                 </div>
             </div>
         </form>
+    <?php else: ?>
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            Silakan pilih tahun periode terlebih dahulu untuk menampilkan laporan.
+        </div>
     <?php endif; ?>
 </div>
 <?= $this->endSection(); ?>

@@ -87,8 +87,8 @@
                     <div class="col-md-4">
                         <label for="tahun" class="form-label">Pilih Tahun:</label>
                         <select name="tahun" id="tahun" class="form-select" required>
-                            <option value="">-- Pilih Tahun --</option>
-                            <?php foreach ($daftar_tahun as $th): ?>
+                            <option value="">Pilih Tahun</option>
+                            <?php foreach ($daftar_tahun as $th) : ?>
                                 <option value="<?= $th['tahun']; ?>" <?= (isset($tahunDipilih) && $tahunDipilih == $th['tahun']) ? 'selected' : ''; ?>>
                                     <?= $th['tahun']; ?>
                                 </option>
@@ -103,7 +103,7 @@
         </div>
     </div>
 
-    <?php if (isset($tahunDipilih)): ?>
+    <?php if (isset($tahunDipilih)) : ?>
         <form action="<?= site_url('laba-rugi/simpan'); ?>" method="post" id="laba-rugi-form">
             <?= csrf_field(); ?>
             <input type="hidden" name="tahun" value="<?= $tahunDipilih; ?>">
@@ -135,7 +135,7 @@
                                 <input type="text" class="form-control text-end permanent-field" id="pendapatan-usaha" value="<?= (int)$pendapatanUsaha; ?>" readonly>
                             </div>
                         </div>
-                        <?php foreach ($komponenPendapatan as $item): ?>
+                        <?php foreach ($komponenPendapatan as $item) : ?>
                             <div class="laporan-item">
                                 <label><?= esc($item['nama_komponen']); ?></label>
                                 <div class="input-group input-group-sm">
@@ -173,7 +173,7 @@
                                 <input type="text" class="form-control text-end permanent-field" id="pad" value="<?= (int)$pad; ?>" readonly>
                             </div>
                         </div>
-                        <?php foreach ($komponenBiaya as $item): ?>
+                        <?php foreach ($komponenBiaya as $item) : ?>
                             <div class="laporan-item">
                                 <label><?= esc($item['nama_komponen']); ?></label>
                                 <div class="input-group input-group-sm">
@@ -196,14 +196,20 @@
                 </div>
             </div>
         </form>
+    <?php else : ?>
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            Silakan pilih tahun periode terlebih dahulu untuk menampilkan laporan.
+        </div>
     <?php endif; ?>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/imask@7.6.1/dist/imask.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // Cek apakah form laporan ada di halaman ini
         const form = document.getElementById('laba-rugi-form');
-        if (!form) return;
+        if (!form) return; // Jika tidak ada form, hentikan eksekusi script
 
         function formatRupiah(angka) {
             return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka);

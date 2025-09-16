@@ -43,24 +43,33 @@ class PerubahanModalController extends BaseController
 
     public function index()
     {
-        // [BEST PRACTICE] Dropdown tahun dinamis berdasarkan data yang ada
+        // Dropdown tahun dinamis berdasarkan data yang ada
         $daftarTahun = $this->bkuModel->select('tahun')->distinct()->orderBy('tahun', 'DESC')->findAll();
 
-        // Tentukan tahun terpilih: dari URL, atau tahun terbaru yang ada data, atau tahun ini
-        $tahunTerbaru = !empty($daftarTahun) ? $daftarTahun[0]['tahun'] : date('Y');
-        $tahunTerpilih = $this->request->getGet('tahun') ?? $tahunTerbaru;
+        // 1. [PERBAIKAN] Ambil tahun HANYA dari URL. Jika tidak ada, nilainya akan null.
+        $tahunTerpilih = $this->request->getGet('tahun');
 
-        // Ambil semua data yang relevan untuk laporan
-        $laporanData = $this->_getLaporanData($tahunTerpilih);
-
+        // 2. [PERBAIKAN] Siapkan array $data dengan nilai-nilai default.
+        //    Ini penting agar tidak terjadi error "undefined variable" di view.
         $data = [
-            'title'             => 'Laporan Perubahan Modal',
-            'daftar_tahun'      => $daftarTahun,
-            'tahun_terpilih'    => $tahunTerpilih,
-            'komponen'          => $laporanData['semua_komponen'],
-            'laba_rugi_bersih'  => $laporanData['laba_rugi_bersih'],
-            'detail_map'        => $laporanData['detail_map'],
+            'title'            => 'Laporan Perubahan Modal',
+            'daftar_tahun'     => $daftarTahun,
+            'tahun_terpilih'   => $tahunTerpilih,
+            'komponen'         => [], // default: array kosong
+            'laba_rugi_bersih' => 0,  // default: 0
+            'detail_map'       => [], // default: array kosong
         ];
+
+        // 3. [PERBAIKAN] HANYA JIKA tahun sudah dipilih, kita ambil data laporan.
+        if (!empty($tahunTerpilih)) {
+            // Panggil method privat untuk mengambil semua data laporan
+            $laporanData = $this->_getLaporanData($tahunTerpilih);
+
+            // Timpa nilai default di $data dengan data laporan yang sebenarnya
+            $data['komponen']         = $laporanData['semua_komponen'];
+            $data['laba_rugi_bersih'] = $laporanData['laba_rugi_bersih'];
+            $data['detail_map']       = $laporanData['detail_map'];
+        }
 
         return view('admin_keuangan/perubahan_modal/index', $data);
     }

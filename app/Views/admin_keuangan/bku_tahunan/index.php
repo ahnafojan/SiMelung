@@ -32,7 +32,7 @@
                     <div class="col-md-4">
                         <label for="tahun" class="form-label">Pilih Tahun:</label>
                         <select name="tahun" id="tahun" class="form-select" required>
-                            <option value="">-- Pilih Tahun --</option>
+                            <option value="">Pilih Tahun</option>
                             <?php foreach ($daftar_tahun as $th): ?>
                                 <option value="<?= $th['tahun']; ?>" <?= (isset($tahunDipilih) && $tahunDipilih == $th['tahun']) ? 'selected' : ''; ?>>
                                     <?= $th['tahun']; ?>
@@ -49,6 +49,7 @@
     </div>
 
     <?php if (isset($hasil)): ?>
+
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex flex-column flex-md-row justify-content-md-between align-items-md-center">
                 <h6 class="m-0 font-weight-bold text-primary mb-2 mb-md-0">Hasil Laporan Tahun <?= esc($tahunDipilih); ?></h6>
@@ -152,6 +153,14 @@
                 </div>
             </div>
         </div>
+
+    <?php else: ?>
+
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            Silakan pilih tahun periode terlebih dahulu untuk menampilkan laporan.
+        </div>
+
     <?php endif; ?>
 </div>
 <?= $this->endSection(); ?>
