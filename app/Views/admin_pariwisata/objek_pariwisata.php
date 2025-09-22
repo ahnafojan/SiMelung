@@ -268,90 +268,112 @@
 </div>
 
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-    // Script untuk modal (TETAP SAMA)
-    const modalElement = new bootstrap.Modal(document.getElementById('modalObjekWisata'));
-    const form = document.getElementById('formObjekWisata');
-    const modalLabel = document.getElementById('modalLabel');
-    const idInput = document.getElementById('wisata_id');
-    const namaInput = document.getElementById('nama_wisata');
-    const lokasiInput = document.getElementById('lokasi');
-    const deskripsiInput = document.getElementById('deskripsi');
-
-    function resetForm() {
-        form.action = "<?= base_url('objekwisata/store') ?>";
-        modalLabel.textContent = "Tambah Lokasi Wisata";
-        idInput.value = "";
-        form.reset();
-    }
-
-    function editData(data) {
-        form.action = "<?= base_url('objekwisata/store') ?>";
-        modalLabel.textContent = "Edit Lokasi Wisata";
-        idInput.value = data.id;
-        namaInput.value = data.nama_wisata;
-        lokasiInput.value = data.lokasi;
-        deskripsiInput.value = data.deskripsi;
-        modalElement.show();
-    }
-
-    // Script BARU untuk permintaan izin
+    // Script untuk modal
     document.addEventListener('DOMContentLoaded', function() {
+        // Inisialisasi modal hanya saat dibutuhkan
+        let modalElement = null;
+        const form = document.getElementById('formObjekWisata');
+        const modalLabel = document.getElementById('modalLabel');
+        const idInput = document.getElementById('wisata_id');
+        const namaInput = document.getElementById('nama_wisata');
+        const lokasiInput = document.getElementById('lokasi');
+        const deskripsiInput = document.getElementById('deskripsi');
+
+        window.resetForm = function() {
+            form.action = "<?= base_url('objekwisata/store') ?>";
+            modalLabel.textContent = "Tambah Lokasi Wisata";
+            idInput.value = "";
+            form.reset();
+        };
+
+        window.editData = function(data) {
+            form.action = "<?= base_url('objekwisata/store') ?>";
+            modalLabel.textContent = "Edit Lokasi Wisata";
+            idInput.value = data.id;
+            namaInput.value = data.nama_wisata;
+            lokasiInput.value = data.lokasi;
+            deskripsiInput.value = data.deskripsi;
+
+            // Inisialisasi modal dan tampilkan
+            if (!modalElement) {
+                modalElement = new bootstrap.Modal(document.getElementById('modalObjekWisata'));
+            }
+            modalElement.show();
+        };
+
+        // Script untuk permintaan izin
         document.querySelectorAll('.btn-request-access').forEach(button => {
             button.addEventListener('click', function() {
                 const btn = this;
                 const wisataId = btn.dataset.wisataId;
                 const action = btn.dataset.actionType;
 
+                // Ambil CSRF dari meta tag
+                const csrfTokenMeta = document.head.querySelector('meta[name="csrf_token"]');
+                const csrfToken = csrfTokenMeta ? csrfTokenMeta.content : null;
+                const csrfHash = '<?= csrf_hash() ?>';
+
+                if (!csrfToken) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Token CSRF tidak ditemukan.'
+                    });
+                    return;
+                }
+
+                // Nonaktifkan tombol + spinner
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-                fetch("<?= site_url('objekwisata/requestaccess') ?>", {
-                        method: "POST",
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: new URLSearchParams({
-                            'wisata_id': wisataId,
-                            'action_type': action,
-                            '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
+                // Kirim permintaan AJAX dengan jQuery
+                $.ajax({
+                    url: "<?= site_url('objekwisata/requestaccess') ?>",
+                    method: "POST",
+                    data: { // <-- Tambahkan "data:" di sini
+                        wisata_id: wisataId,
+                        action_type: action,
+                        [csrfToken]: csrfHash
+                    },
+                    dataType: "json",
+                    success: function(response) {
+                        if (response.status === 'success') {
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Terkirim!',
-                                text: data.message,
-                                timer: 2000,
-                                showConfirmButton: false
+                                title: 'Berhasil',
+                                text: response.message
+                            }).then(() => {
+                                location.reload();
                             });
-                            btn.classList.remove('btn-outline-warning', 'btn-outline-danger');
-                            btn.classList.add('btn-secondary', 'disabled');
-                            btn.innerHTML = '<i class="fas fa-clock"></i>';
-                            btn.title = 'Menunggu Persetujuan';
                         } else {
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Gagal',
-                                text: data.message || 'Gagal mengirim permintaan.'
+                                text: response.message
                             });
+
+                            // Kembalikan tombol ke bentuk awal
                             btn.disabled = false;
                             btn.innerHTML = '<i class="fas fa-lock"></i>';
                         }
-                    })
-                    .catch(() => {
+                    },
+                    error: function(xhr, status, error) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Oops...',
-                            text: 'Terjadi kesalahan koneksi.'
+                            text: 'Terjadi kesalahan koneksi. Coba lagi.'
                         });
+
+                        console.error('AJAX Error:', error);
+                        console.error('Response:', xhr.responseText);
+
                         btn.disabled = false;
                         btn.innerHTML = '<i class="fas fa-lock"></i>';
-                    });
+                    }
+                });
             });
         });
     });

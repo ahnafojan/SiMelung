@@ -194,7 +194,7 @@
                                     <td data-label="Nilai (Rp)"><?= number_format($aset['nilai_perolehan'], 0, ',', '.') ?></td>
                                     <td data-label="Aksi" class="text-center">
                                         <div class="btn-group">
-                                            <?php if ($aset['edit_status'] == 'approved') : ?>
+                                            <?php if (isset($aset['edit_status']) && $aset['edit_status'] == 'approved') : ?>
                                                 <button class="btn btn-sm btn-outline-warning mx-1" title="Edit Aset"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#modalEditAset"
@@ -210,7 +210,7 @@
                                                     data-keterangan="<?= esc($aset['keterangan']) ?>">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
-                                            <?php elseif ($aset['edit_status'] == 'pending') : ?>
+                                            <?php elseif (isset($aset['edit_status']) && $aset['edit_status'] == 'pending') : ?>
                                                 <button class="btn btn-sm btn-secondary mx-1 disabled" title="Permintaan edit sedang diproses">
                                                     <i class="fas fa-clock"></i>
                                                 </button>
@@ -223,15 +223,14 @@
                                                 </button>
                                             <?php endif; ?>
 
-
-                                            <?php if ($aset['delete_status'] == 'approved') : ?>
+                                            <?php if (isset($aset['delete_status']) && $aset['delete_status'] == 'approved') : ?>
                                                 <a href="<?= base_url('asetpariwisata/delete/' . $aset['id']) ?>"
                                                     class="btn btn-sm btn-outline-danger mx-1"
                                                     title="Hapus Aset"
                                                     onclick="return confirm('Apakah Anda yakin ingin menghapus aset ini?')">
                                                     <i class="fas fa-trash"></i>
                                                 </a>
-                                            <?php elseif ($aset['delete_status'] == 'pending') : ?>
+                                            <?php elseif (isset($aset['delete_status']) && $aset['delete_status'] == 'pending') : ?>
                                                 <button class="btn btn-sm btn-secondary mx-1 disabled" title="Permintaan hapus sedang diproses">
                                                     <i class="fas fa-clock"></i>
                                                 </button>
@@ -243,7 +242,6 @@
                                                     <i class="fas fa-lock"></i>
                                                 </button>
                                             <?php endif; ?>
-
                                         </div>
                                     </td>
                                 </tr>
@@ -487,12 +485,12 @@
                 const imageUrl = triggerElement.getAttribute('data-src');
                 const imageTitle = triggerElement.getAttribute('data-title');
                 const modal = this;
-                modal.querySelector('.modal-title').textContent = 'Foto Aset: ' + imageTitle;
+                modal.querySelector('.modal-title').textContent = 'Foto Aset: '.imageTitle;
                 modal.querySelector('#fotoAsetLengkap').src = imageUrl;
             });
         }
 
-        // Logika untuk Mengisi Modal Edit (CARA PALING STABIL)
+        // Logika untuk Mengisi Modal Edit
         const modalEditAset = document.getElementById('modalEditAset');
         if (modalEditAset) {
             modalEditAset.addEventListener('show.bs.modal', function(event) {
@@ -524,60 +522,84 @@
             });
         }
 
-        // Logika untuk Tombol Minta Izin
+        // Logika untuk Tombol Minta Izin - DIPERBAIKI
         document.querySelectorAll('.btn-request-access').forEach(button => {
             button.addEventListener('click', function() {
                 const btn = this;
                 const asetId = btn.dataset.asetId;
                 const action = btn.dataset.actionType;
 
+                // Debug: Cek data yang diambil
+                console.log('Aset ID:', asetId);
+                console.log('Action:', action);
+
+                // Ambil CSRF dari meta tag (lebih aman)
+                const csrfTokenMeta = document.head.querySelector('meta[name="csrf_token"]');
+                const csrfToken = csrfTokenMeta ? csrfTokenMeta.content : null;
+                const csrfHash = '<?= csrf_hash() ?>';
+
+                if (!csrfToken) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Token CSRF tidak ditemukan.'
+                    });
+                    return;
+                }
+
+                // Nonaktifkan tombol + spinner
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-                const requestUrl = "<?= site_url('asetpariwisata/requestaccess') ?>";
-
-                fetch(requestUrl, {
+                // Kirim permintaan AJAX
+                fetch("<?= site_url('asetpariwisata/requestAccess') ?>", {
                         method: "POST",
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
-                            'X-Requested-With': 'XMLHttpRequest'
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfHash
                         },
                         body: new URLSearchParams({
-                            'aset_id': asetId,
-                            'action_type': action,
-                            '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+                            aset_id: asetId,
+                            action_type: action,
+                            [csrfToken]: csrfHash
                         })
                     })
                     .then(response => response.json())
                     .then(data => {
+                        console.log('Response:', data); // Debug response
+
                         if (data.status === 'success') {
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Permintaan Terkirim!',
-                                text: data.message,
-                                timer: 2000,
-                                showConfirmButton: false
+                                title: 'Berhasil',
+                                text: data.message
+                            }).then(() => {
+                                // 🔁 Reload halaman agar PHP render ulang status tombol
+                                location.reload();
                             });
-                            btn.classList.remove('btn-outline-warning', 'btn-outline-danger');
-                            btn.classList.add('btn-secondary', 'disabled');
-                            btn.innerHTML = '<i class="fas fa-clock"></i>';
-                            btn.title = 'Menunggu Persetujuan';
                         } else {
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Gagal',
-                                text: data.message || 'Gagal mengirim permintaan.'
+                                text: data.message || 'Terjadi kesalahan.'
                             });
+
+                            // Kembalikan tombol ke bentuk awal
                             btn.disabled = false;
                             btn.innerHTML = '<i class="fas fa-lock"></i>';
                         }
                     })
-                    .catch(() => {
+                    .catch(error => {
                         Swal.fire({
                             icon: 'error',
                             title: 'Oops...',
-                            text: 'Terjadi kesalahan koneksi. Silakan coba lagi.'
+                            text: 'Terjadi kesalahan koneksi. Coba lagi.'
                         });
+
+                        console.error('AJAX Error:', error);
+
+                        // Kembalikan tombol ke bentuk awal
                         btn.disabled = false;
                         btn.innerHTML = '<i class="fas fa-lock"></i>';
                     });

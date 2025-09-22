@@ -316,33 +316,46 @@ class AsetPariwisata extends BaseController
         if ($this->request->isAJAX()) {
             $asetId = $this->request->getPost('aset_id');
             $action = $this->request->getPost('action_type');
-            $requesterId = session()->get('user_id'); // Pastikan Anda memiliki 'user_id' di session
+            $requesterId = session()->get('user_id');
 
             if (empty($requesterId)) {
-                return $this->response->setJSON(['status' => 'error', 'message' => 'Sesi tidak valid atau Anda belum login.'])->setStatusCode(401);
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Sesi tidak valid atau Anda belum login.'
+                ])->setStatusCode(401);
             }
 
             $existing = $this->permissionModel->where([
                 'requester_id' => $requesterId,
                 'target_id'    => $asetId,
                 'action_type'  => $action,
-                'target_type'  => 'aset_pariwisata', // Spesifik untuk aset pariwisata
+                'target_type'  => 'aset_pariwisata',
                 'status'       => 'pending'
             ])->first();
 
             if ($existing) {
-                return $this->response->setJSON(['status' => 'error', 'message' => 'Anda sudah mengajukan permintaan serupa yang masih menunggu persetujuan.']);
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Anda sudah mengajukan permintaan serupa yang masih menunggu persetujuan.'
+                ]);
             }
 
             $this->permissionModel->save([
                 'requester_id' => $requesterId,
                 'target_id'    => $asetId,
-                'target_type'  => 'aset_pariwisata', // INILAH BAGIAN YANG PALING PENTING
+                'target_type'  => 'aset_pariwisata',
                 'action_type'  => $action,
                 'status'       => 'pending',
             ]);
 
-            return $this->response->setJSON(['status' => 'success', 'message' => 'Permintaan izin berhasil dikirim.']);
+            // Hapus cache agar status terupdate
+            $cacheKey = 'permissions_aset_pariwisata_user_' . $requesterId;
+            cache()->delete($cacheKey);
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'Permintaan izin berhasil dikirim.'
+            ]);
         }
         return redirect()->back();
     }

@@ -343,7 +343,7 @@ $routes->group('objekwisata', ['filter' => 'auth'], function ($routes) {
 });
 $routes->get('asetpariwisata/delete/(:num)', 'AsetPariwisata::delete/$1');
 $routes->put('asetpariwisata/update/(:num)', 'AsetPariwisata::update/$1');
-$routes->post('asetpariwisata/requestaccess', 'AsetPariwisata::requestAccess');
+$routes->post('asetpariwisata/requestAccess', 'AsetPariwisata::requestAccess');
 $routes->post('objekwisata/requestaccess', 'ObjekWisata::requestaccess');
 
 
