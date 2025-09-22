@@ -122,9 +122,9 @@ $routes->group('petani', function ($routes) {
 //permissiom
 $routes->post('persetujuanKomersial/respond', 'PersetujuanKomersial::respond');
 $routes->post('petani/requestAccess', 'Petani::requestAccess');
-$routes->post('kopi-masuk/requestAccess', 'KopiMasuk::requestAccess');
+$routes->post('kopi-masuk/requestAccess', 'Kopimasuk::requestAccess');
 $routes->post('petanipohon/requestAccess', 'PetaniPohon::requestAccess');
-$routes->post('kopikeluar/requestAccess', 'KopiKeluar::requestAccess');
+$routes->post('kopikeluar/requestAccess', 'Kopikeluar::requestAccess');
 $routes->post('jenispohon/requestAccess', 'JenisPohon::requestAccess');
 $routes->post('ManajemenAsetKomersial/requestAccess', 'ManajemenAsetKomersial::requestAccess');
 
@@ -147,23 +147,23 @@ $routes->group('jenispohon', function ($routes) {
 
 
 // kopi masuk
-$routes->get('kopi-masuk', 'KopiMasuk::index');
-$routes->post('kopi-masuk/create', 'KopiMasuk::store');
-$routes->post('kopi-masuk/update/(:num)', 'KopiMasuk::update/$1');
-$routes->post('kopi-masuk/delete/(:num)', 'KopiMasuk::delete/$1');
+$routes->get('kopi-masuk', 'Kopimasuk::index');
+$routes->post('kopi-masuk/create', 'Kopimasuk::store');
+$routes->post('kopi-masuk/update/(:num)', 'Kopimasuk::update/$1');
+$routes->post('kopi-masuk/delete/(:num)', 'Kopimasuk::delete/$1');
 // app/Config/Routes.php
-$routes->get('get-jenis-pohon/(:any)', 'KopiMasuk::getJenisPohon/$1');
-$routes->get('stok-kopi', 'KopiMasuk::stok');
+$routes->get('get-jenis-pohon/(:any)', 'Kopimasuk::getJenisPohon/$1');
+$routes->get('stok-kopi', 'Kopimasuk::stok');
 
 
 //kopikeluar
 // CRUD Kopi Keluar
-$routes->get('kopikeluar', 'KopiKeluar::index'); // List data
-$routes->post('kopikeluar/store', 'KopiKeluar::store'); // Simpan data baru
-$routes->get('kopikeluar/edit/(:num)', 'KopiKeluar::edit/$1'); // Form edit
-$routes->post('kopikeluar/update/(:num)', 'KopiKeluar::update/$1'); // Update data
-$routes->post('kopikeluar/delete/(:num)', 'KopiKeluar::delete/$1'); // Hapus data
-$routes->get('kopikeluar/getJenisKopi/(:num)', 'KopiKeluar::getJenisKopi/$1');
+$routes->get('kopikeluar', 'Kopikeluar::index'); // List data
+$routes->post('kopikeluar/store', 'Kopikeluar::store'); // Simpan data baru
+$routes->get('kopikeluar/edit/(:num)', 'Kopikeluar::edit/$1'); // Form edit
+$routes->post('kopikeluar/update/(:num)', 'Kopikeluar::update/$1'); // Update data
+$routes->post('kopikeluar/delete/(:num)', 'Kopikeluar::delete/$1'); // Hapus data
+$routes->get('kopikeluar/getJenisKopi/(:num)', 'Kopikeluar::getJenisKopi/$1');
 
 //ADMIN UMKM
 $routes->get('umkm', 'Umkm::index');

@@ -245,7 +245,7 @@ class KomersialRekapKopi extends BaseController
             $keluar = $totalKeluar[$namaJenis] ?? 0;
 
             // Stok akhir tidak boleh negatif
-            $hasilStok = $masuk - $keluar;
+            $hasilStok = max(0, $masuk - $keluar);
 
             $stokAkhir[] = [
                 'jenis_kopi' => $namaJenis,

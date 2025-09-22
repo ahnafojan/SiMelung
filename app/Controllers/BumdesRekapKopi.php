@@ -221,7 +221,7 @@ class BumdesRekapKopi extends BaseController
             $namaJenis = $jenis['nama_jenis'];
             $masuk = $totalMasuk[$namaJenis] ?? 0;
             $keluar = $totalKeluar[$namaJenis] ?? 0;
-            $hasilStok = $masuk - $keluar;
+            $hasilStok = max(0, $masuk - $keluar);
 
             $stokAkhir[] = [
                 'jenis_kopi' => $namaJenis,
