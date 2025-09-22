@@ -230,6 +230,7 @@ class ManajemenAsetKomersial extends Controller
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Sesi tidak valid.'])->setStatusCode(401);
             }
 
+            // Cek apakah sudah ada permintaan pending untuk aksi ini
             $existing = $this->permissionModel->where([
                 'requester_id' => $requesterId,
                 'target_id'    => $asetId,
@@ -242,6 +243,7 @@ class ManajemenAsetKomersial extends Controller
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Anda sudah memiliki permintaan yang sama.']);
             }
 
+            // Simpan permintaan baru
             $this->permissionModel->save([
                 'requester_id' => $requesterId,
                 'target_id'    => $asetId,
@@ -249,6 +251,10 @@ class ManajemenAsetKomersial extends Controller
                 'action_type'  => $action,
                 'status'       => 'pending',
             ]);
+
+            // 🔥 INVALIDASI CACHE AGAR STATUS UPDATE SAAT REFRESH
+            $cacheKey = 'permissions_aset_user_' . $requesterId;
+            cache()->delete($cacheKey);
 
             return $this->response->setJSON(['status' => 'success', 'message' => 'Permintaan izin berhasil dikirim.']);
         }

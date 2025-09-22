@@ -469,7 +469,7 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     $('#previewFotoInput').attr('src', e.target.result);
-                }
+                };
                 reader.readAsDataURL(file);
             }
         });
@@ -484,22 +484,37 @@
         });
 
 
-        // --- Event Handler untuk AJAX Request Access ---
-
+        // --- AJAX REQUEST ACCESS DENGAN RELOAD ---
         $(document).on('click', '.btn-request-access', function() {
             const button = $(this);
             const petaniId = button.data('petani-id');
             const action = button.data('action-type');
 
+            // Ambil CSRF dari meta tag
+            const csrfTokenMeta = document.head.querySelector('meta[name="csrf_token"]');
+            const csrfTokenName = csrfTokenMeta ? csrfTokenMeta.content : null;
+            const csrfHash = '<?= csrf_hash() ?>';
+
+            if (!csrfTokenName) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Token CSRF tidak ditemukan.'
+                });
+                return;
+            }
+
+            // Nonaktifkan tombol + spinner
             button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
+            // Kirim data dengan AJAX
             $.ajax({
                 url: "<?= site_url('petani/requestAccess') ?>",
                 method: "POST",
                 data: {
                     petani_id: petaniId,
                     action_type: action,
-                    '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+                    [csrfTokenName]: csrfHash
                 },
                 dataType: "json",
                 success: function(response) {
@@ -507,33 +522,41 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Berhasil',
-                            text: response.message,
-                            timer: 2000,
-                            showConfirmButton: false
+                            text: response.message
+                        }).then(() => {
+                            location.reload(); // 🔁 Reload agar PHP update status
                         });
-
-                        // Ubah tombol lock menjadi tombol jam (pending)
-                        button.removeClass('btn-outline-warning btn-outline-danger btn-request-access')
-                            .addClass('btn-secondary disabled')
-                            .html('<i class="fas fa-clock"></i>')
-                            .attr('title', 'Permintaan sedang diproses');
-
                     } else {
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
-                            text: response.message,
+                            text: response.message
                         });
-                        button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                        // Kembalikan tombol ke bentuk awal
+                        button.prop('disabled', false);
+                        if (action === 'edit') {
+                            button.html('<i class="fas fa-lock"></i> Minta Edit');
+                        } else {
+                            button.html('<i class="fas fa-lock"></i> Minta Hapus');
+                        }
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Oops...',
-                        text: 'Terjadi kesalahan koneksi. Silakan coba lagi.',
+                        text: 'Terjadi kesalahan koneksi. Coba lagi.'
                     });
-                    button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+
+                    console.error('AJAX Error:', error);
+                    console.error('Response:', xhr.responseText);
+
+                    button.prop('disabled', false);
+                    if (action === 'edit') {
+                        button.html('<i class="fas fa-lock"></i> Minta Edit');
+                    } else {
+                        button.html('<i class="fas fa-lock"></i> Minta Hapus');
+                    }
                 }
             });
         });

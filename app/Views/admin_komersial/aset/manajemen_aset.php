@@ -359,16 +359,15 @@ $perPage = $perPage ?? 10;
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const kategoriAsetList = <?= json_encode($kategoriAset ?? []) ?>;
+    /* global Swal, document, location */
 
+    document.addEventListener('DOMContentLoaded', function() {
         // Fungsi untuk mengisi modal edit
         function populateEditModal(button) {
             const form = document.getElementById('formEditAset');
             const data = button.dataset;
             form.action = `<?= site_url('ManajemenAsetKomersial/update') ?>/${data.id}`;
 
-            // Mengisi semua field
             document.getElementById('editIdAset').value = data.id;
             document.getElementById('editKodeAset').value = data.kode_aset;
             document.getElementById('editNup').value = data.nup;
@@ -379,13 +378,14 @@ $perPage = $perPage ?? 10;
             document.getElementById('editSumberPengadaan').value = data.sumber_pengadaan;
             document.getElementById('editKeterangan').value = data.keterangan;
 
-            // Logika dropdown kategori
             const namaAset = data.nama_aset;
             const kategoriSelect = document.getElementById('editKategoriAset');
             const lainnyaContainer = document.getElementById('container_edit_nama_aset_lainnya');
             const lainnyaInput = document.getElementById('editNamaAsetLainnya');
 
-            if (kategoriAsetList.includes(namaAset)) {
+            const kategoriList = ['Mesin Giling', 'Mesin Pengupas Kopi', 'Mesin Pengering Kopi', 'Gudang Penyimpanan', 'Kendaraan Operasional', 'Peralatan Pertanian'];
+
+            if (kategoriList.includes(namaAset)) {
                 kategoriSelect.value = namaAset;
                 lainnyaContainer.style.display = 'none';
                 lainnyaInput.removeAttribute('required');
@@ -398,76 +398,14 @@ $perPage = $perPage ?? 10;
             }
         }
 
-        // Fungsi untuk menangani request access
-        function handleRequestAccess(button) {
-            const asetId = button.dataset.asetId;
-            const action = button.dataset.actionType;
-
-            // Update tampilan tombol yang diklik
-            button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-            fetch("<?= site_url('ManajemenAsetKomersial/requestAccess') ?>", {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: new URLSearchParams({
-                        'aset_id': asetId,
-                        'action_type': action,
-                        '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            text: data.message,
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-
-                        // Update semua tombol yang relevan (desktop & mobile)
-                        document.querySelectorAll(`[data-aset-id="${asetId}"][data-action-type="${action}"]`).forEach(btn => {
-                            btn.classList.remove('btn-outline-warning', 'btn-outline-danger', 'btn-request-access');
-                            btn.classList.add('btn-secondary', 'disabled');
-                            btn.title = 'Permintaan sedang diproses';
-                            btn.innerHTML = btn.textContent.includes("Minta") ? '<i class="fas fa-clock"></i> Pending' : '<i class="fas fa-clock"></i>';
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            text: data.message
-                        });
-                        button.disabled = false;
-                        button.innerHTML = button.textContent.includes("Minta") ? `<i class="fas fa-lock"></i> Minta ${action.charAt(0).toUpperCase() + action.slice(1)}` : '<i class="fas fa-lock"></i>';
-                    }
-                })
-                .catch(() => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'Terjadi kesalahan koneksi.'
-                    });
-                    button.disabled = false;
-                    button.innerHTML = '<i class="fas fa-lock"></i>';
-                });
-        }
-
-        // Menggunakan event delegation untuk menangani semua klik di level dokumen
+        // Event delegation untuk klik
         document.addEventListener('click', function(event) {
-            // Cek apakah yang diklik adalah tombol edit
             const editButton = event.target.closest('.btn-edit-aset');
             if (editButton) {
                 populateEditModal(editButton);
                 return;
             }
 
-            // Cek apakah yang diklik adalah tombol request access
             const requestButton = event.target.closest('.btn-request-access');
             if (requestButton) {
                 handleRequestAccess(requestButton);
@@ -475,7 +413,7 @@ $perPage = $perPage ?? 10;
             }
         });
 
-        // Menangani perubahan pada dropdown Kategori di dalam modal
+        // Handle perubahan dropdown kategori
         document.getElementById('editKategoriAset').addEventListener('change', function() {
             const lainnyaContainer = document.getElementById('container_edit_nama_aset_lainnya');
             const lainnyaInput = document.getElementById('editNamaAsetLainnya');
@@ -488,7 +426,67 @@ $perPage = $perPage ?? 10;
                 lainnyaInput.value = '';
             }
         });
+
+        // === AJAX REQUEST ACCESS TANPA URLSearchParams === //
+        function handleRequestAccess(button) {
+            const asetId = button.dataset.asetId;
+            const action = button.dataset.actionType;
+
+            // Ambil CSRF dari meta tag
+            const csrfTokenMeta = document.head.querySelector('meta[name="csrf_token"]');
+            const csrfToken = csrfTokenMeta ? csrfTokenMeta.content : null;
+            const csrfHash = '<?= csrf_hash() ?>';
+
+            if (!csrfToken) {
+                Swal.fire('Error', 'Token CSRF tidak ditemukan.', 'error');
+                return;
+            }
+
+            // Nonaktifkan tombol + spinner
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            // 🔁 DATA DIKIRIM SEBAGAI STRING, BUKAN URLSearchParams
+            const body = `aset_id=${encodeURIComponent(asetId)}&action_type=${encodeURIComponent(action)}&${encodeURIComponent(csrfToken)}=${encodeURIComponent(csrfHash)}`;
+
+            fetch("<?= site_url('ManajemenAsetKomersial/requestAccess') ?>", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: data.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // 🔁 Reload halaman agar PHP baca status terbaru
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: data.message
+                        });
+                        button.disabled = false;
+                        button.innerHTML = `<i class="fas fa-lock"></i> Minta ${action === 'edit' ? 'Edit' : 'Hapus'}`;
+                    }
+                })
+                .catch(err => {
+                    console.error('AJAX Error:', err);
+                    Swal.fire('Oops...', 'Terjadi kesalahan koneksi.', 'error');
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-lock"></i>';
+                });
+        }
     });
 </script>
-
 <?= $this->endSection() ?>

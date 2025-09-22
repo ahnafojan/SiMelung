@@ -259,6 +259,7 @@ class Kopikeluar extends BaseController
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Anda sudah memiliki permintaan yang sama.']);
             }
 
+            // ✅ Simpan permintaan
             $this->permissionModel->save([
                 'requester_id' => $requesterId,
                 'target_id'    => $kopiKeluarId,
@@ -266,6 +267,10 @@ class Kopikeluar extends BaseController
                 'action_type'  => $action,
                 'status'       => 'pending',
             ]);
+
+            // ✅ INVALIDASI CACHE AGAR STATUS UPDATE SAAT REFRESH
+            $cacheKey = 'permissions_kopi_keluar_user_' . $requesterId;
+            cache()->delete($cacheKey);
 
             return $this->response->setJSON(['status' => 'success', 'message' => 'Permintaan izin berhasil dikirim.']);
         }

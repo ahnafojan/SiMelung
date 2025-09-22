@@ -394,6 +394,7 @@
         </div>
     </div>
 </section>
+
 <section id="grafik" class="py-5 bg-white scroll-section">
     <div class="container">
         <div class="overflow-hidden">
@@ -403,6 +404,14 @@
                         <span class="section-subtitle text-coffee-medium">Data & Analisis</span>
                         <h2 class="section-title text-mountain-dark">Statistik Produksi Kopi</h2>
                         <p class="section-description text-muted">Perkembangan produksi kopi berkualitas dari pegunungan Desa Melung</p>
+                        <!-- Tombol Download SOP -->
+                        <div class="mt-4">
+                            <a href="<?php echo base_url('sop/download'); ?>"
+                                class="btn btn-primary">
+                                <i class="fas fa-file-pdf"></i> Download SOP Budidaya Kopi (PDF)
+                            </a>
+                        </div>
+                        <!-- End Tombol Download SOP -->
                     </div>
                 </div>
             </div>

@@ -419,15 +419,29 @@
             const kopiKeluarId = button.data('kopikeluar-id');
             const action = button.data('action-type');
 
+            // Ambil CSRF dari meta tag (lebih stabil)
+            const csrfTokenMeta = document.head.querySelector('meta[name="csrf_token"]');
+            const csrfToken = csrfTokenMeta ? csrfTokenMeta.content : null;
+            const csrfHash = '<?= csrf_hash() ?>';
+
+            if (!csrfToken) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Token CSRF tidak ditemukan.'
+                });
+                return;
+            }
+
             button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
             $.ajax({
                 url: "<?= site_url('kopikeluar/requestAccess') ?>",
                 method: "POST",
-                data: {
+                data: { // ✅ Perbaikan: tambahkan 'data:'
                     kopikeluar_id: kopiKeluarId,
                     action_type: action,
-                    '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+                    [csrfToken]: csrfHash
                 },
                 dataType: "json",
                 success: function(response) {
@@ -438,38 +452,26 @@
                             text: response.message,
                             timer: 2000,
                             showConfirmButton: false
+                        }).then(() => {
+                            location.reload(); // Reload agar PHP update tombol
                         });
-
-                        // Update semua tombol yang relevan (di desktop dan mobile)
-                        $(`[data-kopikeluar-id="${kopiKeluarId}"][data-action-type="${action}"]`).each(function() {
-                            $(this).removeClass('btn-outline-warning btn-outline-danger btn-request-access')
-                                .addClass('btn-secondary disabled')
-                                .attr('title', 'Permintaan sedang diproses');
-
-                            // Ganti ikon dan teks
-                            if ($(this).text().includes("Minta")) { // Cek jika tombol mobile
-                                $(this).html('<i class="fas fa-clock"></i> Pending');
-                            } else { // Tombol desktop
-                                $(this).html('<i class="fas fa-clock"></i>');
-                            }
-                        });
-
                     } else {
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
                             text: response.message
                         });
-                        button.prop('disabled', false).html('<i class="fas fa-lock"></i>'); // Kembalikan ke state awal jika gagal
+                        button.prop('disabled', false).empty().html('<i class="fas fa-lock"></i>');
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Koneksi Gagal',
-                        text: 'Terjadi kesalahan. Silakan coba lagi.'
+                        title: 'Oops...',
+                        text: 'Terjadi kesalahan koneksi. Coba lagi.'
                     });
-                    button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                    console.error('AJAX Error:', error);
+                    button.prop('disabled', false).empty().html('<i class="fas fa-lock"></i>');
                 }
             });
         });

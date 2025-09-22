@@ -96,8 +96,9 @@
                                 <td><?= esc($k['jumlah']) ?> Kg</td>
                                 <td><?= esc($k['keterangan']) ?></td>
                                 <td>
+                                    <!-- Untuk Desktop -->
                                     <?php if ($k['edit_status'] == 'approved') : ?>
-                                        <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modalEditKopi<?= $k['id'] ?>"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modalEditKopi<?= $k['id'] ?>"><i class="fas fa-edit"></i> Edit</button>
                                     <?php elseif ($k['edit_status'] == 'pending') : ?>
                                         <button class="btn btn-sm btn-secondary disabled" title="Permintaan sedang diproses"><i class="fas fa-clock"></i></button>
                                     <?php else : ?>
@@ -105,7 +106,7 @@
                                     <?php endif; ?>
 
                                     <?php if ($k['delete_status'] == 'approved') : ?>
-                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalHapusKopi<?= $k['id'] ?>"><i class="fas fa-trash"></i></button>
+                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalHapusKopi<?= $k['id'] ?>"><i class="fas fa-trash"></i> Hapus</button>
                                     <?php elseif ($k['delete_status'] == 'pending') : ?>
                                         <button class="btn btn-sm btn-secondary disabled" title="Permintaan sedang diproses"><i class="fas fa-clock"></i></button>
                                     <?php else : ?>
@@ -390,6 +391,21 @@
             const kopiMasukId = button.data('kopimasuk-id');
             const action = button.data('action-type');
 
+            // Dapatkan CSRF dari meta tag (lebih aman)
+            const csrfTokenMeta = document.head.querySelector('meta[name="csrf_token"]');
+            const csrfToken = csrfTokenMeta ? csrfTokenMeta.content : null;
+            const csrfHash = '<?= csrf_hash() ?>';
+
+            if (!csrfToken) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Token CSRF tidak ditemukan.'
+                });
+                return;
+            }
+
+            // Nonaktifkan tombol + spinner
             button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
             $.ajax({
@@ -398,7 +414,7 @@
                 data: {
                     kopimasuk_id: kopiMasukId,
                     action_type: action,
-                    '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+                    [csrfToken]: csrfHash
                 },
                 dataType: "json",
                 success: function(response) {
@@ -407,32 +423,42 @@
                             icon: 'success',
                             title: 'Berhasil',
                             text: response.message
+                        }).then(() => {
+                            // 🔁 Reload halaman agar PHP render ulang status tombol
+                            location.reload();
                         });
-                        button.removeClass('btn-outline-warning btn-outline-danger').addClass('btn-secondary disabled')
-                            .html('<i class="fas fa-clock"></i>');
-                        // Update teks tombol di mobile view
-                        if (button.text().includes("Minta")) {
-                            button.html('<i class="fas fa-clock"></i> Pending');
-                        }
                     } else {
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
                             text: response.message
                         });
-                        button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
-                        if (button.text().includes("Pending")) {
-                            button.html(action === 'edit' ? '<i class="fas fa-lock"></i> Minta Edit' : '<i class="fas fa-lock"></i> Minta Hapus');
+
+                        // Kembalikan tombol ke bentuk awal
+                        button.prop('disabled', false);
+                        if (action === 'edit') {
+                            button.html('<i class="fas fa-lock"></i> Minta Edit');
+                        } else {
+                            button.html('<i class="fas fa-lock"></i> Minta Hapus');
                         }
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Oops...',
-                        text: 'Terjadi kesalahan koneksi.'
+                        text: 'Terjadi kesalahan koneksi. Coba lagi.'
                     });
-                    button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+
+                    console.error('AJAX Error:', error);
+                    console.error('Response:', xhr.responseText);
+
+                    button.prop('disabled', false);
+                    if (action === 'edit') {
+                        button.html('<i class="fas fa-lock"></i> Minta Edit');
+                    } else {
+                        button.html('<i class="fas fa-lock"></i> Minta Hapus');
+                    }
                 }
             });
         });

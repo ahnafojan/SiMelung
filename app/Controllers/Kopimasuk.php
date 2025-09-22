@@ -354,6 +354,7 @@ class Kopimasuk extends Controller
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Anda sudah memiliki permintaan yang sama.']);
             }
 
+            // ✅ Simpan permintaan
             $this->permissionModel->save([
                 'requester_id' => $requesterId,
                 'target_id'    => $kopiMasukId,
@@ -361,6 +362,10 @@ class Kopimasuk extends Controller
                 'action_type'  => $action,
                 'status'       => 'pending',
             ]);
+
+            // ✅ INVALIDASI CACHE AGAR STATUS UPDATE SAAT REFRESH
+            $cacheKey = 'permissions_kopi_masuk_user_' . $requesterId;
+            cache()->delete($cacheKey);
 
             return $this->response->setJSON(['status' => 'success', 'message' => 'Permintaan izin berhasil dikirim.']);
         }

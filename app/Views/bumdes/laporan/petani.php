@@ -178,7 +178,7 @@
             <h1 class="h3 page-title">Laporan Petani</h1>
             <p class="mb-0 page-subtitle">Detail data petani yang terdaftar di sistem.</p>
         </div>
-        <a href="<?= base_url('admin-komersial/laporan') ?>" class="btn btn-sm btn-outline-secondary shadow-sm">
+        <a href="<?= base_url('bumdes/laporan') ?>" class="btn btn-sm btn-outline-secondary shadow-sm">
             <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
         </a>
     </div>

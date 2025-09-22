@@ -230,49 +230,83 @@
             // Tampilkan modal
             $('#modalEditJenisPohon').modal('show');
         });
-    });
-    $('.btn-request-access').on('click', function() {
-        const button = $(this);
-        const jenisPohonId = button.data('jenispohon-id');
-        const action = button.data('action-type');
 
-        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+        // --- AJAX REQUEST ACCESS DENGAN RELOAD HALAMAN ---
+        $('.btn-request-access').on('click', function() {
+            const button = $(this);
+            const jenisPohonId = button.data('jenispohon-id');
+            const action = button.data('action-type');
 
-        $.ajax({
-            url: "<?= site_url('jenispohon/requestAccess') ?>",
-            method: "POST",
-            data: {
-                jenispohon_id: jenisPohonId,
-                action_type: action,
-                '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
-            },
-            dataType: "json",
-            success: function(response) {
-                if (response.status === 'success') {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: response.message
-                    });
-                    button.removeClass('btn-outline-warning btn-outline-danger').addClass('btn-secondary disabled')
-                        .html('<i class="fas fa-clock"></i>');
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: response.message
-                    });
-                    button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
-                }
-            },
-            error: function() {
+            // Ambil CSRF dari meta tag (lebih aman)
+            const csrfTokenMeta = document.head.querySelector('meta[name="csrf_token"]');
+            const csrfToken = csrfTokenMeta ? csrfTokenMeta.content : null;
+            const csrfHash = '<?= csrf_hash() ?>';
+
+            if (!csrfToken) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Oops...',
-                    text: 'Terjadi kesalahan koneksi.'
+                    title: 'Error',
+                    text: 'Token CSRF tidak ditemukan.'
                 });
-                button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                return;
             }
+
+            // Nonaktifkan tombol + spinner
+            button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+            $.ajax({
+                url: "<?= site_url('jenispohon/requestAccess') ?>",
+                method: "POST",
+                data: {
+                    jenispohon_id: jenisPohonId,
+                    action_type: action,
+                    [csrfToken]: csrfHash
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: response.message
+                        }).then(() => {
+                            // 🔁 Reload halaman agar PHP render ulang status tombol
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: response.message
+                        });
+
+                        // Kembalikan tombol ke bentuk awal
+                        button.prop('disabled', false);
+                        if (action === 'edit') {
+                            button.html('<i class="fas fa-lock"></i>');
+                        } else {
+                            button.html('<i class="fas fa-lock"></i>');
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Terjadi kesalahan koneksi. Coba lagi.'
+                    });
+
+                    console.error('AJAX Error:', error);
+                    console.error('Response:', xhr.responseText);
+
+                    button.prop('disabled', false);
+                    if (action === 'edit') {
+                        button.html('<i class="fas fa-lock"></i>');
+                    } else {
+                        button.html('<i class="fas fa-lock"></i>');
+                    }
+                }
+            });
         });
     });
 </script>

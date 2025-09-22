@@ -356,3 +356,5 @@ $routes->get('desa/laporan_komersial/petani', 'DesaRekapPetani::index');
 $routes->get('desa/laporan_pariwisata/objekwisata', 'DesaRekapPariwisata::laporanObjekWisata');
 // URL: http://domain-anda.com/desa/laporan_pariwisata/asetpariwisata
 $routes->get('desa/laporan_pariwisata/asetpariwisata', 'DesaRekapPariwisata::laporanAset');
+//download sop
+$routes->get('/sop/download', 'Sop::download');
