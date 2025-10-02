@@ -51,7 +51,7 @@
         }
 
         .kop-logo img {
-            width: 200px;
+            width: 140px;
         }
 
         .kop-tengah {

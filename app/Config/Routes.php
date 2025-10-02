@@ -64,9 +64,16 @@ $routes->group('bumdes', ['namespace' => 'App\Controllers'], function ($routes) 
             $routes->get('excel', 'ExportLaporanBumdes::excelAset');
             $routes->get('pdf', 'ExportLaporanBumdes::pdfAset');
         });
+        //rute ekspor laporan pariwisata
+        $routes->group('pariwisata', function ($routes) {
+            $routes->get('pdf', 'ExportLaporanBumdes::pdfPariwisata');
+            $routes->get('excel', 'ExportLaporanBumdes::excelPariwisata');
+        });
     });
 });
 //Pengaturan BUMDES
+$routes->get('/pengaturan/bumdes', 'Pengaturan::bumdes');       // Untuk menampilkan halaman form
+$routes->post('/pengaturan/bumdes/update', 'Pengaturan::updatebumdes');
 
 
 
@@ -79,7 +86,8 @@ $routes->get('/pengaturan/komersial', 'Pengaturan::komersial');       // Untuk m
 $routes->post('/pengaturan/komersial/update', 'Pengaturan::updateKomersial'); // Untuk menyimpan data form
 
 //Pengaturan Pariwisata
-
+$routes->get('/pengaturan/pariwisata', 'Pengaturan::pariwisata');       // Untuk menampilkan halaman form
+$routes->post('/pengaturan/pariwisata/update', 'Pengaturan::updatePariwisata');
 
 
 //Pengaturan UMKM
@@ -88,10 +96,13 @@ $routes->get('pengaturanumkm/exportUmkmExcel', 'PengaturanUmkm::exportUmkmExcel'
 $routes->get('pengaturanumkm/exportUmkmPdf', 'PengaturanUmkm::exportUmkmPdf');
 
 //desa
-$routes->get('LaporanArusKas', 'LaporanArusKas::index');
+$routes->get('/desa/laporan_keuangan/laporan_aruskas', 'LaporanArusKas::index');
 $routes->get('LaporanLabaRugi', 'LaporanLabaRugi::index');
 $routes->get('LaporanModal', 'LaporanModal::index');
 $routes->get('LaporanNeraca', 'LaporanNeraca::index');
+$routes->get('LaporanBkuTahunan', 'LaporanBkuTahunan::index');
+$routes->get('LaporanBkuBulanan', 'LaporanBkuBulanan::index');
+$routes->get('desa/laporan_keuangan/bku_detail/(:num)', 'LaporanBkuBulanan::detail/$1');
 
 //komersial
 $routes->get('Petani', 'Petani::index');
@@ -116,9 +127,9 @@ $routes->group('petani', function ($routes) {
 //permissiom
 $routes->post('persetujuanKomersial/respond', 'PersetujuanKomersial::respond');
 $routes->post('petani/requestAccess', 'Petani::requestAccess');
-$routes->post('kopi-masuk/requestAccess', 'KopiMasuk::requestAccess');
+$routes->post('kopi-masuk/requestAccess', 'Kopimasuk::requestAccess');
 $routes->post('petanipohon/requestAccess', 'PetaniPohon::requestAccess');
-$routes->post('kopikeluar/requestAccess', 'KopiKeluar::requestAccess');
+$routes->post('kopikeluar/requestAccess', 'Kopikeluar::requestAccess');
 $routes->post('jenispohon/requestAccess', 'JenisPohon::requestAccess');
 $routes->post('umkm/requestAccess', 'Umkm::requestAccess');
 $routes->post('ManajemenAsetKomersial/requestAccess', 'ManajemenAsetKomersial::requestAccess');
@@ -142,23 +153,23 @@ $routes->group('jenispohon', function ($routes) {
 
 
 // kopi masuk
-$routes->get('kopi-masuk', 'KopiMasuk::index');
-$routes->post('kopi-masuk/create', 'KopiMasuk::store');
-$routes->post('kopi-masuk/update/(:num)', 'KopiMasuk::update/$1');
-$routes->post('kopi-masuk/delete/(:num)', 'KopiMasuk::delete/$1');
+$routes->get('kopi-masuk', 'Kopimasuk::index');
+$routes->post('kopi-masuk/create', 'Kopimasuk::store');
+$routes->post('kopi-masuk/update/(:num)', 'Kopimasuk::update/$1');
+$routes->post('kopi-masuk/delete/(:num)', 'Kopimasuk::delete/$1');
 // app/Config/Routes.php
-$routes->get('get-jenis-pohon/(:any)', 'KopiMasuk::getJenisPohon/$1');
-$routes->get('stok-kopi', 'KopiMasuk::stok');
+$routes->get('get-jenis-pohon/(:any)', 'Kopimasuk::getJenisPohon/$1');
+$routes->get('stok-kopi', 'Kopimasuk::stok');
 
 
 //kopikeluar
 // CRUD Kopi Keluar
-$routes->get('kopikeluar', 'KopiKeluar::index'); // List data
-$routes->post('kopikeluar/store', 'KopiKeluar::store'); // Simpan data baru
-$routes->get('kopikeluar/edit/(:num)', 'KopiKeluar::edit/$1'); // Form edit
-$routes->post('kopikeluar/update/(:num)', 'KopiKeluar::update/$1'); // Update data
-$routes->post('kopikeluar/delete/(:num)', 'KopiKeluar::delete/$1'); // Hapus data
-$routes->get('kopikeluar/getJenisKopi/(:num)', 'KopiKeluar::getJenisKopi/$1');
+$routes->get('kopikeluar', 'Kopikeluar::index'); // List data
+$routes->post('kopikeluar/store', 'Kopikeluar::store'); // Simpan data baru
+$routes->get('kopikeluar/edit/(:num)', 'Kopikeluar::edit/$1'); // Form edit
+$routes->post('kopikeluar/update/(:num)', 'Kopikeluar::update/$1'); // Update data
+$routes->post('kopikeluar/delete/(:num)', 'Kopikeluar::delete/$1'); // Hapus data
+$routes->get('kopikeluar/getJenisKopi/(:num)', 'Kopikeluar::getJenisKopi/$1');
 
 //ADMIN UMKM
 $routes->get('umkm', 'Umkm::index');
@@ -229,12 +240,11 @@ $routes->post('/login/process', 'AuthController::processLogin');
 $routes->get('/logout', 'AuthController::logout');
 
 $routes->group('', ['filter' => 'auth'], function ($routes) {
-    $routes->get('dashboard/dashboard_desa', 'DashboardController::desa');
+    $routes->get('dashboard/dashboard_desa', 'DashboardDesa::index');
     $routes->get('dashboard/dashboard_bumdes', 'DashboardController::bumdes');
     $routes->get('keuangan/dashboard', 'DashboardController::keuangan');
     $routes->get('dashboard/dashboard_komersial', 'DashboardController::komersial');
     $routes->get('dashboard/dashboard_umkm', 'DashboardController::umkm');
-    $routes->get('dashboard/dashboard_pariwisata', 'DashboardController::pariwisata');
     //tambah user
     $routes->get('admin-user', 'AdminUserController::index');
     $routes->post('admin-user/create', 'AdminUserController::create');
@@ -244,7 +254,8 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 
 //KEUANGAN
 $routes->group('', ['filter' => 'auth'], function ($routes) {
-    $routes->get('dashboard/dashboard_keuangan', 'DashboardKeuangan::index');
+    // Rute untuk Dashboard Keuangan
+    $routes->get('/dashboard/dashboard_keuangan', 'DashboardKeuangan::index');
     // Rute untuk BKU Bulanan
     $routes->get('/bku-bulanan/detail/(:num)', 'BkuBulanan::detail/$1');
     $routes->resource('bku-bulanan', ['controller' => 'BkuBulanan', 'except' => 'show']);
@@ -253,13 +264,16 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->get('/bku-tahunan/new', 'BkuTahunan::new');
     $routes->get('/bku-tahunan/detail/(:num)', 'BkuTahunan::detail/$1');
     // Rute untuk BKU Arus Kas
-    $routes->get('/laporan-arus-kas', 'LaporanArusKas::index');
-    $routes->get('/laporan-arus-kas/new', 'LaporanArusKas::new');
-    $routes->get('/laporan-arus-kas/detail/(:num)', 'LaporanArusKas::detail/$1');
-    // Rute untuk BKU Perubahan Modal
-    $routes->get('/laporan-perubahan-modal', 'LaporanPerubahanModal::index');
-    $routes->get('/laporan-perubahan-modal/new', 'LaporanPerubahanModal::new');
-    $routes->get('/laporan-perubahan-modal/detail/(:num)', 'LaporanPerubahanModal::detail/$1');
+    $routes->get('/master-arus-kas', 'MasterArusKas::index');
+    $routes->post('/master-arus-kas/create', 'MasterArusKas::create');
+    $routes->post('/master-arus-kas/update/(:num)', 'MasterArusKas::update/$1');
+    $routes->get('/master-arus-kas/delete/(:num)', 'MasterArusKas::delete/$1');
+    // Rute untuk Arus Kas
+    $routes->get('/arus-kas', 'ArusKas::index');
+    $routes->post('/arus-kas/simpan', 'ArusKas::simpan');
+    // Rute untuk ekspor Arus Kas ke Excel dan PDF
+    $routes->get('/arus-kas/export-excel/(:num)', 'ArusKas::exportExcel/$1');
+    $routes->get('/arus-kas/export-pdf/(:num)', 'ArusKas::exportPdf/$1');
     // Rute untuk Neraca Keuangan
     $routes->get('/neraca-keuangan', 'NeracaKeuangan::index');
     $routes->post('/neraca-keuangan/simpan', 'NeracaKeuangan::simpan');
@@ -280,8 +294,8 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     // Rute untuk mendapatkan saldo bulan lalu via AJAX
     $routes->get('/bku-bulanan/get-saldo-lalu', 'BkuBulanan::getSaldoBulanLalu');
     // Rute untuk Pengaturan Laporan
-    // $routes->get('/pengaturan', 'Pengaturan::index', ['filter' => 'auth']);
-    // $routes->post('/pengaturan/update', 'Pengaturan::update', ['filter' => 'auth']);
+    $routes->get('/pengaturan-keuangan', 'Pengaturan::index_keuangan', ['filter' => 'auth']);
+    $routes->post('/pengaturan-keuangan/update', 'Pengaturan::update', ['filter' => 'auth']);
     // Rute untuk ekspor BKU Tahunan pdf dan excel
     $routes->get('/bku-tahunan/cetak-pdf/(:num)', 'BkuTahunan::cetakPdf/$1');
     $routes->get('/bku-tahunan/cetak-excel/(:num)', 'BkuTahunan::cetakExcel/$1');
@@ -290,16 +304,48 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     // Rute untuk Master Neraca
     // $routes->resource('master-neraca');
     $routes->resource('master-neraca', ['controller' => 'MasterNeraca']);
+    // untuk mencetak paket lengkap laporan tahunan
+    $routes->get('laporan/cetak-paket-lengkap/(:num)', 'LaporanController::cetakPaketLengkap/$1');
+    // Rute untuk Master Laba Rugi
+    $routes->resource('master-laba-rugi', ['controller' => 'MasterLabaRugi']);
+    // Rute untuk Laporan Laba Rugi
+    $routes->get('/laba-rugi', 'LabaRugi::index');
+    $routes->post('/laba-rugi/simpan', 'LabaRugi::simpan');
+    // Rute untuk ekspor Laporan Laba Rugi pdf dan excel
+    $routes->get('/laba-rugi/cetak-pdf/(:num)', 'LabaRugi::cetakPdf/$1');
+    $routes->get('/laba-rugi/cetak-excel/(:num)', 'LabaRugi::cetakExcel/$1');
+    // Rute untuk Master Perubahan Modal
+    $routes->get('/perubahan-modal', 'PerubahanModalController::index');
+    $routes->post('/perubahan-modal/simpan', 'PerubahanModalController::simpan');
+    // Rute untuk master perubahan modal (CRUD)
+    $routes->resource('master-perubahan-modal', ['controller' => 'MasterPerubahanModalController']);
+    // Rute untuk ekspor Laporan Perubahan Modal pdf dan excel
+    $routes->get('/perubahan-modal/export-excel/(:num)', 'PerubahanModalController::exportExcel/$1');
+    $routes->get('/perubahan-modal/export-pdf/(:num)', 'PerubahanModalController::exportPdf/$1');
+    // Rute untuk Master laba rugi (CRUD)
+    $routes->resource('master-laba-rugi');
 });
 
 // Dashboard Pariwisata
-$routes->get('dashboard/dashboard_pariwisata', 'DashboardController::pariwisata', ['filter' => 'auth']);
-// Aset Pariwisata
+$routes->get('dashboard/dashboard_pariwisata', 'DashboardPariwisata::index', ['filter' => 'auth']);
 $routes->group('asetpariwisata', ['filter' => 'auth'], function ($routes) {
-    $routes->get('/', 'AsetPariwisata::index');       // Halaman daftar aset
-    $routes->get('create', 'AsetPariwisata::create'); // Form tambah aset
-    $routes->post('store', 'AsetPariwisata::store');  // Simpan aset baru
+    $routes->get('/', 'AsetPariwisata::index');
+    $routes->post('store', 'AsetPariwisata::store');
 });
+$routes->group('laporanasetpariwisata', ['filter' => 'auth'], function ($routes) {
+    $routes->get('/', 'LaporanAsetPariwisata::index');
+    $routes->get('exportPDF/(:num)', 'LaporanAsetPariwisata::exportPDF/$1');
+    $routes->get('exportExcel/(:num)', 'LaporanAsetPariwisata::exportExcel/$1');
+});
+$routes->group('objekwisata', ['filter' => 'auth'], function ($routes) {
+    $routes->get('/', 'ObjekWisata::index');
+    $routes->post('store', 'ObjekWisata::store');
+    $routes->get('delete/(:num)', 'ObjekWisata::delete/$1');
+});
+$routes->get('asetpariwisata/delete/(:num)', 'AsetPariwisata::delete/$1');
+$routes->put('asetpariwisata/update/(:num)', 'AsetPariwisata::update/$1');
+$routes->post('asetpariwisata/requestAccess', 'AsetPariwisata::requestAccess');
+$routes->post('objekwisata/requestaccess', 'ObjekWisata::requestaccess');
 
 // Laporan Aset Pariwisata
 $routes->group('laporanpariwisata', ['filter' => 'auth'], function ($routes) {
@@ -309,3 +355,15 @@ $routes->group('laporanpariwisata', ['filter' => 'auth'], function ($routes) {
 });
 
 //Laporan UMKM
+
+//DESA
+//komersial
+$routes->get('DesaRekapKopi', 'DesaRekapKopi::index');
+$routes->get('desa/laporan_komersial/aset', 'DesaRekapAset::index');
+$routes->get('desa/laporan_komersial/petani', 'DesaRekapPetani::index');
+//Pariwisata
+$routes->get('desa/laporan_pariwisata/objekwisata', 'DesaRekapPariwisata::laporanObjekWisata');
+// URL: http://domain-anda.com/desa/laporan_pariwisata/asetpariwisata
+$routes->get('desa/laporan_pariwisata/asetpariwisata', 'DesaRekapPariwisata::laporanAset');
+//download sop
+$routes->get('/sop/download', 'Sop::download');

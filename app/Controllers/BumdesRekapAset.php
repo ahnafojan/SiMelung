@@ -3,13 +3,13 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use App\Models\AsetKomersialModel; // TETAP: Menggunakan model yang sama
+use App\Models\AsetKomersialModel;
 use CodeIgniter\API\ResponseTrait;
 
 /**
  * @property \CodeIgniter\HTTP\IncomingRequest $request 
  */
-class BumdesRekapAset extends BaseController // DIUBAH: Nama class
+class BumdesRekapAset extends BaseController
 {
     use ResponseTrait;
 
@@ -18,7 +18,6 @@ class BumdesRekapAset extends BaseController // DIUBAH: Nama class
 
     public function __construct()
     {
-        // TETAP: Menggunakan instance AsetKomersialModel sesuai permintaan
         $this->asetModel = new AsetKomersialModel();
         $this->pager = \Config\Services::pager();
     }
@@ -48,15 +47,13 @@ class BumdesRekapAset extends BaseController // DIUBAH: Nama class
 
         // --- Logika untuk merespons AJAX ---
         if ($this->request->isAJAX()) {
-
-            // DIUBAH: Path untuk partial view
             $table_partial = view('bumdes/laporan/_aset_table_partial', [
                 'aset'      => $dataAset,
                 'pagerAset' => $pagerAset
             ]);
 
             // Hitung ulang statistik berdasarkan filter (tanpa paginasi)
-            $statsQuery = new AsetKomersialModel(); // TETAP: Menggunakan instance AsetKomersialModel
+            $statsQuery = new AsetKomersialModel();
             if ($filterTahunAset && $filterTahunAset != 'semua') {
                 $statsQuery->where('tahun_perolehan', $filterTahunAset);
             }
@@ -65,6 +62,8 @@ class BumdesRekapAset extends BaseController // DIUBAH: Nama class
 
             return $this->response->setJSON([
                 'table_partial' => $table_partial,
+                'pagination'    => $pagerAset->links('aset', 'custom_pagination_template'),
+                'total'         => count($allAset),
                 'stats' => [
                     'total_aset'   => number_format(count($allAset), 0, ',', '.'),
                     'total_nilai'  => number_format($totalNilai, 0, ',', '.'),
@@ -84,7 +83,24 @@ class BumdesRekapAset extends BaseController // DIUBAH: Nama class
             'perPageAset'   => $perPageAset,
         ];
 
-        // DIUBAH: Path untuk view utama
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_bumdes'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan BUMDES',
+                'url'   => site_url('bumdes/laporan'),
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ],
+            [
+                'title' => 'Laporan Rekap Aset',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-tools'
+            ]
+        ];
+
         return view('bumdes/laporan/aset', $data);
     }
 }

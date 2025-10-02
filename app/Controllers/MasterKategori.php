@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\MasterKategoriPengeluaranModel;
+use App\Models\LogAktivitasModel;
 
 class MasterKategori extends BaseController
 {
@@ -43,6 +44,17 @@ class MasterKategori extends BaseController
         }
         // Jika bukan AJAX, tolak akses.
         return $this->response->setStatusCode(403);
+    }
+
+    private function logAktivitas($aktivitas, $deskripsi, $bku_id = null)
+    {
+        $logModel = new LogAktivitasModel();
+        $logModel->save([
+            'username'  => session()->get('username') ?? 'System', // Ambil username dari session
+            'aktivitas' => $aktivitas,
+            'deskripsi' => $deskripsi,
+            'bku_id'    => $bku_id
+        ]);
     }
 
     /**
@@ -110,6 +122,8 @@ class MasterKategori extends BaseController
             'persentase' => $this->request->getVar('persentase'),
         ]);
 
+        // menambahkan log aktivitas
+        $this->logAktivitas('TAMBAH', "Menambahkan kategori pengeluaran baru: " . $this->request->getVar('nama_kategori'));
         session()->setFlashdata('success', 'Data kategori berhasil ditambahkan.');
         return redirect()->to('/master-kategori');
     }
@@ -170,7 +184,8 @@ class MasterKategori extends BaseController
             'nama_kategori' => $this->request->getVar('nama_kategori'),
             'persentase' => $this->request->getVar('persentase'),
         ]);
-
+        // menambahkan log aktivitas
+        $this->logAktivitas('EDIT', "Memperbarui kategori pengeluaran ID {$id}: " . $this->request->getVar('nama_kategori'));
         session()->setFlashdata('success', 'Data kategori berhasil diperbarui.');
         return redirect()->to('/master-kategori');
     }
@@ -180,10 +195,27 @@ class MasterKategori extends BaseController
      */
     public function delete($id = null)
     {
-        // Asumsi soft delete aktif, maka parameter kedua (true) tidak diperlukan jika ingin soft delete
-        // Jika ingin hapus permanen, pastikan $useSoftDeletes di model false
-        $this->kategoriModel->delete($id);
-        session()->setFlashdata('success', 'Data kategori berhasil dihapus.');
+        // [DIUBAH] Ambil data berdasarkan ID SEBELUM dihapus
+        $data = $this->kategoriModel->find($id);
+
+        // Lakukan pengecekan apakah data ditemukan
+        if ($data) {
+            // Simpan nama komponen untuk dicatat di log
+            $namaKategori = $data['nama_kategori'];
+
+            // Hapus data dari database
+            $this->kategoriModel->delete($id);
+
+            // Catat aktivitas dengan nama yang sudah disimpan
+            $this->logAktivitas('HAPUS', "Menghapus kategori pengeluaran: '" . $namaKategori . "'");
+
+            session()->setFlashdata('success', 'Data kategori berhasil dihapus.');
+        } else {
+            // Jika data tidak ditemukan, beri pesan error
+            session()->setFlashdata('error', 'Data kategori tidak ditemukan atau sudah dihapus.');
+        }
+
+        // Redirect kembali ke halaman utama
         return redirect()->to('/master-kategori');
     }
 }

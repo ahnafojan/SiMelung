@@ -1,34 +1,35 @@
 <?= $this->extend('layouts/main_layout_landing') ?>
 <?= $this->section('content') ?>
 
-<!-- Hero Section with Background Image -->
 <section id="home" class="hero-section position-relative">
     <div class="hero-background"></div>
     <div class="hero-overlay"></div>
     <div class="hero-particles"></div>
     <div class="container position-relative z-index-3">
-        <div class="row min-vh-100">
-            <div class="col-12">
-                <div class="hero-content-wrapper">
-                    <div class="hero-content text-center">
-                        <h1 class="hero-title font-weight-bold text-white mb-4 animate-fade-in">
-                            Selamat Datang Di<br>
-                            <span class="text-coffee-gold">BUMDES MELUNG</span>
-                        </h1>
-                        <p class="hero-subtitle text-white-90 mb-5 animate-fade-in-delay">
-                            Membangun ekonomi desa yang berkelanjutan melalui
-                            Badan Usaha Milik Desa yang inovatif dan berdaya saing
-                            di kaki pegunungan Gunung Slamet yang asri dan subur.
-                        </p>
-                        <div class="hero-buttons animate-fade-in-delay-2">
-                            <a href="#tentang" class="btn btn-coffee-primary btn-lg mr-3 mb-3 btn-explore">
-                                <i class="fas fa-leaf mr-2"></i>Jelajahi Desa
-                            </a>
-                            <a href="#umkm" class="btn btn-outline-light btn-lg mb-3 btn-products">
-                                <i class="fas fa-coffee mr-2"></i>Produk UMKM
-                            </a>
-                        </div>
+        <div class="overflow-hidden">
+            <div class="row min-vh-100">
+                <div class="col-12">
+                    <div class="hero-content-wrapper">
+                        <div class="hero-content text-center">
+                            <h1 class="hero-title font-weight-bold text-white mb-4 animate-fade-in">
+                                Selamat Datang Di<br>
+                                <span class="text-coffee-gold">BUMDES MELUNG</span>
+                            </h1>
+                            <p class="hero-subtitle text-white-90 mb-5 animate-fade-in-delay">
+                                Membangun ekonomi desa yang berkelanjutan melalui
+                                Badan Usaha Milik Desa yang inovatif dan berdaya saing
+                                di kaki pegunungan Gunung Slamet yang asri dan subur.
+                            </p>
+                            <div class="hero-buttons animate-fade-in-delay-2">
+                                <a href="#tentang" class="btn btn-coffee-primary btn-lg mr-3 mb-3 btn-explore">
+                                    <i class="fas fa-leaf mr-2"></i>Jelajahi Desa
+                                </a>
+                                <a href="#umkm" class="btn btn-outline-light btn-lg mb-3 btn-products">
+                                    <i class="fas fa-coffee mr-2"></i>Produk UMKM
+                                </a>
+                            </div>
 
+                        </div>
                     </div>
                 </div>
             </div>
@@ -39,82 +40,84 @@
     </div>
 </section>
 
-<!-- About Section with Timeline -->
 <section id="tentang" class="py-5 bg-mountain-mist scroll-section">
     <div class="container">
-        <div class="row">
-            <div class="col-12 text-center mb-5">
-                <div class="section-header fade-up">
-                    <span class="section-subtitle text-coffee-medium">Mari Berkenalan</span>
-                    <h2 class="section-title text-mountain-dark">Tentang Desa Melung</h2>
-                    <p class="section-description text-muted">Mengenal lebih dekat dengan BUMDES Melung di kaki pegunungan yang subur</p>
+        <div class="overflow-hidden">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <div class="section-header fade-up">
+                        <span class="section-subtitle text-coffee-medium">Mari Berkenalan</span>
+                        <h2 class="section-title text-mountain-dark">Tentang Desa Melung</h2>
+                        <p class="section-description text-muted">Mengenal lebih dekat dengan BUMDES Melung di kaki pegunungan yang subur</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <div class="about-image-container slide-left">
-                    <div class="about-decoration-1"></div>
-                    <div class="about-decoration-2"></div>
-                    <img src="<?= base_url('img/melung3.jpg') ?>" alt="Desa Melung"
-                        class="img-fluid rounded-xl shadow-soft">
-                    <div class="image-overlay">
-                        <div class="overlay-content">
-                            <div class="stat-circle">
-                                <span class="stat-number">8+</span>
-                                <span class="stat-label">Tahun Berdiri</span>
+        <div class="overflow-hidden">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <div class="about-image-container slide-left">
+                        <div class="about-decoration-1"></div>
+                        <div class="about-decoration-2"></div>
+                        <img src="<?= base_url('img/melung3.jpg') ?>" alt="Desa Melung" class="img-fluid rounded-xl shadow-soft">
+                        <div class="image-overlay">
+                            <div class="overlay-content">
+                                <div class="stat-circle">
+                                    <span class="stat-number">8+</span>
+                                    <span class="stat-label">Tahun Berdiri</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="about-content slide-right">
-                    <div class="about-tag mb-3">
-                        <i class="fas fa-map-marker-alt mr-2"></i>
-                        Kedungbanteng, Banyumas
-                    </div>
-                    <h3 class="text-mountain-dark mb-4 about-title">Sejarah & Visi Kami</h3>
-                    <p class="about-description mb-4">
-                        Desa Melung terletak di Kecamatan Kedungbanteng, Kabupaten Banyumas,
-                        Jawa Tengah. Dengan luas wilayah ± 1.270 hektar di kaki pegunungan yang asri,
-                        kami memiliki potensi besar di sektor pertanian khususnya kopi berkualitas tinggi.
-                    </p>
-                    <div class="feature-grid">
-                        <div class="feature-item fade-up" data-delay="100">
-                            <div class="feature-icon">
-                                <i class="fas fa-seedling"></i>
-                            </div>
-                            <div class="feature-content">
-                                <h6>UMKM Berkelanjutan</h6>
-                                <span>Pengembangan usaha lokal yang ramah lingkungan</span>
-                            </div>
+                <div class="col-lg-6">
+                    <div class="about-content slide-right">
+                        <div class="about-tag mb-3">
+                            <i class="fas fa-map-marker-alt mr-2"></i>
+                            Kedungbanteng, Banyumas
                         </div>
-                        <div class="feature-item fade-up" data-delay="200">
-                            <div class="feature-icon">
-                                <i class="fas fa-users"></i>
+                        <h3 class="text-mountain-dark mb-4 about-title">Sejarah & Visi Kami</h3>
+                        <p class="about-description mb-4">
+                            Desa Melung terletak di Kecamatan Kedungbanteng, Kabupaten Banyumas,
+                            Jawa Tengah. Dengan luas wilayah ± 1.270 hektar di kaki pegunungan yang asri,
+                            kami memiliki potensi besar di sektor pertanian khususnya kopi berkualitas tinggi.
+                        </p>
+                        <div class="feature-grid">
+                            <div class="feature-item fade-up" data-delay="100">
+                                <div class="feature-icon">
+                                    <i class="fas fa-seedling"></i>
+                                </div>
+                                <div class="feature-content">
+                                    <h6>UMKM Berkelanjutan</h6>
+                                    <span>Pengembangan usaha lokal yang ramah lingkungan</span>
+                                </div>
                             </div>
-                            <div class="feature-content">
-                                <h6>Pemberdayaan Petani</h6>
-                                <span>Pelatihan dan pendampingan petani kopi</span>
+                            <div class="feature-item fade-up" data-delay="200">
+                                <div class="feature-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="feature-content">
+                                    <h6>Pemberdayaan Petani</h6>
+                                    <span>Pelatihan dan pendampingan petani kopi</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="feature-item fade-up" data-delay="300">
-                            <div class="feature-icon">
-                                <i class="fas fa-chart-line"></i>
+                            <div class="feature-item fade-up" data-delay="300">
+                                <div class="feature-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="feature-content">
+                                    <h6>Pengelolaan Profesional</h6>
+                                    <span>Manajemen aset desa yang transparan</span>
+                                </div>
                             </div>
-                            <div class="feature-content">
-                                <h6>Pengelolaan Profesional</h6>
-                                <span>Manajemen aset desa yang transparan</span>
-                            </div>
-                        </div>
-                        <div class="feature-item fade-up" data-delay="400">
-                            <div class="feature-icon">
-                                <i class="fas fa-heart"></i>
-                            </div>
-                            <div class="feature-content">
-                                <h6>Kesejahteraan Bersama</h6>
-                                <span>Peningkatan taraf hidup masyarakat</span>
+                            <div class="feature-item fade-up" data-delay="400">
+                                <div class="feature-icon">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="feature-content">
+                                    <h6>Kesejahteraan Bersama</h6>
+                                    <span>Peningkatan taraf hidup masyarakat</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -123,9 +126,8 @@
         </div>
     </div>
 </section>
-
 <!-- UMKM Showcase -->
-<section id="umkm" class="py-5 bg-white scroll-section">
+<!--<section id="umkm" class="py-5 bg-white scroll-section">
     <div class="container">
         <div class="row">
             <div class="col-12 text-center mb-5">
@@ -224,23 +226,24 @@
             </div>
         </div>
     </div>
-</section>
+</section>  -->
 
 <section id="petani" class="py-5 bg-mountain-mist scroll-section">
     <div class="container">
-        <div class="row">
-            <div class="col-12 text-center mb-5">
-                <div class="section-header fade-up">
-                    <span class="section-subtitle text-coffee-medium">Mitra Terbaik</span>
-                    <h2 class="section-title text-mountain-dark">Daftar Petani Kami</h2>
-                    <p class="section-description text-muted">
-                        Para petani kopi berpengalaman yang menjadi tulang punggung produksi
-                    </p>
+        <div class="overflow-hidden">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <div class="section-header fade-up">
+                        <span class="section-subtitle text-coffee-medium">Mitra Terbaik</span>
+                        <h2 class="section-title text-mountain-dark">Daftar Petani Kami</h2>
+                        <p class="section-description text-muted">
+                            Para petani kopi berpengalaman yang menjadi tulang punggung produksi
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Versi Desktop -->
         <div class="d-none d-md-block">
             <div class="table-container fade-up">
                 <div class="table-responsive">
@@ -260,8 +263,7 @@
                                     <tr>
                                         <td>
                                             <div class="farmer-avatar">
-                                                <img src="<?= base_url('uploads/foto_petani/' . esc($petani['foto'], 'attr')) ?>"
-                                                    alt="<?= esc($petani['nama']) ?>">
+                                                <img src="<?= base_url('uploads/foto_petani/' . esc($petani['foto'], 'attr')) ?>" alt="<?= esc($petani['nama']) ?>">
                                                 <div class="avatar-ring"></div>
                                             </div>
                                         </td>
@@ -296,9 +298,7 @@
                     </table>
                 </div>
 
-                <!-- Custom Pagination Desktop -->
                 <div class="pagination-wrapper fade-up mt-4">
-                    <!-- Per Page Selector -->
                     <form method="get" class="per-page-selector">
                         <label class="per-page-label">
                             <i class="fas fa-list-ul mr-2"></i>
@@ -315,12 +315,10 @@
                         <span class="per-page-suffix">data per halaman</span>
                     </form>
 
-                    <!-- Pagination Navigation -->
                     <nav class="pagination-nav" aria-label="Navigasi Halaman">
                         <?= $pager->links('default', 'custom_pagination_template') ?>
                     </nav>
 
-                    <!-- Page Info -->
                     <div class="page-info">
                         <span class="info-text">
                             <i class="fas fa-info-circle mr-2"></i>
@@ -338,7 +336,6 @@
             </div>
         </div>
 
-        <!-- Versi Mobile -->
         <div class="d-block d-md-none">
             <div class="row">
                 <?php if (!empty($petani_list)) : ?>
@@ -347,8 +344,7 @@
                             <div class="farmer-card-mobile fade-up" data-delay="<?= ($index + 1) * 100 ?>">
                                 <div class="farmer-header">
                                     <div class="farmer-avatar-mobile">
-                                        <img src="<?= base_url('uploads/foto_petani/' . esc($petani['foto'], 'attr')) ?>"
-                                            alt="<?= esc($petani['nama']) ?>">
+                                        <img src="<?= base_url('uploads/foto_petani/' . esc($petani['foto'], 'attr')) ?>" alt="<?= esc($petani['nama']) ?>">
                                         <div class="avatar-ring-mobile"></div>
                                     </div>
                                     <div class="farmer-details">
@@ -376,9 +372,7 @@
                 <?php endif; ?>
             </div>
 
-            <!-- Custom Pagination Mobile -->
             <div class="pagination-mobile fade-up mt-4">
-                <!-- Custom Mobile Pagination -->
                 <?= $pager->links('default', 'mobile_pagination_template') ?>
 
                 <form method="get" class="mobile-per-page">
@@ -390,7 +384,6 @@
                         <option value="25" <?= ($currentPerPage == 25 ? 'selected' : '') ?>>25 data</option>
                         <option value="100" <?= ($currentPerPage == 100 ? 'selected' : '') ?>>100 data</option>
                     </select>
-                    <!-- Preserve other GET parameters -->
                     <?php foreach ($_GET as $key => $value) : ?>
                         <?php if ($key !== 'per_page' && $key !== 'page') : ?>
                             <input type="hidden" name="<?= esc($key) ?>" value="<?= esc($value) ?>">
@@ -401,35 +394,47 @@
         </div>
     </div>
 </section>
-<!-- Grafik Section -->
+
 <section id="grafik" class="py-5 bg-white scroll-section">
     <div class="container">
-        <div class="row">
-            <div class="col-12 text-center mb-5">
-                <div class="section-header fade-up">
-                    <span class="section-subtitle text-coffee-medium">Data & Analisis</span>
-                    <h2 class="section-title text-mountain-dark">Statistik Produksi Kopi</h2>
-                    <p class="section-description text-muted">Perkembangan produksi kopi berkualitas dari pegunungan Desa Melung</p>
+        <div class="overflow-hidden">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <div class="section-header fade-up">
+                        <span class="section-subtitle text-coffee-medium">Data & Analisis</span>
+                        <h2 class="section-title text-mountain-dark">Statistik Produksi Kopi</h2>
+                        <p class="section-description text-muted">Perkembangan produksi kopi berkualitas dari pegunungan Desa Melung</p>
+                        <!-- Tombol Download SOP -->
+                        <div class="mt-4">
+                            <a href="<?php echo base_url('sop/download'); ?>"
+                                class="btn btn-primary">
+                                <i class="fas fa-file-pdf"></i> Download SOP Budidaya Kopi (PDF)
+                            </a>
+                        </div>
+                        <!-- End Tombol Download SOP -->
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-lg-10 offset-lg-1">
-                <div class="chart-container fade-up">
-                    <div class="chart-header">
-                        <div class="chart-legends">
-                            <div class="legend-item">
-                                <div class="legend-color bg-mountain-primary"></div>
-                                <span>Kopi Masuk (kg)</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color bg-coffee-gold"></div>
-                                <span>Kopi Keluar (kg)</span>
+        <div class="overflow-hidden">
+            <div class="row">
+                <div class="col-lg-10 offset-lg-1">
+                    <div class="chart-container fade-up">
+                        <div class="chart-header">
+                            <div class="chart-legends">
+                                <div class="legend-item">
+                                    <div class="legend-color bg-mountain-primary"></div>
+                                    <span>Kopi Masuk (kg)</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color bg-coffee-gold"></div>
+                                    <span>Kopi Keluar (kg)</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="chart-body">
-                        <canvas id="grafikKopi" height="300"></canvas>
+                        <div class="chart-body">
+                            <canvas id="grafikKopi" height="300"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -437,55 +442,56 @@
     </div>
 </section>
 
-<!-- Aset Section with Icons -->
-<!-- Aset Section with Icons -->
 <section id="aset" class="py-5 bg-mountain-mist scroll-section">
     <div class="container">
-        <div class="row">
-            <div class="col-12 text-center mb-5">
-                <div class="section-header fade-up">
-                    <span class="section-subtitle text-coffee-medium">Infrastruktur</span>
-                    <h2 class="section-title text-mountain-dark">Aset Produksi Kami</h2>
-                    <p class="section-description text-muted">Fasilitas modern untuk mendukung produksi kopi berkualitas tinggi</p>
+        <div class="overflow-hidden">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <div class="section-header fade-up">
+                        <span class="section-subtitle text-coffee-medium">Infrastruktur</span>
+                        <h2 class="section-title text-mountain-dark">Aset Produksi Kami</h2>
+                        <p class="section-description text-muted">Fasilitas modern untuk mendukung produksi kopi berkualitas tinggi</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="row justify-content-center">
+        <div class="overflow-hidden">
+            <div class="row justify-content-center">
 
-            <?php if (!empty($aset_summary)) : ?>
-                <?php foreach ($aset_summary as $index => $aset) : ?>
-                    <div class="col-lg-3 col-md-6 mb-4">
-                        <div class="asset-card fade-up" data-delay="<?= ($index + 1) * 100 ?>">
-                            <div class="asset-icon-container">
-                                <!-- WARNA IKON DINAMIS -->
-                                <div class="asset-icon <?= esc($aset['color_class']) ?>">
-                                    <i class="<?= esc($aset['icon']) ?>"></i>
+                <?php if (!empty($aset_summary)) : ?>
+                    <?php foreach ($aset_summary as $index => $aset) : ?>
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="asset-card fade-up" data-delay="<?= ($index + 1) * 100 ?>">
+                                <div class="asset-icon-container">
+                                    <div class="asset-icon <?= esc($aset['color_class']) ?>">
+                                        <i class="<?= esc($aset['icon']) ?>"></i>
+                                    </div>
+                                    <div class="asset-decoration"></div>
                                 </div>
-                                <div class="asset-decoration"></div>
-                            </div>
-                            <div class="asset-content">
-                                <h5 class="asset-title"><?= esc($aset['nama']) ?></h5>
-                                <div class="asset-count">
-                                    <span class="count-number"><?= esc($aset['jumlah']) ?></span>
-                                    <span class="count-unit"><?= esc($aset['unit']) ?></span>
-                                </div>
-                                <div class="asset-status">
-                                    <span class="status-indicator <?= esc($aset['status_class']) ?>"></span>
-                                    <span class="status-text"><?= esc($aset['status']) ?></span>
+                                <div class="asset-content">
+                                    <h5 class="asset-title"><?= esc($aset['nama']) ?></h5>
+                                    <div class="asset-count">
+                                        <span class="count-number"><?= esc($aset['jumlah']) ?></span>
+                                        <span class="count-unit"><?= esc($aset['unit']) ?></span>
+                                    </div>
+                                    <div class="asset-status">
+                                        <span class="status-indicator <?= esc($aset['status_class']) ?>"></span>
+                                        <span class="status-text"><?= esc($aset['status']) ?></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <div class="col-12 text-center fade-up">
+                        <div class="alert alert-light" role="alert">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Informasi aset produksi belum tersedia saat ini.
+                        </div>
                     </div>
-                <?php endforeach; ?>
-            <?php else : ?>
-                <div class="col-12 text-center fade-up">
-                    <div class="alert alert-light" role="alert">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        Informasi aset produksi belum tersedia saat ini.
-                    </div>
-                </div>
-            <?php endif; ?>
+                <?php endif; ?>
 
+            </div>
         </div>
     </div>
 </section>

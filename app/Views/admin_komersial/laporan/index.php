@@ -33,14 +33,6 @@
                         <h3 class="stats-title">Total Stok Kopi Bumdes</h3>
                         <p class="stats-subtitle">Stok kopi tersedia saat ini</p>
                     </div>
-                    <div class="stats-footer">
-                        <div class="stats-indicator">
-                            <div class="indicator-bar" data-percentage="30"></div>
-                        </div>
-                        <div class="stats-meta">
-                            <span class="meta-text">Kapasitas 30%</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -67,14 +59,6 @@
                         <h3 class="stats-title">Total Petani Terdaftar</h3>
                         <p class="stats-subtitle">Petani aktif dalam sistem</p>
                     </div>
-                    <div class="stats-footer">
-                        <div class="stats-indicator">
-                            <div class="indicator-bar" data-percentage="50"></div>
-                        </div>
-                        <div class="stats-meta">
-                            <span class="meta-text">Partisipasi 50%</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -100,14 +84,6 @@
                         </div>
                         <h3 class="stats-title">Total Aset Terdaftar</h3>
                         <p class="stats-subtitle">Aset produksi tersedia</p>
-                    </div>
-                    <div class="stats-footer">
-                        <div class="stats-indicator">
-                            <div class="indicator-bar" data-percentage="65"></div>
-                        </div>
-                        <div class="stats-meta">
-                            <span class="meta-text">Utilisasi 65%</span>
-                        </div>
                     </div>
                 </div>
             </div>

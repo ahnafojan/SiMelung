@@ -15,40 +15,145 @@ class Petani extends Controller
     {
         $this->petaniModel = new PetaniModel();
         $this->permissionModel = new PermissionRequestModel();
-        helper(['form', 'url', 'date']); // Helper date ditambahkan
+        helper(['form', 'url', 'date']);
     }
 
     /**
-     * Menampilkan daftar petani dengan status izin untuk setiap baris.
+     * Menampilkan daftar petani dengan status izin (approved, pending, none)
+     * dan pagination, dioptimalkan dengan Caching.
      */
     public function index()
     {
-        $data['petani'] = $this->petaniModel->orderBy('id', 'ASC')->findAll();
-        if (!empty($data['petani'])) {
-            foreach ($data['petani'] as &$p) {
-                // 'id' di sini adalah ID dari petani, bukan user_id
-                $p['can_edit'] = $this->hasActivePermission($p['id'], 'edit');
-                $p['can_delete'] = $this->hasActivePermission($p['id'], 'delete');
+        // Praktik terbaik: Wajibkan login untuk mengakses halaman ini
+        if (!session()->get('user_id')) {
+            session()->setFlashdata('error', 'Anda harus login untuk mengakses halaman ini.');
+            return redirect()->to('/login'); // Arahkan ke halaman login Anda
+        }
+
+        $perPage = $this->request->getVar('per_page') ?? 10;
+        $requesterId = session()->get('user_id');
+
+        // 1. Ambil data petani menggunakan paginate
+        $petani = $this->petaniModel->orderBy('id', 'ASC')->paginate($perPage, 'petani');
+
+        $petaniIds = array_column($petani, 'id');
+        $permissions = [];
+        if (!empty($petaniIds) && !empty($requesterId)) {
+            // ▼▼▼ PERUBAHAN DI SINI ▼▼▼
+            // Gunakan cache key yang lebih sederhana, hanya berdasarkan user ID.
+            $cacheKey = 'permissions_petani_user_' . $requesterId;
+
+            if (!$permissionData = cache($cacheKey)) {
+                // Ambil SEMUA izin aktif/pending milik user ini untuk target_type 'petani'
+                $permissionData = $this->permissionModel
+                    ->where('requester_id', $requesterId)
+                    ->where('target_type', 'petani')
+                    ->whereIn('status', ['approved', 'pending'])
+                    // Hapus whereIn target_id agar kita cache semua izin user, bukan per halaman.
+                    // ->whereIn('target_id', $petaniIds) 
+                    ->findAll();
+
+                // Simpan hasil query ke dalam cache selama 5 menit (300 detik).
+                cache()->save($cacheKey, $permissionData, 300);
+            }
+            // ▲▲▲ AKHIR PERUBAH
+
+            // ===== SELESAI OPTIMISASI CACHING =====
+
+            // 3. Olah data izin untuk menyimpan statusnya ('approved' atau 'pending')
+            if (!empty($permissionData)) {
+                foreach ($permissionData as $perm) {
+                    // Cek izin 'approved' yang masih aktif
+                    if ($perm['status'] == 'approved' && strtotime($perm['expires_at']) > time()) {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'approved';
+                    } elseif ($perm['status'] == 'pending') {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'pending';
+                    }
+                }
             }
         }
 
-        echo view('admin_komersial/petani/index', $data);
+        // 4. Set status untuk setiap petani
+        foreach ($petani as &$p) {
+            $p['edit_status'] = $permissions[$p['id']]['edit'] ?? 'none';
+            $p['delete_status'] = $permissions[$p['id']]['delete'] ?? 'none';
+        }
+        unset($p);
+
+        $data = [
+            'petani'      => $petani,
+            'pager'       => $this->petaniModel->pager,
+            'perPage'     => $perPage,
+            'currentPage' => $this->petaniModel->pager->getCurrentPage('petani'),
+            'breadcrumbs' => [
+                [
+                    'title' => 'Dashboard',
+                    'url'   => site_url('/dashboard/dashboard_komersial'),
+                    'icon'  => 'fas fa-fw fa-tachometer-alt' // <-- Tambahkan ini
+                ],
+                [
+                    'title' => 'Data Petani',
+                    'url'   => '#',
+                    'icon'  => 'fas fa-users' // <-- Tambahkan ini (ikon untuk data orang)
+                ]
+            ]
+        ];
+
+        return view('admin_komersial/petani/index', $data);
     }
 
     /**
-     * Menyimpan data petani baru.
-     * Fungsi ini tidak diubah karena tidak memerlukan izin.
+     * [HELPER BARU] Mengembalikan status izin: 'approved', 'pending', atau 'none'.
+     * Ini menggantikan fungsi hasActivePermission.
      */
+    private function getPermissionStatus($petaniId, $action)
+    {
+        $requesterId = session()->get('user_id');
+        if (empty($requesterId)) {
+            return 'none';
+        }
+
+        // 1. Cek izin yang 'approved' dan masih aktif
+        $approved = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $petaniId,
+            'target_type'  => 'petani',
+            'action_type'  => $action,
+            'status'       => 'approved',
+            'expires_at >' => date('Y-m-d H:i:s')
+        ])->first();
+
+        if ($approved) {
+            return 'approved';
+        }
+
+        // 2. Jika tidak ada, cek permintaan yang 'pending'
+        $pending = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $petaniId,
+            'target_type'  => 'petani',
+            'action_type'  => $action,
+            'status'       => 'pending'
+        ])->first();
+
+        if ($pending) {
+            return 'pending';
+        }
+
+        // 3. Jika tidak keduanya, berarti belum ada aksi
+        return 'none';
+    }
+
+
     public function create()
     {
-        // ... (Logika create Anda tidak berubah)
         try {
             $validation = \Config\Services::validation();
             $validation->setRules([
-                'nama'          => 'required|min_length[3]',
-                'alamat'        => 'required',
-                'no_hp'         => 'required|numeric',
-                'foto'          => 'permit_empty|uploaded[foto]|is_image[foto]|max_size[foto,2048]',
+                'nama'   => 'required|min_length[3]',
+                'alamat' => 'required',
+                'no_hp'  => 'required|numeric',
+                'foto'   => 'permit_empty|uploaded[foto]|is_image[foto]|max_size[foto,2048]',
             ]);
 
             if (!$this->validate($validation->getRules())) {
@@ -64,7 +169,20 @@ class Petani extends Controller
             $fotoFile = $this->request->getFile('foto');
             if ($fotoFile && $fotoFile->isValid()) {
                 $fotoName = $fotoFile->getRandomName();
-                $fotoFile->move('uploads/foto_petani', $fotoName);
+                if (ENVIRONMENT === 'development') {
+                    // Path untuk localhost (XAMPP) -> public/uploads/foto_petani
+                    $uploadPath = FCPATH . 'uploads/foto_petani';
+                } else {
+                    // Path untuk server hosting -> public_html/uploads/foto_petani
+                    $uploadPath = ROOTPATH . '../public_html/uploads/foto_petani';
+                }
+                $fotoFile->move($uploadPath, $fotoName);
+
+                $imagePath = $uploadPath . '/' . $fotoName;
+                \Config\Services::image()
+                    ->withFile($imagePath)
+                    ->resize(600, 600, true, 'height')
+                    ->save($imagePath, 75);
             }
 
             $this->petaniModel->save([
@@ -85,28 +203,22 @@ class Petani extends Controller
         return redirect()->to('/petani');
     }
 
-    /**
-     * Memperbarui data petani, dengan pemeriksaan izin terlebih dahulu.
-     */
     public function postUpdate()
     {
         $id = $this->request->getPost('id');
 
-        // ======== PEMERIKSAAN IZIN DITAMBAHKAN DI SINI ========
-        if (!$this->hasActivePermission($id, 'edit')) {
+        // [DIUBAH] Menggunakan getPermissionStatus
+        if ($this->getPermissionStatus($id, 'edit') !== 'approved') {
             session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengedit data ini.');
             return redirect()->to('/petani');
         }
-        // =======================================================
 
         $petaniLama = $this->petaniModel->find($id);
-
         if (!$petaniLama) {
             session()->setFlashdata('error', 'Data petani tidak ditemukan');
             return redirect()->to('/petani');
         }
 
-        // ... (Sisa logika validasi dan update Anda tidak berubah)
         $validation = \Config\Services::validation();
         $validation->setRules([
             'nama'   => 'required|min_length[3]',
@@ -131,9 +243,24 @@ class Petani extends Controller
         $fotoFile = $this->request->getFile('foto');
         if ($fotoFile && $fotoFile->isValid() && !$fotoFile->hasMoved()) {
             $fotoName = $fotoFile->getRandomName();
-            $fotoFile->move(FCPATH . 'uploads/foto_petani', $fotoName);
-            if (!empty($petaniLama['foto']) && file_exists(FCPATH . 'uploads/foto_petani/' . $petaniLama['foto'])) {
-                unlink(FCPATH . 'uploads/foto_petani/' . $petaniLama['foto']);
+            // ====================================================================
+            if (ENVIRONMENT === 'development') {
+                // Path untuk localhost (XAMPP) -> public/uploads/foto_petani
+                $uploadPath = FCPATH . 'uploads/foto_petani';
+            } else {
+                // Path untuk server hosting -> public_html/uploads/foto_petani
+                $uploadPath = ROOTPATH . '../public_html/uploads/foto_petani';
+            }
+            $fotoFile->move($uploadPath, $fotoName);
+
+            $imagePath = $uploadPath . '/' . $fotoName;
+            \Config\Services::image()
+                ->withFile($imagePath)
+                ->resize(600, 600, true, 'height')
+                ->save($imagePath, 75);
+
+            if (!empty($petaniLama['foto']) && file_exists($uploadPath . '/' . $petaniLama['foto'])) {
+                unlink($uploadPath . '/' . $petaniLama['foto']);
             }
             $dataUpdate['foto'] = $fotoName;
         }
@@ -148,19 +275,15 @@ class Petani extends Controller
         return redirect()->to('/petani');
     }
 
-    /**
-     * Menghapus data petani, dengan pemeriksaan izin terlebih dahulu.
-     */
     public function delete()
     {
         $id = $this->request->getPost('id');
 
-        // ======== PEMERIKSAAN IZIN DITAMBAHKAN DI SINI ========
-        if (!$this->hasActivePermission($id, 'delete')) {
+        // [DIUBAH] Menggunakan getPermissionStatus
+        if ($this->getPermissionStatus($id, 'delete') !== 'approved') {
             session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk menghapus data ini.');
             return redirect()->to('/petani');
         }
-        // =======================================================
 
         if (!$id) {
             return redirect()->to('/petani')->with('error', 'Gagal menghapus, ID petani tidak valid.');
@@ -185,15 +308,12 @@ class Petani extends Controller
         return redirect()->to('/petani');
     }
 
-    /**
-     * [FUNGSI BARU] Untuk membuat permintaan izin via AJAX.
-     */
     public function requestAccess()
     {
         if ($this->request->isAJAX()) {
             $petaniId = $this->request->getPost('petani_id');
             $action = $this->request->getPost('action_type');
-            $requesterId = session()->get('user_id'); // Pastikan Anda punya user_id di session
+            $requesterId = session()->get('user_id');
 
             if (empty($requesterId)) {
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Sesi tidak valid. Silakan login ulang.'])->setStatusCode(401);
@@ -211,6 +331,7 @@ class Petani extends Controller
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Anda sudah memiliki permintaan yang sama dan masih menunggu persetujuan.']);
             }
 
+            // Simpan permintaan baru
             $this->permissionModel->save([
                 'requester_id' => $requesterId,
                 'target_id'    => $petaniId,
@@ -219,30 +340,12 @@ class Petani extends Controller
                 'status'       => 'pending',
             ]);
 
+            // 🔥 INVALIDASI CACHE AGAR STATUS UPDATE SAAT REFRESH
+            $cacheKey = 'permissions_petani_user_' . $requesterId;
+            cache()->delete($cacheKey);
+
             return $this->response->setJSON(['status' => 'success', 'message' => 'Permintaan izin berhasil dikirim.']);
         }
         return redirect()->back();
-    }
-
-    /**
-     * [FUNGSI BARU] Helper untuk mengecek izin aktif.
-     */
-    private function hasActivePermission($petaniId, $action)
-    {
-        $requesterId = session()->get('user_id');
-        if (empty($requesterId)) {
-            return false;
-        }
-
-        $permission = $this->permissionModel->where([
-            'requester_id' => $requesterId,
-            'target_id'    => $petaniId,
-            'target_type'  => 'petani',
-            'action_type'  => $action,
-            'status'       => 'approved',
-            'expires_at >' => date('Y-m-d H:i:s')
-        ])->first();
-
-        return $permission ? true : false;
     }
 }

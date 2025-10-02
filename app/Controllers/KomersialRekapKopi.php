@@ -49,12 +49,30 @@ class KomersialRekapKopi extends BaseController
 
         $petaniList = $this->petaniModel->select('user_id, nama as nama_petani')->findAll();
 
+        // Ambil data kopi masuk dan keluar terlebih dahulu
         list($rekapPetani, $pagerKopiMasuk) = $this->getRekapKopiMasuk($filter, $perPageMasuk, $pageMasuk);
         list($rekapPenjualan, $pagerKopiKeluar) = $this->getRekapKopiKeluar($filter, $perPageKeluar, $pageKeluar);
-        list($stokAkhirPerJenis, $pagerStokAkhir) = $this->getStokAkhir($filter, $perPageStok, $pageStok);
 
-        $allStokData = $this->getStokAkhir($filter, 0, 1, false);
-        $totalStokGlobal = array_sum(array_column($allStokData, 'stok_akhir'));
+        // [AWAL PERUBAHAN] - Logika untuk mencegah kalkulasi stok yang tidak perlu
+        // 1. Inisialisasi variabel stok dengan nilai default (kosong/nol)
+        $stokAkhirPerJenis = [];
+        $totalStokGlobal = 0;
+        $pagerStokAkhir = null;
+
+        // 2. Buat kondisi: true jika petani dipilih TAPI tidak punya data kopi masuk
+        $petaniDipilihTanpaData = !empty($filter['petani']) && empty($rekapPetani);
+
+        // 3. Hanya jalankan perhitungan stok jika kondisi di atas TIDAK terpenuhi
+        if (!$petaniDipilihTanpaData) {
+            list($stokAkhirPerJenis, $pagerStokAkhir) = $this->getStokAkhir($filter, $perPageStok, $pageStok);
+
+            // Pastikan $stokAkhirPerJenis tidak kosong sebelum menghitung total global
+            if (!empty($stokAkhirPerJenis)) {
+                $allStokData = $this->getStokAkhir($filter, 0, 1, false);
+                $totalStokGlobal = array_sum(array_column($allStokData, 'stok_akhir'));
+            }
+        }
+        // [AKHIR PERUBAHAN]
 
         $data = [
             'petaniList'        => $petaniList,
@@ -69,6 +87,23 @@ class KomersialRekapKopi extends BaseController
             'perPageKeluar'     => $perPageKeluar,
             'pagerStokAkhir'    => $pagerStokAkhir,
             'perPageStok'       => $perPageStok,
+        ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan Komersial',
+                'url'   => site_url('admin-komersial/laporan'),
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ],
+            [
+                'title' => 'Laporan Rekap Kopi',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ]
         ];
 
         return view('admin_komersial/laporan/rekap_kopi', $data);
@@ -210,7 +245,7 @@ class KomersialRekapKopi extends BaseController
             $keluar = $totalKeluar[$namaJenis] ?? 0;
 
             // Stok akhir tidak boleh negatif
-            $hasilStok = $masuk - $keluar;
+            $hasilStok = max(0, $masuk - $keluar);
 
             $stokAkhir[] = [
                 'jenis_kopi' => $namaJenis,

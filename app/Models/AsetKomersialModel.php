@@ -56,4 +56,16 @@ class AsetKomersialModel extends Model
         // Kembalikan semua hasil tanpa paginasi
         return $builder->findAll();
     }
+    public function getTotalNilaiByFilter($tahun)
+    {
+        $builder = $this->selectSum('nilai_perolehan', 'total_nilai');
+
+        if ($tahun && $tahun != 'semua') {
+            $builder->where('tahun_perolehan', $tahun);
+        }
+
+        $result = $builder->get()->getRow();
+
+        return $result ? (float) $result->total_nilai : 0;
+    }
 }

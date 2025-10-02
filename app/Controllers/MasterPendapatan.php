@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\MasterPendapatanModel;
+use App\Models\LogAktivitasModel;
 
 class MasterPendapatan extends BaseController
 {
@@ -13,6 +14,17 @@ class MasterPendapatan extends BaseController
     {
         $this->pendapatanModel = new MasterPendapatanModel();
         helper('form');
+    }
+
+    private function logAktivitas($aktivitas, $deskripsi, $bku_id = null)
+    {
+        $logModel = new LogAktivitasModel();
+        $logModel->save([
+            'username'  => session()->get('username') ?? 'System', // Ambil username dari session
+            'aktivitas' => $aktivitas,
+            'deskripsi' => $deskripsi,
+            'bku_id'    => $bku_id
+        ]);
     }
 
     /**
@@ -56,7 +68,8 @@ class MasterPendapatan extends BaseController
             'nama_pendapatan' => $this->request->getVar('nama_pendapatan'),
             'deskripsi' => $this->request->getVar('deskripsi'),
         ]);
-
+        // menambahkan log aktivitas
+        $this->logAktivitas('TAMBAH', "Menambahkan jenis pendapatan baru: " . $this->request->getVar('nama_pendapatan'));
         session()->setFlashdata('success', 'Data pendapatan berhasil ditambahkan.');
         return redirect()->to('/master-pendapatan');
     }
@@ -75,7 +88,6 @@ class MasterPendapatan extends BaseController
         if (empty($data['pendapatan'])) {
             throw new \CodeIgniter\Exceptions\PageNotFoundException('Data pendapatan tidak ditemukan.');
         }
-
         return view('admin_keuangan/master_pendapatan/edit', $data);
     }
 
@@ -104,7 +116,8 @@ class MasterPendapatan extends BaseController
             'nama_pendapatan' => $this->request->getVar('nama_pendapatan'),
             'deskripsi' => $this->request->getVar('deskripsi'),
         ]);
-
+        // menambahkan log aktivitas
+        $this->logAktivitas('EDIT', "Memperbarui jenis pendapatan ID {$id}: " . $this->request->getVar('nama_pendapatan'));
         session()->setFlashdata('success', 'Data pendapatan berhasil diperbarui.');
         return redirect()->to('/master-pendapatan');
     }
@@ -114,8 +127,27 @@ class MasterPendapatan extends BaseController
      */
     public function delete($id = null)
     {
-        $this->pendapatanModel->delete($id);
-        session()->setFlashdata('success', 'Data pendapatan berhasil dihapus.');
+        // [DIUBAH] Ambil data berdasarkan ID SEBELUM dihapus
+        $data = $this->pendapatanModel->find($id);
+
+        // Lakukan pengecekan apakah data ditemukan
+        if ($data) {
+            // Simpan nama komponen untuk dicatat di log
+            $namaPendapatan = $data['nama_pendapatan'];
+
+            // Hapus data dari database
+            $this->pendapatanModel->delete($id);
+
+            // Catat aktivitas dengan nama yang sudah disimpan
+            $this->logAktivitas('HAPUS', "Menghapus jenis pendapatan: '" . $namaPendapatan . "'");
+
+            session()->setFlashdata('success', 'Data pendapatan berhasil dihapus.');
+        } else {
+            // Jika data tidak ditemukan, beri pesan error
+            session()->setFlashdata('error', 'Data pendapatan tidak ditemukan atau sudah dihapus.');
+        }
+
+        // Redirect kembali ke halaman utama
         return redirect()->to('/master-pendapatan');
     }
 

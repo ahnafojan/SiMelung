@@ -13,19 +13,38 @@ class JenisPohon extends BaseController
     public function __construct()
     {
         $this->jenisPohonModel = new JenisPohonModel();
-        $this->permissionModel = new PermissionRequestModel(); // 3. Inisialisasi model
+        $this->permissionModel = new PermissionRequestModel();
         helper(['date']);
     }
 
     public function index()
     {
         $data['jenisPohon'] = $this->jenisPohonModel->findAll();
-        if (!empty($data['jenisPohon'])) {
+
+        // Ambil ID admin yang sedang login
+        $requesterId = session()->get('user_id');
+
+        // Tambahkan status permission untuk setiap jenis pohon
+        if (!empty($data['jenisPohon']) && !empty($requesterId)) {
             foreach ($data['jenisPohon'] as &$jenis) {
-                $jenis['can_edit'] = $this->hasActivePermission($jenis['id'], 'edit');
-                $jenis['can_delete'] = $this->hasActivePermission($jenis['id'], 'delete');
+                $jenis['edit_status'] = $this->getPermissionStatus($jenis['id'], 'edit');
+                $jenis['delete_status'] = $this->getPermissionStatus($jenis['id'], 'delete');
             }
         }
+
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Daftar Jenis Pohon',
+                'url'   => '#',
+                'icon'  => 'fas fa-tree'
+            ]
+        ];
+
         return view('admin_komersial/petani/daftarpohon', $data);
     }
 
@@ -42,16 +61,6 @@ class JenisPohon extends BaseController
         return redirect()->to(site_url('/jenispohon'));
     }
 
-    /**
-     * Mengambil data untuk form edit.
-     * Catatan: Untuk kasus sederhana ini, kita bisa lewatkan data via atribut data-* di tombol.
-     * Jika data lebih kompleks, metode AJAX akan lebih baik.
-     */
-    // public function edit($id) { ... } // Tidak diperlukan untuk kasus ini
-
-    /**
-     * Memperbarui data di database.
-     */
     public function update($id)
     {
         if (!$this->hasActivePermission($id, 'edit')) {
@@ -76,15 +85,14 @@ class JenisPohon extends BaseController
             return redirect()->to(site_url('/jenispohon'));
         }
         try {
-            // Cek relasi data sebelum menghapus jika diperlukan
             $this->jenisPohonModel->delete($id);
             session()->setFlashdata('success', 'Jenis pohon berhasil dihapus.');
         } catch (\Exception $e) {
-            // Tangani error jika ada foreign key constraint
             session()->setFlashdata('error', 'Gagal menghapus data. Kemungkinan jenis pohon ini masih digunakan di data lain.');
         }
         return redirect()->to(site_url('/jenispohon'));
     }
+
     public function requestAccess()
     {
         if ($this->request->isAJAX()) {
@@ -116,12 +124,16 @@ class JenisPohon extends BaseController
                 'status'       => 'pending',
             ]);
 
+            // Hapus cache agar status terupdate
+            $cacheKey = 'permissions_jenis_pohon_user_' . $requesterId;
+            cache()->delete($cacheKey);
+
             return $this->response->setJSON(['status' => 'success', 'message' => 'Permintaan izin berhasil dikirim.']);
         }
         return redirect()->back();
     }
 
-    // 9. [FUNGSI BARU] Helper untuk mengecek izin aktif
+    // Helper untuk mengecek izin aktif
     private function hasActivePermission($jenisPohonId, $action)
     {
         $requesterId = session()->get('user_id');
@@ -139,5 +151,43 @@ class JenisPohon extends BaseController
         ])->first();
 
         return $permission ? true : false;
+    }
+
+    // Helper untuk mendapatkan status permission
+    private function getPermissionStatus($jenisPohonId, $action)
+    {
+        $requesterId = session()->get('user_id');
+        if (empty($requesterId)) {
+            return null;
+        }
+
+        // Cek izin yang 'approved' dan masih aktif
+        $approved = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $jenisPohonId,
+            'target_type'  => 'jenis_pohon',
+            'action_type'  => $action,
+            'status'       => 'approved',
+        ])->where('expires_at >', date('Y-m-d H:i:s'))->first();
+
+        if ($approved) {
+            return 'approved';
+        }
+
+        // Cek permintaan yang masih 'pending'
+        $pending = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $jenisPohonId,
+            'target_type'  => 'jenis_pohon',
+            'action_type'  => $action,
+            'status'       => 'pending'
+        ])->first();
+
+        if ($pending) {
+            return 'pending';
+        }
+
+        // Jika tidak ada, kembalikan null
+        return null;
     }
 }

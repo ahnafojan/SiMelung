@@ -36,38 +36,34 @@ class KomersialRekapAset extends BaseController
         $dataAset = $asetModelBuilder->orderBy('tahun_perolehan', 'DESC')->paginate($perPageAset, 'aset');
         $pagerAset = $this->asetModel->pager;
 
-        // --- PERBAIKAN UNTUK TypeError ---
-        // Workaround untuk pager versi lama agar filter tetap ada di link paginasi
+        // --- Workaround untuk pager agar filter tetap ada di link paginasi ---
         $queryParams = $this->request->getGet();
-        unset($queryParams['page_aset']); // Hapus parameter halaman agar tidak duplikat
+        unset($queryParams['page_aset']);
         if (!empty($queryParams)) {
-            // Gabungkan URL dasar dengan query string filter secara manual
             $pagerAset->setPath(current_url() . '?' . http_build_query($queryParams));
         } else {
             $pagerAset->setPath(current_url());
         }
-        // --- AKHIR PERBAIKAN ---
 
         // --- Logika untuk merespons AJAX ---
         if ($this->request->isAJAX()) {
 
             $table_partial = view('admin_komersial/laporan/_aset_table_partial', [
                 'aset'      => $dataAset,
-                'pagerAset' => $pagerAset
+                'pagerAset' => $pagerAset // pager tetap dikirim ke partial jika dibutuhkan
             ]);
 
-            // Hitung ulang statistik berdasarkan filter (tanpa paginasi)
-            $statsQuery = new AsetKomersialModel(); // Gunakan instance baru
-            if ($filterTahunAset && $filterTahunAset != 'semua') {
-                $statsQuery->where('tahun_perolehan', $filterTahunAset);
-            }
-            $allAset = $statsQuery->findAll();
-            $totalNilai = array_sum(array_column($allAset, 'nilai_perolehan'));
+            // [PERUBAHAN] Hitung statistik dari objek pager yang sudah ada (lebih efisien)
+            $totalItems = $pagerAset->getTotal('aset');
+            $totalNilai = $this->asetModel->getTotalNilaiByFilter($filterTahunAset); // Asumsi ada fungsi ini di model
 
             return $this->response->setJSON([
                 'table_partial' => $table_partial,
+                // [BARU] Tambahkan key pagination dan total, sama seperti controller Petani
+                'pagination'    => $pagerAset->links('aset', 'custom_pagination_template'), // Gunakan template custom
+                'total'         => $totalItems,
                 'stats' => [
-                    'total_aset'   => number_format(count($allAset), 0, ',', '.'),
+                    'total_aset'   => number_format($totalItems, 0, ',', '.'),
                     'total_nilai'  => number_format($totalNilai, 0, ',', '.'),
                     'filter_aktif' => $filterTahunAset == 'semua' ? 'Semua Tahun' : 'Tahun ' . $filterTahunAset,
                     'per_page'     => $perPageAset . ' Item'
@@ -83,6 +79,11 @@ class KomersialRekapAset extends BaseController
             'daftarTahun'   => $daftarTahunAset,
             'filterTahun'   => $filterTahunAset,
             'perPageAset'   => $perPageAset,
+        ];
+        $data['breadcrumbs'] = [
+            ['title' => 'Dashboard', 'url' => site_url('/dashboard/dashboard_komersial'), 'icon' => 'fas fa-fw fa-tachometer-alt'],
+            ['title' => 'Laporan Komersial', 'url' => site_url('admin-komersial/laporan'), 'icon' => 'fas fa-fw fa-file-alt'],
+            ['title' => 'Laporan Rekap Aset', 'url' => '#', 'icon' => 'fas fa-fw fa-tools']
         ];
 
         return view('admin_komersial/laporan/aset', $data);

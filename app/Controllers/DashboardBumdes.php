@@ -122,6 +122,13 @@ class DashboardBumdes extends BaseController
             'tahun'       => $tahun,
             'jenisLabels' => json_encode($jenisLabels),
             'jenisTotals' => json_encode($jenisTotals),
+            'breadcrumbs' => [
+                [
+                    'title' => 'Dashboard',
+                    'url'   => '#', // Halaman aktif, tidak perlu link
+                    'icon'  => 'fas fa-fw fa-tachometer-alt'
+                ]
+            ]
         ];
 
         return view('dashboard/dashboard_bumdes', $data);

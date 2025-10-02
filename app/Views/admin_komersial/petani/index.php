@@ -53,11 +53,9 @@
                         ?>
                         <div class="form-group">
                             <label>Foto Petani</label><br>
-                            <img id="previewFotoInput" src="https://via.placeholder.com/80"
-                                style="width:80px;height:80px;object-fit:cover;margin-bottom:5px;">
+                            <img id="previewFotoInput" src="https://via.placeholder.com/80" style="width:80px;height:80px;object-fit:cover;margin-bottom:5px;">
                             <input type="file" id="foto" name="foto" class="form-control-file" accept="image/*">
                         </div>
-
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
@@ -86,9 +84,10 @@
                 </thead>
                 <tbody>
                     <?php if (!empty($petani)): ?>
-                        <?php foreach ($petani as $index => $row): ?>
+                        <?php $nomor = ($currentPage - 1) * $perPage + 1; ?>
+                        <?php foreach ($petani as $row): ?>
                             <tr class="align-middle">
-                                <td><?= $index + 1 ?></td>
+                                <td><?= $nomor++ ?></td>
                                 <td><?= esc($row['user_id']) ?></td>
                                 <td><?= esc($row['nama']) ?></td>
                                 <td><?= esc($row['alamat']) ?></td>
@@ -97,54 +96,42 @@
                                 <td><?= esc($row['tempat_lahir'] . ', ' . $row['tanggal_lahir']) ?></td>
                                 <td>
                                     <?php if (!empty($row['foto'])): ?>
-                                        <img src="<?= base_url('uploads/foto_petani/' . esc($row['foto'])) ?>"
-                                            alt="Foto Petani" class="rounded" style="width:60px; height:60px; object-fit:cover;">
+                                        <img src="<?= base_url('uploads/foto_petani/' . esc($row['foto'])) ?>" alt="Foto Petani" class="rounded" style="width:60px; height:60px; object-fit:cover;">
                                     <?php else: ?>
                                         Tidak ada
                                     <?php endif; ?>
                                 </td>
                                 <td>
                                     <div class="btn-group">
-                                        <?php if ($row['can_edit']): ?>
-                                            <button class="btn btn-warning btn-sm btn-edit-petani"
-                                                data-toggle="modal" data-target="#modalEditPetani"
-                                                data-id="<?= esc($row['id']) ?>"
-                                                data-user_id="<?= esc($row['user_id']) ?>"
-                                                data-nama="<?= esc($row['nama']) ?>"
-                                                data-alamat="<?= esc($row['alamat']) ?>"
-                                                data-no_hp="<?= esc($row['no_hp']) ?>"
-                                                data-usia="<?= esc($row['usia']) ?>"
-                                                data-tempat_lahir="<?= esc($row['tempat_lahir']) ?>"
-                                                data-tanggal_lahir="<?= esc($row['tanggal_lahir']) ?>"
-                                                data-foto="<?= esc($row['foto']) ?>"
-                                                title="Edit">
+                                        <?php if ($row['edit_status'] == 'approved') : ?>
+                                            <button class="btn btn-warning btn-sm btn-edit-petani" data-toggle="modal" data-target="#modalEditPetani" data-id="<?= esc($row['id']) ?>" data-user_id="<?= esc($row['user_id']) ?>" data-nama="<?= esc($row['nama']) ?>" data-alamat="<?= esc($row['alamat']) ?>" data-no_hp="<?= esc($row['no_hp']) ?>" data-usia="<?= esc($row['usia']) ?>" data-tempat_lahir="<?= esc($row['tempat_lahir']) ?>" data-tanggal_lahir="<?= esc($row['tanggal_lahir']) ?>" data-foto="<?= esc($row['foto']) ?>" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                        <?php else: ?>
-                                            <button class="btn btn-outline-warning btn-sm btn-request-access"
-                                                data-petani-id="<?= esc($row['id']) ?>"
-                                                data-action-type="edit" title="Minta Izin Edit">
+                                        <?php elseif ($row['edit_status'] == 'pending') : ?>
+                                            <button class="btn btn-secondary btn-sm disabled" title="Permintaan sedang diproses">
+                                                <i class="fas fa-clock"></i>
+                                            </button>
+                                        <?php else : ?>
+                                            <button class="btn btn-outline-warning btn-sm btn-request-access" data-petani-id="<?= esc($row['id']) ?>" data-action-type="edit" title="Minta Izin Edit">
                                                 <i class="fas fa-lock"></i>
                                             </button>
                                         <?php endif; ?>
 
-                                        <?php if ($row['can_delete']): ?>
-                                            <button class="btn btn-danger btn-sm btn-delete-petani"
-                                                data-id="<?= esc($row['id']) ?>"
-                                                data-nama="<?= esc($row['nama']) ?>"
-                                                data-toggle="modal" data-target="#modalHapusPetani" title="Hapus">
+                                        <?php if ($row['delete_status'] == 'approved') : ?>
+                                            <button class="btn btn-danger btn-sm btn-delete-petani" data-id="<?= esc($row['id']) ?>" data-nama="<?= esc($row['nama']) ?>" data-toggle="modal" data-target="#modalHapusPetani" title="Hapus">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        <?php else: ?>
-                                            <button class="btn btn-outline-danger btn-sm btn-request-access"
-                                                data-petani-id="<?= esc($row['id']) ?>"
-                                                data-action-type="delete" title="Minta Izin Hapus">
+                                        <?php elseif ($row['delete_status'] == 'pending') : ?>
+                                            <button class="btn btn-secondary btn-sm disabled" title="Permintaan sedang diproses">
+                                                <i class="fas fa-clock"></i>
+                                            </button>
+                                        <?php else : ?>
+                                            <button class="btn btn-outline-danger btn-sm btn-request-access" data-petani-id="<?= esc($row['id']) ?>" data-action-type="delete" title="Minta Izin Hapus">
                                                 <i class="fas fa-lock"></i>
                                             </button>
                                         <?php endif; ?>
 
-                                        <a href="<?= site_url('petanipohon/index/' . $row['user_id']) ?>"
-                                            class="btn btn-success btn-sm" title="Detail Pohon">
+                                        <a href="<?= site_url('petanipohon/index/' . $row['user_id']) ?>" class="btn btn-success btn-sm" title="Detail Pohon">
                                             <i class="fas fa-seedling"></i>
                                         </a>
                                     </div>
@@ -153,23 +140,57 @@
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="12">Tidak ada data petani</td>
+                            <td colspan="9" class="text-center">Tidak ada data petani</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
+
+        <?php if (isset($pager) && $pager->getPageCount('petani') > 1): ?>
+            <div class="card-footer">
+                <div class="pagination-wrapper">
+                    <form method="get" class="per-page-selector">
+                        <label class="per-page-label">
+                            <i class="fas fa-list-ul mr-2"></i> Tampilkan
+                        </label>
+                        <div class="dropdown-container">
+                            <select name="per_page" class="per-page-select" onchange="this.form.submit()">
+                                <option value="10" <?= ($perPage == 10 ? 'selected' : '') ?>>10</option>
+                                <option value="25" <?= ($perPage == 25 ? 'selected' : '') ?>>25</option>
+                                <option value="100" <?= ($perPage == 100 ? 'selected' : '') ?>>100</option>
+                            </select>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </div>
+                        <span class="per-page-suffix">data per halaman</span>
+                    </form>
+                    <nav class="pagination-nav" aria-label="Navigasi Halaman">
+                        <?= $pager->links('petani', 'custom_pagination_template') ?>
+                    </nav>
+                    <div class="page-info">
+                        <span class="info-text">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <?php
+                            $totalItems = $pager->getTotal('petani');
+                            $startItem  = ($currentPage - 1) * $perPage + 1;
+                            $endItem    = min($currentPage * $perPage, $totalItems);
+                            ?>
+                            Menampilkan <?= $startItem ?>-<?= $endItem ?> dari <?= $totalItems ?> total petani
+                        </span>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 
     <div class="d-block d-lg-none">
         <?php if (!empty($petani)): ?>
-            <?php foreach ($petani as $index => $row): ?>
+            <?php foreach ($petani as $row): ?>
                 <div class="card shadow mb-3">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-2">
                             <?php if (!empty($row['foto'])): ?>
-                                <img src="<?= base_url('uploads/foto_petani/' . esc($row['foto'])) ?>"
-                                    alt="Foto Petani" class="rounded mr-2" style="width:60px; height:60px; object-fit:cover;">
+                                <img src="<?= base_url('uploads/foto_petani/' . esc($row['foto'])) ?>" alt="Foto Petani" class="rounded mr-2" loading="lazy" style="width:60px; height:60px; object-fit:cover;">
                             <?php endif; ?>
                             <div>
                                 <h6 class="mb-0"><?= esc($row['nama']) ?></h6>
@@ -182,58 +203,56 @@
                         <p class="mb-1"><strong>TTL:</strong> <?= esc($row['tempat_lahir'] . ', ' . $row['tanggal_lahir']) ?></p>
 
                         <div class="mt-2">
-                            <?php if ($row['can_edit']): ?>
-                                <button class="btn btn-warning btn-sm btn-edit-petani"
-                                    data-toggle="modal" data-target="#modalEditPetani"
-                                    data-id="<?= esc($row['id']) ?>"
-                                    data-user_id="<?= esc($row['user_id']) ?>"
-                                    data-nama="<?= esc($row['nama']) ?>"
-                                    data-alamat="<?= esc($row['alamat']) ?>"
-                                    data-no_hp="<?= esc($row['no_hp']) ?>"
-                                    data-usia="<?= esc($row['usia']) ?>"
-                                    data-tempat_lahir="<?= esc($row['tempat_lahir']) ?>"
-                                    data-tanggal_lahir="<?= esc($row['tanggal_lahir']) ?>"
-                                    data-foto="<?= esc($row['foto']) ?>"
-                                    title="Edit">
+                            <?php if ($row['edit_status'] == 'approved') : ?>
+                                <button class="btn btn-warning btn-sm btn-edit-petani" data-toggle="modal" data-target="#modalEditPetani" data-id="<?= esc($row['id']) ?>" data-user_id="<?= esc($row['user_id']) ?>" data-nama="<?= esc($row['nama']) ?>" data-alamat="<?= esc($row['alamat']) ?>" data-no_hp="<?= esc($row['no_hp']) ?>" data-usia="<?= esc($row['usia']) ?>" data-tempat_lahir="<?= esc($row['tempat_lahir']) ?>" data-tanggal_lahir="<?= esc($row['tanggal_lahir']) ?>" data-foto="<?= esc($row['foto']) ?>" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                            <?php else: ?>
-                                <button class="btn btn-outline-warning btn-sm btn-request-access"
-                                    data-petani-id="<?= esc($row['id']) ?>"
-                                    data-action-type="edit" title="Minta Izin Edit">
+                            <?php elseif ($row['edit_status'] == 'pending') : ?>
+                                <button class="btn btn-secondary btn-sm disabled" title="Permintaan sedang diproses">
+                                    <i class="fas fa-clock"></i>
+                                </button>
+                            <?php else : ?>
+                                <button class="btn btn-outline-warning btn-sm btn-request-access" data-petani-id="<?= esc($row['id']) ?>" data-action-type="edit" title="Minta Izin Edit">
                                     <i class="fas fa-lock"></i>
                                 </button>
                             <?php endif; ?>
 
-                            <?php if ($row['can_delete']): ?>
-                                <button class="btn btn-danger btn-sm btn-delete-petani"
-                                    data-id="<?= esc($row['id']) ?>"
-                                    data-nama="<?= esc($row['nama']) ?>"
-                                    data-toggle="modal" data-target="#modalHapusPetani" title="Hapus">
+                            <?php if ($row['delete_status'] == 'approved') : ?>
+                                <button class="btn btn-danger btn-sm btn-delete-petani" data-id="<?= esc($row['id']) ?>" data-nama="<?= esc($row['nama']) ?>" data-toggle="modal" data-target="#modalHapusPetani" title="Hapus">
                                     <i class="fas fa-trash"></i>
                                 </button>
-                            <?php else: ?>
-                                <button class="btn btn-outline-danger btn-sm btn-request-access"
-                                    data-petani-id="<?= esc($row['id']) ?>"
-                                    data-action-type="delete" title="Minta Izin Hapus">
+                            <?php elseif ($row['delete_status'] == 'pending') : ?>
+                                <button class="btn btn-secondary btn-sm disabled" title="Permintaan sedang diproses">
+                                    <i class="fas fa-clock"></i>
+                                </button>
+                            <?php else : ?>
+                                <button class="btn btn-outline-danger btn-sm btn-request-access" data-petani-id="<?= esc($row['id']) ?>" data-action-type="delete" title="Minta Izin Hapus">
                                     <i class="fas fa-lock"></i>
                                 </button>
                             <?php endif; ?>
 
-                            <a href="<?= site_url('petanipohon/index/' . $row['user_id']) ?>"
-                                class="btn btn-success btn-sm" title="Detail Pohon">
+                            <a href="<?= site_url('petanipohon/index/' . $row['user_id']) ?>" class="btn btn-success btn-sm" title="Detail Pohon">
                                 <i class="fas fa-seedling"></i>
                             </a>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
+
+            <?php if (isset($pager)): ?>
+                <div class="card shadow">
+                    <div class="card-footer">
+                        <div class="pagination-wrapper">
+                            <?= $pager->links('petani', 'custom_pagination_template') ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
         <?php else: ?>
             <p class="text-center">Tidak ada data petani</p>
         <?php endif; ?>
     </div>
-
-
 
     <div class="modal fade" id="modalEditPetani" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
@@ -277,20 +296,18 @@
                         </div>
                         <div class="form-group">
                             <label>Foto Petani</label><br>
-                            <img id="previewFotoEdit" src="https://via.placeholder.com/80" alt="Foto"
-                                style="width:80px;height:80px;object-fit:cover;margin-bottom:5px;">
+                            <img id="previewFotoEdit" src="https://via.placeholder.com/80" alt="Foto" style="width:80px;height:80px;object-fit:cover;margin-bottom:5px;">
                             <input type="file" name="foto" id="edit_foto" class="form-control-file" accept="image/*">
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-warning">Simpan</button>
+                        <button type="submit" class="btn btn-warning">Simpan Perubahan</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
-
 
     <div class="modal fade" id="modalHapusPetani" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
@@ -317,39 +334,147 @@
     </div>
 </div>
 
+<style>
+    /* CSS UNTUK PAGINATION KUSTOM */
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .per-page-selector,
+    .page-info,
+    .pagination-nav {
+        display: flex;
+        align-items: center;
+    }
+
+    .per-page-selector {
+        gap: 0.5rem;
+        color: #6c757d;
+    }
+
+    .dropdown-container {
+        position: relative;
+    }
+
+    .per-page-select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 0.375rem 1.75rem 0.375rem 0.75rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+
+    .dropdown-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #6c757d;
+    }
+
+    .page-info {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .pagination-nav .pagination {
+        margin: 0;
+    }
+
+    .pagination-nav .page-item .page-link {
+        color: #007bff;
+    }
+
+    .pagination-nav .page-item.active .page-link {
+        z-index: 3;
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    /* Responsif */
+    @media (max-width: 991.98px) {
+
+        /* target lg breakpoint */
+        .pagination-wrapper {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pagination-nav {
+            order: -1;
+            /* Pindahkan navigasi ke atas di layar kecil */
+        }
+
+        .per-page-selector,
+        .page-info {
+            display: none;
+            /* Sembunyikan per-page dan info di mobile */
+        }
+
+        .d-lg-none .pagination-wrapper {
+            justify-content: center;
+        }
+    }
+</style>
+
 <script>
-    $(function() {
-        $('.btn-edit-petani').click(function() {
-            let id = $(this).data('id');
-            let user_id = $(this).data('user_id');
-            let nama = $(this).data('nama');
-            let alamat = $(this).data('alamat');
-            let no_hp = $(this).data('no_hp');
-            let usia = $(this).data('usia');
-            let tempat_lahir = $(this).data('tempat_lahir');
-            let tanggal_lahir = $(this).data('tanggal_lahir');
+    $(document).ready(function() {
+
+        // --- Event Handler untuk Modal dan Preview ---
+
+        // 1. Mengisi data ke modal EDIT saat tombol edit diklik
+        $(document).on('click', '.btn-edit-petani', function() {
+            $('#editPetaniId').val($(this).data('id'));
+            $('#editUserId').val($(this).data('user_id'));
+            $('#editNama').val($(this).data('nama'));
+            $('#editAlamat').val($(this).data('alamat'));
+            $('#editNoHp').val($(this).data('no_hp'));
+            $('#editUsia').val($(this).data('usia'));
+            $('#editTempatLahir').val($(this).data('tempat_lahir'));
+            $('#editTanggalLahir').val($(this).data('tanggal_lahir'));
+
             let foto = $(this).data('foto');
-
-            $('#editPetaniId').val(id);
-            $('#editUserId').val(user_id);
-            $('#editNama').val(nama);
-            $('#editAlamat').val(alamat);
-            $('#editNoHp').val(no_hp);
-            $('#editUsia').val(usia);
-            $('#editTempatLahir').val(tempat_lahir);
-            $('#editTanggalLahir').val(tanggal_lahir);
-
             if (foto) {
                 $('#previewFotoEdit').attr('src', '<?= base_url("uploads/foto_petani") ?>/' + foto);
             } else {
                 $('#previewFotoEdit').attr('src', 'https://via.placeholder.com/80');
             }
-
-            $('#edit_foto').val('');
+            $('#edit_foto').val(''); // Reset input file
         });
 
+        // 2. Mengisi data ke modal HAPUS saat tombol hapus diklik
+        $(document).on('click', '.btn-delete-petani', function() {
+            const id = $(this).data('id');
+            const nama = $(this).data('nama');
+            $('#hapusPetaniNama').text(nama);
+            $('#hapusPetaniId').val(id);
+            $('#modalHapusPetani').modal('show');
+        });
 
-        // Preview foto baru sebelum submit
+        // 3. Preview foto untuk form TAMBAH
+        $('#foto').on('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#previewFotoInput').attr('src', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 4. Preview foto untuk form EDIT
         $('#edit_foto').on('change', function() {
             let reader = new FileReader();
             reader.onload = function(e) {
@@ -358,90 +483,38 @@
             reader.readAsDataURL(this.files[0]);
         });
 
-        // Perubahan di sini: Mengatur nilai input tersembunyi
-        $('.btn-delete-petani').click(function() {
-            const id = $(this).data('id');
-            const nama = $(this).data('nama');
 
-            $('#hapusPetaniNama').text(nama);
-            $('#hapusPetaniId').val(id); // Mengisi nilai input tersembunyi 'id'
-            $('#modalHapusPetani').modal('show');
-        });
-        // Saat user pilih file di input foto
-        $('#foto').on('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#previewFotoInput').attr('src', e.target.result);
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-    });
-</script>
-<script>
-    $(document).ready(function() {
-
-        // -----------------------------------------------------------
-        // FUNGSI UNTUK MEMBUKA MODAL EDIT PETANI (dari kode lama Anda)
-        // -----------------------------------------------------------
-        $('.btn-edit-petani').click(function() {
-            let id = $(this).data('id');
-            let user_id = $(this).data('user_id');
-            let nama = $(this).data('nama');
-            let alamat = $(this).data('alamat');
-            let no_hp = $(this).data('no_hp');
-            let usia = $(this).data('usia');
-            let tempat_lahir = $(this).data('tempat_lahir');
-            let tanggal_lahir = $(this).data('tanggal_lahir');
-            let foto = $(this).data('foto');
-
-            $('#editPetaniId').val(id);
-            $('#editUserId').val(user_id);
-            $('#editNama').val(nama);
-            $('#editAlamat').val(alamat);
-            $('#editNoHp').val(no_hp);
-            $('#editUsia').val(usia);
-            $('#editTempatLahir').val(tempat_lahir);
-            $('#editTanggalLahir').val(tanggal_lahir);
-
-            if (foto) {
-                $('#previewFotoEdit').attr('src', '<?= base_url("uploads/foto_petani") ?>/' + foto);
-            } else {
-                $('#previewFotoEdit').attr('src', 'https://via.placeholder.com/80');
-            }
-        });
-
-        // -----------------------------------------------------------
-        // FUNGSI UNTUK MEMBUKA MODAL HAPUS PETANI (dari kode lama Anda)
-        // -----------------------------------------------------------
-        $('.btn-delete-petani').click(function() {
-            const id = $(this).data('id');
-            const nama = $(this).data('nama');
-            $('#hapusPetaniNama').text(nama);
-            $('#hapusPetaniId').val(id);
-            $('#modalHapusPetani').modal('show');
-        });
-
-
-        // -----------------------------------------------------------
-        // FUNGSI BARU: MINTA IZIN AKSES (Request Access)
-        // -----------------------------------------------------------
-        $('.btn-request-access').on('click', function() {
+        // --- AJAX REQUEST ACCESS DENGAN RELOAD ---
+        $(document).on('click', '.btn-request-access', function() {
             const button = $(this);
             const petaniId = button.data('petani-id');
             const action = button.data('action-type');
 
+            // Ambil CSRF dari meta tag
+            const csrfTokenMeta = document.head.querySelector('meta[name="csrf_token"]');
+            const csrfTokenName = csrfTokenMeta ? csrfTokenMeta.content : null;
+            const csrfHash = '<?= csrf_hash() ?>';
+
+            if (!csrfTokenName) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Token CSRF tidak ditemukan.'
+                });
+                return;
+            }
+
+            // Nonaktifkan tombol + spinner
             button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
+            // Kirim data dengan AJAX
             $.ajax({
                 url: "<?= site_url('petani/requestAccess') ?>",
                 method: "POST",
                 data: {
                     petani_id: petaniId,
                     action_type: action,
-                    '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+                    [csrfTokenName]: csrfHash
                 },
                 dataType: "json",
                 success: function(response) {
@@ -449,35 +522,41 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Berhasil',
-                            text: response.message,
-                            timer: 2000,
-                            showConfirmButton: false
+                            text: response.message
+                        }).then(() => {
+                            location.reload(); // 🔁 Reload agar PHP update status
                         });
-
-                        // ==========================================================
-                        // INI BAGIAN PENTINGNYA: Mengubah tombol jadi ikon jam
-                        // ==========================================================
-                        button.removeClass('btn-outline-warning btn-outline-danger')
-                            .addClass('btn-secondary disabled')
-                            .html('<i class="fas fa-clock"></i>');
-                        // ==========================================================
-
                     } else {
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
-                            text: response.message,
+                            text: response.message
                         });
-                        button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                        // Kembalikan tombol ke bentuk awal
+                        button.prop('disabled', false);
+                        if (action === 'edit') {
+                            button.html('<i class="fas fa-lock"></i> Minta Edit');
+                        } else {
+                            button.html('<i class="fas fa-lock"></i> Minta Hapus');
+                        }
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Oops...',
-                        text: 'Terjadi kesalahan koneksi. Silakan coba lagi.',
+                        text: 'Terjadi kesalahan koneksi. Coba lagi.'
                     });
-                    button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+
+                    console.error('AJAX Error:', error);
+                    console.error('Response:', xhr.responseText);
+
+                    button.prop('disabled', false);
+                    if (action === 'edit') {
+                        button.html('<i class="fas fa-lock"></i> Minta Edit');
+                    } else {
+                        button.html('<i class="fas fa-lock"></i> Minta Hapus');
+                    }
                 }
             });
         });

@@ -30,6 +30,18 @@ class AsetKomersial extends Controller
             'Kendaraan Operasional',
             'Peralatan Pertanian',
         ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'), // Sesuaikan URL dashboard Anda
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Master Aset',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-tools' // Ikon yang cocok untuk data master
+            ]
+        ];
 
         return view('admin_komersial/aset/master_aset', $data);
     }
@@ -61,7 +73,18 @@ class AsetKomersial extends Controller
 
             if ($fotoFile && $fotoFile->isValid() && !$fotoFile->hasMoved()) {
                 $fotoName = $fotoFile->getRandomName();
-                $fotoFile->move(FCPATH . 'uploads/foto_aset', $fotoName);
+
+                // ====================================================================
+                // KODE ADAPTIF UNTUK PATH UPLOAD
+                // ====================================================================
+                if (ENVIRONMENT === 'development') {
+                    // Path untuk localhost (XAMPP) -> public/uploads/foto_aset
+                    $uploadPath = FCPATH . 'uploads/foto_aset';
+                } else {
+                    // Path untuk server hosting -> public_html/uploads/foto_aset
+                    $uploadPath = ROOTPATH . '../public_html/uploads/foto_aset';
+                }
+                $fotoFile->move($uploadPath, $fotoName);
             }
 
             // Simpan data ke database

@@ -9,7 +9,7 @@ use App\Models\PetaniPohonModel;
 use App\Models\StokKopiModel;
 use App\Models\PermissionRequestModel;
 
-class KopiMasuk extends Controller
+class Kopimasuk extends Controller
 {
     protected $kopiMasukModel;
     protected $petaniModel;
@@ -20,26 +20,86 @@ class KopiMasuk extends Controller
     public function __construct()
     {
         $this->kopiMasukModel = new KopiMasukModel();
-        $this->petaniModel    = new PetaniModel();
+        $this->petaniModel      = new PetaniModel();
         $this->petaniPohonModel = new PetaniPohonModel();
         $this->stokKopiModel = new StokKopiModel();
-        $this->permissionModel  = new PermissionRequestModel(); // 3. Inisialisasi model
+        $this->permissionModel  = new PermissionRequestModel();
         helper(['form', 'url', 'date']);
     }
 
     public function index()
     {
-        // cukup panggil getAll() dari model
-        $data['kopiMasuk'] = $this->kopiMasukModel->getAll();
+        if (!session()->get('user_id')) {
+            session()->setFlashdata('error', 'Anda harus login untuk mengakses halaman ini.');
+            return redirect()->to('/login');
+        }
 
-        // untuk dropdown petani
+        $perPage = $this->request->getGet('per_page') ?? 10;
+        $data['kopiMasuk'] = $this->kopiMasukModel->getAllWithPagination($perPage);
+        $data['pager'] = $this->kopiMasukModel->pager;
+        $data['currentPage'] = $data['pager']->getCurrentPage();
+        $data['perPage'] = $perPage;
         $data['petani'] = $this->petaniModel->orderBy('nama', 'ASC')->findAll();
-        if (!empty($data['kopiMasuk'])) {
-            foreach ($data['kopiMasuk'] as &$kopi) {
-                $kopi['can_edit']   = $this->hasActivePermission($kopi['id'], 'edit');
-                $kopi['can_delete'] = $this->hasActivePermission($kopi['id'], 'delete');
+
+        // ▼▼▼ MULAI BAGIAN OPTIMASI & CACHING ▼▼▼
+
+        // 1. Siapkan variabel yang dibutuhkan
+        $requesterId = session()->get('user_id');
+        $permissions = [];
+
+        // 2. Kumpulkan semua ID kopi_masuk dari data yang tampil di halaman ini
+        $kopiMasukIds = array_column($data['kopiMasuk'], 'id');
+
+        if (!empty($kopiMasukIds) && !empty($requesterId)) {
+            // 3. Buat cache key yang spesifik untuk 'kopi_masuk'
+            $cacheKey = 'permissions_kopi_masuk_user_' . $requesterId;
+
+            if (!$permissionData = cache($cacheKey)) {
+                // Jika cache kosong, ambil semua data izin untuk 'kopi_masuk'
+                $permissionData = $this->permissionModel // Pastikan model ini di-load
+                    ->where('requester_id', $requesterId)
+                    ->where('target_type', 'kopi_masuk') // <-- Target baru
+                    ->whereIn('status', ['approved', 'pending'])
+                    ->findAll();
+
+                // Simpan ke cache
+                cache()->save($cacheKey, $permissionData, 300);
+            }
+
+            // 4. Olah data izin agar mudah diakses
+            if (!empty($permissionData)) {
+                foreach ($permissionData as $perm) {
+                    if ($perm['status'] == 'approved' && strtotime($perm['expires_at']) > now('Asia/Jakarta')) {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'approved';
+                    } elseif ($perm['status'] == 'pending') {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'pending';
+                    }
+                }
             }
         }
+
+        // 5. Tetapkan status izin ke setiap baris data (tanpa query berulang)
+        if (!empty($data['kopiMasuk'])) {
+            foreach ($data['kopiMasuk'] as &$kopi) {
+                $kopi['edit_status']   = $permissions[$kopi['id']]['edit'] ?? 'none';
+                $kopi['delete_status'] = $permissions[$kopi['id']]['delete'] ?? 'none';
+            }
+        }
+
+        // ▲▲▲ SELESAI BAGIAN OPTIMASI & CACHING ▲▲▲
+
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Kopi Masuk',
+                'url'   => '#',
+                'icon'  => 'fas fa-seedling'
+            ]
+        ];
 
         return view('admin_komersial/kopi/kopi-masuk', $data);
     }
@@ -146,23 +206,20 @@ class KopiMasuk extends Controller
 
     public function update($id)
     {
-        // 5. Tambahkan pengecekan izin sebelum update
         if (!$this->hasActivePermission($id, 'edit')) {
             session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengedit data ini.');
             return redirect()->to(site_url('kopi-masuk'));
         }
 
         $db = \Config\Database::connect();
-        $db->transStart(); // Mulai transaksi
+        $db->transStart();
 
         try {
-            // 1. AMBIL DATA LAMA (SEBELUM DIUBAH)
             $dataLama = $this->kopiMasukModel->find($id);
             if (!$dataLama) {
                 throw new \Exception('Data kopi masuk yang akan diupdate tidak ditemukan.');
             }
 
-            // 2. AMBIL DATA BARU DARI FORM
             $dataBaru = [
                 'petani_user_id'  => $this->request->getPost('petani_user_id'),
                 'petani_pohon_id' => $this->request->getPost('petani_pohon_id'),
@@ -171,7 +228,6 @@ class KopiMasuk extends Controller
                 'keterangan'      => $this->request->getPost('keterangan'),
             ];
 
-            // 3. KEMBALIKAN STOK LAMA
             $petaniPohonLama = $this->petaniPohonModel->find($dataLama['petani_pohon_id']);
             if ($petaniPohonLama) {
                 $stokLama = $this->stokKopiModel
@@ -185,7 +241,6 @@ class KopiMasuk extends Controller
                 }
             }
 
-            // 4. TAMBAHKAN STOK BARU
             $petaniPohonBaru = $this->petaniPohonModel->find($dataBaru['petani_pohon_id']);
             if (!$petaniPohonBaru) {
                 throw new \Exception('Data jenis pohon petani yang baru tidak valid.');
@@ -206,10 +261,9 @@ class KopiMasuk extends Controller
                 ]);
             }
 
-            // 5. UPDATE DATA TRANSAKSI KOPI MASUK
             $this->kopiMasukModel->update($id, $dataBaru);
 
-            $db->transComplete(); // Selesaikan transaksi (commit)
+            $db->transComplete();
 
             if ($db->transStatus() === false) {
                 session()->setFlashdata('error', 'Transaksi gagal saat memperbarui data.');
@@ -217,7 +271,7 @@ class KopiMasuk extends Controller
                 session()->setFlashdata('success', 'Data kopi masuk dan stok berhasil diperbarui.');
             }
         } catch (\Exception $e) {
-            $db->transRollback(); // Batalkan transaksi jika ada error
+            $db->transRollback();
             session()->setFlashdata('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
 
@@ -226,17 +280,15 @@ class KopiMasuk extends Controller
 
     public function delete($id)
     {
-        // 6. Tambahkan pengecekan izin sebelum delete
         if (!$this->hasActivePermission($id, 'delete')) {
             session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk menghapus data ini.');
             return redirect()->to(site_url('kopi-masuk'));
         }
 
         $db = \Config\Database::connect();
-        $db->transStart(); // Mulai transaksi
+        $db->transStart();
 
         try {
-            // 1. Ambil data transaksi yang akan dihapus
             $kopiMasuk = $this->kopiMasukModel->find($id);
             if (!$kopiMasuk) {
                 throw new \Exception('Data kopi masuk tidak ditemukan.');
@@ -245,13 +297,11 @@ class KopiMasuk extends Controller
             $jumlahDihapus = (float) $kopiMasuk['jumlah'];
             $petaniPohonId = $kopiMasuk['petani_pohon_id'];
 
-            // 2. Cari detail petani dan jenis pohon untuk menemukan stok yang benar
             $petaniPohon = $this->petaniPohonModel->find($petaniPohonId);
-            if ($petaniPohon) { // Hanya proses jika relasi masih ada
+            if ($petaniPohon) {
                 $petaniId     = $petaniPohon['user_id'];
                 $jenisPohonId = $petaniPohon['jenis_pohon_id'];
 
-                // 3. Kurangi stok di tabel stok_kopi
                 $stok = $this->stokKopiModel
                     ->where('petani_id', $petaniId)
                     ->where('jenis_pohon_id', $jenisPohonId)
@@ -263,21 +313,19 @@ class KopiMasuk extends Controller
                 }
             }
 
-            // 4. Hapus data dari tabel kopi_masuk
             $this->kopiMasukModel->delete($id);
 
-            $db->transComplete(); // Selesaikan transaksi (commit)
+            $db->transComplete();
             session()->setFlashdata('success', 'Data kopi masuk berhasil dihapus dan stok telah dikurangi.');
         } catch (\Exception $e) {
-            $db->transRollback(); // Batalkan transaksi jika ada error
+            $db->transRollback();
             session()->setFlashdata('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
         }
 
         return redirect()->to(site_url('kopi-masuk'));
     }
 
-    // ... (Sisa controller Anda biarkan sama)
-    // ✅ Tampilkan stok
+
     public function stok()
     {
         $data['stokKopi'] = $this->stokKopiModel->getWithRelations();
@@ -298,7 +346,7 @@ class KopiMasuk extends Controller
                 'requester_id' => $requesterId,
                 'target_id'    => $kopiMasukId,
                 'action_type'  => $action,
-                'target_type'  => 'kopi_masuk', // Tandai ini sebagai permintaan untuk 'kopi_masuk'
+                'target_type'  => 'kopi_masuk',
                 'status'       => 'pending'
             ])->first();
 
@@ -306,6 +354,7 @@ class KopiMasuk extends Controller
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Anda sudah memiliki permintaan yang sama.']);
             }
 
+            // ✅ Simpan permintaan
             $this->permissionModel->save([
                 'requester_id' => $requesterId,
                 'target_id'    => $kopiMasukId,
@@ -314,12 +363,16 @@ class KopiMasuk extends Controller
                 'status'       => 'pending',
             ]);
 
+            // ✅ INVALIDASI CACHE AGAR STATUS UPDATE SAAT REFRESH
+            $cacheKey = 'permissions_kopi_masuk_user_' . $requesterId;
+            cache()->delete($cacheKey);
+
             return $this->response->setJSON(['status' => 'success', 'message' => 'Permintaan izin berhasil dikirim.']);
         }
         return redirect()->back();
     }
 
-    // 8. [FUNGSI BARU] Helper untuk mengecek izin aktif
+
     private function hasActivePermission($kopiMasukId, $action)
     {
         $requesterId = session()->get('user_id');
@@ -337,5 +390,42 @@ class KopiMasuk extends Controller
         ])->first();
 
         return $permission ? true : false;
+    }
+    private function getPermissionStatus($kopiMasukId, $action)
+    {
+        $requesterId = session()->get('user_id');
+        if (empty($requesterId)) {
+            return 'none'; // Status untuk user yang tidak login
+        }
+
+        // 1. Cek dulu apakah izin sudah 'approved' dan aktif
+        $approved = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id' => $kopiMasukId,
+            'target_type'  => 'kopi_masuk',
+            'action_type' => $action,
+            'status'       => 'approved',
+            'expires_at >' => date('Y-m-d H:i:s')
+        ])->first();
+
+        if ($approved) {
+            return 'approved';
+        }
+
+        // 2. Jika tidak, cek apakah ada permintaan 'pending'
+        $pending = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id' => $kopiMasukId,
+            'target_type'  => 'kopi_masuk',
+            'action_type' => $action,
+            'status'       => 'pending'
+        ])->first();
+
+        if ($pending) {
+            return 'pending';
+        }
+
+        // 3. Jika tidak keduanya, berarti belum ada aksi
+        return 'none';
     }
 }

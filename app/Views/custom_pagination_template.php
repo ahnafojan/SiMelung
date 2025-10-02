@@ -1,39 +1,46 @@
 <?php
 
 /**
- * Custom Pagination Template - BUMDES Melung
- * File: app/Views/custom_pagination_template.php
+ * @var \CodeIgniter\Pager\PagerRenderer $pager
  */
 
 $pager->setSurroundCount(2);
 ?>
 
-<ul class="pagination pagination-list">
-    <?php if ($pager->hasPreviousPage()) : ?>
-        <li class="pagination-item">
-            <a href="<?= $pager->getPreviousPage() ?>" class="pagination-link pagination-prev" aria-label="<?= lang('Pager.previous') ?>" rel="prev">
-                <i class="fas fa-chevron-left"></i>
-                <span class="d-none d-sm-inline ml-2">Sebelumnya</span>
-            </a>
-        </li>
-    <?php endif ?>
+<nav aria-label="<?= lang('Pager.pageNavigation') ?>">
+    <ul class="pagination">
+        <?php if ($pager->hasPrevious()) : ?>
+            <li class="page-item">
+                <a href="<?= $pager->getFirst() ?>" class="page-link" aria-label="<?= lang('Pager.first') ?>">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a href="<?= $pager->getPrevious() ?>" class="page-link" aria-label="<?= lang('Pager.previous') ?>">
+                    <span aria-hidden="true">&lsaquo;</span>
+                </a>
+            </li>
+        <?php endif ?>
 
-    <?php foreach ($pager->links() as $link) : ?>
-        <li class="pagination-item <?= $link['active'] ? 'active' : '' ?>">
-            <?php if ($link['active']) : ?>
-                <span class="pagination-link pagination-active" aria-current="page"><?= $link['title'] ?></span>
-            <?php else : ?>
-                <a href="<?= $link['uri'] ?>" class="pagination-link"><?= $link['title'] ?></a>
-            <?php endif ?>
-        </li>
-    <?php endforeach ?>
+        <?php foreach ($pager->links() as $link) : ?>
+            <li class="page-item <?= $link['active'] ? 'active' : '' ?>">
+                <a href="<?= $link['uri'] ?>" class="page-link">
+                    <?= $link['title'] ?>
+                </a>
+            </li>
+        <?php endforeach ?>
 
-    <?php if ($pager->hasNextPage()) : ?>
-        <li class="pagination-item">
-            <a href="<?= $pager->getNextPage() ?>" class="pagination-link pagination-next" aria-label="<?= lang('Pager.next') ?>" rel="next">
-                <span class="d-none d-sm-inline mr-2">Selanjutnya</span>
-                <i class="fas fa-chevron-right"></i>
-            </a>
-        </li>
-    <?php endif ?>
-</ul>
+        <?php if ($pager->hasNext()) : ?>
+            <li class="page-item">
+                <a href="<?= $pager->getNext() ?>" class="page-link" aria-label="<?= lang('Pager.next') ?>">
+                    <span aria-hidden="true">&rsaquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a href="<?= $pager->getLast() ?>" class="page-link" aria-label="<?= lang('Pager.last') ?>">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        <?php endif ?>
+    </ul>
+</nav>

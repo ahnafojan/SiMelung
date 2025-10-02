@@ -2,30 +2,33 @@
 
 namespace App\Controllers;
 
+// Ditambahkan: use statement untuk PHPSpreadsheet
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Dompdf\Dompdf;
+
+// Use statement yang sudah ada
 use App\Services\RekapKopiService;
 use App\Models\AsetKomersialModel;
 use App\Models\PengaturanModel;
+// Tambahkan baris ini di bawah 'use' statement lainnya
+use App\Models\ObjekWisataModel;
+use App\Models\AsetPariwisataModel;
+use Dompdf\Dompdf;
 
-// DIUBAH: Nama class dan class yang di-extend
+// Asumsi class LaporanBumdes adalah base controller Anda
 class ExportLaporanBumdes extends LaporanBumdes
 {
-
     protected $rekapService;
 
     public function __construct()
     {
-        // TETAP: Service tetap sama karena sumber data tidak berubah
         $this->rekapService = new RekapKopiService();
     }
 
-
-    // --- Export Excel ---
+    // --- FUNGSI-FUNGSI EXPORT EXCEL ---
 
     public function excelPetani()
     {
@@ -33,7 +36,7 @@ class ExportLaporanBumdes extends LaporanBumdes
             'search'     => $this->request->getGet('search') ?? '',
             'jenis_kopi' => $this->request->getGet('jenis_kopi') ?? '',
         ];
-        $rekapPetaniController = new BumdesRekapPetani();
+        $rekapPetaniController = new \App\Controllers\BumdesRekapPetani();
         $petaniData = $rekapPetaniController->_getFilteredPetaniQuery($filters)->findAll();
 
         $title = 'Laporan Data Petani Terdaftar';
@@ -153,7 +156,6 @@ class ExportLaporanBumdes extends LaporanBumdes
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        // INI BAGIAN PENTING: Memanggil fungsi template yang benar
         $this->_generateExcelTemplate($sheet, $title, $headers, $dataAset, $dataMapping, $totalRow, ['tahun_aset' => $filterTahun]);
 
         $filename = 'Laporan_Aset_Bumdes_' . date('Ymd') . '.xlsx';
@@ -164,45 +166,218 @@ class ExportLaporanBumdes extends LaporanBumdes
         $writer->save('php://output');
         exit();
     }
+    // --- FUNGSI EXPORT PARIWISATA (BARU) ---
+
+    public function excelPariwisata()
+    {
+        $wisataId = $this->request->getGet('id');
+        if (!$wisataId) {
+            die('ID Objek Wisata tidak ditemukan.');
+        }
+
+        $objekWisataModel = new ObjekWisataModel();
+        $asetPariwisataModel = new AsetPariwisataModel();
+
+        $wisata = $objekWisataModel->find($wisataId);
+
+        $dataAset = $asetPariwisataModel
+            ->select('aset_pariwisata.*') // Pilih semua kolom dari tabel aset
+            ->join('aset_wisata', 'aset_wisata.aset_id = aset_pariwisata.id')
+            ->where('aset_wisata.wisata_id', $wisataId)
+            ->findAll();
+        // ====================================================================
+
+        $title = 'Laporan Aset Pariwisata';
+        $headers = ['No', 'Nama Aset', 'Jumlah', 'Kondisi', 'Tgl Perolehan', 'Keterangan'];
+
+        // Sesuaikan mapping jika nama kolom di DB berbeda
+        $dataMapping = ['nama_aset', 'jumlah', 'kondisi', 'tanggal_perolehan', 'keterangan'];
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $this->_generateExcelTemplate($sheet, $title, $headers, $dataAset, $dataMapping, null, ['lokasi_wisata' => $wisata['nama_wisata']]);
+
+        $filename = 'Laporan_Aset_Pariwisata_' . url_title($wisata['nama_wisata'], '_', true) . '.xlsx';
+        $writer = new Xlsx($spreadsheet);
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+        exit();
+    }
+
+    public function pdfPariwisata()
+    {
+        $wisataId = $this->request->getGet('id');
+        if (!$wisataId) {
+            die('ID Objek Wisata tidak ditemukan.');
+        }
+
+        $objekWisataModel = new ObjekWisataModel();
+        $asetPariwisataModel = new AsetPariwisataModel();
+
+        $wisata = $objekWisataModel->find($wisataId);
+
+        // KODE LAMA (DIHAPUS):
+        // $dataAset = $asetPariwisataModel->where('wisata_id', $wisataId)->findAll();
+
+        // ====================================================================
+        // KODE BARU DENGAN JOIN (diterapkan juga di sini):
+        $dataAset = $asetPariwisataModel
+            ->select('aset_pariwisata.*')
+            ->join('aset_wisata', 'aset_wisata.aset_id = aset_pariwisata.id')
+            ->where('aset_wisata.wisata_id', $wisataId)
+            ->findAll();
+        // ====================================================================
+
+        $data = [
+            'title'     => 'Laporan Aset Pariwisata',
+            'subtitle'  => 'Lokasi: ' . $wisata['nama_wisata'],
+            'asetData'  => $dataAset, // Nama variabel disamakan dengan view _pariwisata_export_pdf.php
+        ];
+
+        $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
+
+        $html = view('bumdes/laporan/_pariwisata_export_pdf', $data);
+        return $this->generatePdf($html, 'laporan_aset_pariwisata_' . url_title($wisata['nama_wisata'], '_', true) . '.pdf');
+    }
 
 
-    // =================================================================================
-    // TEMPLATE GENERATOR EXCEL (LOGIKA UTAMA DARI BKU DITERAPKAN DI SINI)
-    // =================================================================================
-    private function _generateExcelTemplate(
-        &$sheet,
-        string $title,
-        array $headers,
-        array $data,
-        array $dataMapping,
-        ?array $totalRow = null,
-        ?array $filter = null
-    ) {
+    // --- FUNGSI-FUNGSI EXPORT PDF ---
+
+    public function exportRekapMasukPdf()
+    {
+        $filter = [
+            'start_date' => $this->request->getGet('start_date'),
+            'end_date'   => $this->request->getGet('end_date'),
+            'petani'     => $this->request->getGet('petani'),
+        ];
+        $rekapMasuk = $this->rekapService->getRekapKopiMasuk($filter);
+
+        $data = [
+            'title'    => 'Laporan Kopi Masuk per Petani',
+            'subtitle' => 'Periode: ' . (($filter['start_date'] ?? 'Awal') . ' s/d ' . ($filter['end_date'] ?? 'Akhir')),
+            'type'     => 'masuk',
+            'data'     => $rekapMasuk,
+        ];
+
+        $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
+
+        $html = view('bumdes/laporan/_kopi_export_pdf', $data);
+        return $this->generatePdf($html, 'laporan_kopi_masuk_bumdes_' . date('YmdHis') . '.pdf');
+    }
+
+    public function pdfKeluar()
+    {
+        $filter = $this->request->getGet();
+        $rekapKeluar = $this->rekapService->getRekapKopiKeluar($filter);
+
+        $data = [
+            'title'    => 'Laporan Kopi Keluar',
+            'subtitle' => 'Periode: ' . (($filter['start_date'] ?? 'Awal') . ' s/d ' . ($filter['end_date'] ?? 'Akhir')),
+            'type'     => 'keluar',
+            'data'     => $rekapKeluar
+        ];
+
+        $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
+
+        $html = view('bumdes/laporan/_kopi_export_pdf', $data);
+        return $this->generatePdf($html, 'laporan_kopi_keluar_bumdes_' . date('YmdHis') . '.pdf');
+    }
+
+    public function pdfStok()
+    {
+        $filter = $this->request->getGet();
+        $rekapKopiController = new \App\Controllers\BumdesRekapKopi();
+        $rekapStokData = $rekapKopiController->getStokAkhir($filter, null, null, false);
+        $rekapStok = is_array($rekapStokData) ? $rekapStokData : [];
+
+        $data = [
+            'title'    => 'Laporan Stok Akhir Kopi',
+            'subtitle' => 'Periode: ' . (($filter['start_date'] ?? 'Awal') . ' s/d ' . ($filter['end_date'] ?? 'Akhir')),
+            'type'     => 'stok',
+            'data'     => $rekapStok
+        ];
+
+        $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
+
+        $html = view('bumdes/laporan/_kopi_export_pdf', $data);
+        return $this->generatePdf($html, 'laporan_stok_kopi_bumdes_' . date('YmdHis') . '.pdf');
+    }
+
+    public function pdfPetani()
+    {
+        $filters = [
+            'search'     => $this->request->getGet('search') ?? '',
+            'jenis_kopi' => $this->request->getGet('jenis_kopi') ?? '',
+        ];
+        $rekapPetaniController = new \App\Controllers\BumdesRekapPetani();
+        $petaniData = $rekapPetaniController->_getFilteredPetaniQuery($filters)->findAll();
+
+        $data = [
+            'title'      => 'Laporan Data Petani Terdaftar',
+            'subtitle'   => 'Diawasi oleh BUMDES Pusat',
+            'petaniData' => $petaniData
+        ];
+
+        $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
+
+        $html = view('bumdes/laporan/_petani_export_pdf', $data);
+        return $this->generatePdf($html, 'laporan_petani_bumdes_' . date('YmdHis') . '.pdf');
+    }
+
+    public function pdfAset()
+    {
+        $asetModel = new AsetKomersialModel();
+        $filterTahun = $this->request->getGet('tahun_aset') ?? 'semua';
+        $query = $asetModel;
+        if ($filterTahun !== 'semua') {
+            $query->where('tahun_perolehan', $filterTahun);
+        }
+        $dataAset = $query->orderBy('tahun_perolehan', 'DESC')->findAll();
+
+        $data = [
+            'title'       => 'Laporan Aset Produksi',
+            'subtitle'    => 'Filter Tahun: ' . ($filterTahun == 'semua' ? 'Semua Tahun' : $filterTahun),
+            'asetData'    => $dataAset,
+        ];
+
+        $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
+
+        $html = view('bumdes/laporan/_aset_export_pdf', $data);
+        return $this->generatePdf($html, 'laporan_aset_produksi_bumdes_' . date('YmdHis') . '.pdf');
+    }
+
+
+    // --- FUNGSI HELPER ---
+
+    private function _generateExcelTemplate(&$sheet, string $title, array $headers, array $data, array $dataMapping, ?array $totalRow = null, ?array $filter = null)
+    {
         $pengaturanModel = new PengaturanModel();
+        // DIUBAH: Hanya mengambil data yang relevan untuk BUMDES
         $ketua = $pengaturanModel->where('meta_key', 'ketua_bumdes')->first()['meta_value'] ?? 'NAMA KETUA';
-        $bendahara = $pengaturanModel->where('meta_key', 'bendahara_bumdes')->first()['meta_value'] ?? 'NAMA BENDAHARA';
         $lokasi = $pengaturanModel->where('meta_key', 'lokasi_laporan')->first()['meta_value'] ?? 'LOKASI';
         $bulanIndonesia = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'];
 
         $endCol = count($headers);
         $endColStr = Coordinate::stringFromColumnIndex($endCol);
 
-        // --- JUDUL LAPORAN ---
         $sheet->mergeCells('A1:' . $endColStr . '1')->setCellValue('A1', 'BADAN USAHA MILIK DESA "ALAM LESTARI"');
         $sheet->mergeCells('A2:' . $endColStr . '2')->setCellValue('A2', strtoupper($title));
-
         $periode = 'Keseluruhan';
         if (!empty($filter['start_date']) && !empty($filter['end_date'])) {
             $periode = date('d/m/Y', strtotime($filter['start_date'])) . ' s/d ' . date('d/m/Y', strtotime($filter['end_date']));
         } elseif (!empty($filter['tahun_aset']) && $filter['tahun_aset'] != 'semua') {
             $periode = 'Tahun ' . $filter['tahun_aset'];
+        } elseif (!empty($filter['lokasi_wisata'])) {
+            $periode = 'Lokasi: ' . $filter['lokasi_wisata'];
         }
+        $sheet->mergeCells('A3:' . $endColStr . '3')->setCellValue('A3', 'DETAIL: ' . $periode); // Ganti kata 'PERIODE' agar lebih umum
         $sheet->mergeCells('A3:' . $endColStr . '3')->setCellValue('A3', 'PERIODE: ' . $periode);
-
         $sheet->getStyle('A1:A3')->getFont()->setBold(true);
         $sheet->getStyle('A1:A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // --- HEADER TABEL ---
         $headerRow = 5;
         foreach ($headers as $index => $header) {
             $colStr = Coordinate::stringFromColumnIndex($index + 1);
@@ -211,14 +386,12 @@ class ExportLaporanBumdes extends LaporanBumdes
         $sheet->getStyle('A' . $headerRow . ':' . $endColStr . $headerRow)->getFont()->setBold(true);
         $sheet->getStyle('A' . $headerRow . ':' . $endColStr . $headerRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // --- ISI DATA ---
         $currentRow = $headerRow + 1;
         foreach ($data as $index => $item) {
-            $sheet->setCellValue('A' . $currentRow, $index + 1); // Kolom Nomor
+            $sheet->setCellValue('A' . $currentRow, $index + 1);
             foreach ($dataMapping as $colIndex => $key) {
-                $targetCol = Coordinate::stringFromColumnIndex($colIndex + 2); // Mulai dari kolom B
+                $targetCol = Coordinate::stringFromColumnIndex($colIndex + 2);
                 $value = $item[$key] ?? '';
-                // Formatting untuk angka
                 if (is_numeric($value)) {
                     if (strpos(strtolower($headers[$colIndex + 1]), '(kg)') !== false || strpos(strtolower($headers[$colIndex + 1]), 'rata-rata') !== false) {
                         $sheet->getCell($targetCol . $currentRow)->setValueExplicit($value, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
@@ -236,47 +409,31 @@ class ExportLaporanBumdes extends LaporanBumdes
             $currentRow++;
         }
 
-        // --- BARIS TOTAL ---
         if ($totalRow) {
-            // Tentukan kolom untuk label dan nilai total
             $labelColIndex = $totalRow['start_column'] - 1;
-            $valueColIndex = $totalRow['start_column'];
-
-            // Jika labelColIndex < 1, berarti mulai dari A, jadi kita merge A sampai sebelum value
             if ($labelColIndex < 1) $labelColIndex = 1;
-
             $labelStartColStr = Coordinate::stringFromColumnIndex(1);
             $labelEndColStr = Coordinate::stringFromColumnIndex($labelColIndex);
-            $valueColStr = Coordinate::stringFromColumnIndex($valueColIndex);
-
-            // Menggabungkan sel untuk label total
+            $valueColStr = Coordinate::stringFromColumnIndex($totalRow['start_column']);
             $sheet->mergeCells($labelStartColStr . $currentRow . ':' . $labelEndColStr . $currentRow);
             $sheet->setCellValue($labelStartColStr . $currentRow, $totalRow['cells'][0]);
-
-            // Menempatkan nilai total
             $sheet->setCellValue($valueColStr . $currentRow, $totalRow['cells'][1]);
-
             $sheet->getStyle('A' . $currentRow . ':' . $endColStr . $currentRow)->getFont()->setBold(true);
-            $currentRow++; // Pindahkan cursor ke baris selanjutnya setelah baris total
+            $currentRow++;
         }
 
-        // --- BLOK TANDA TANGAN ---
-        $rowTtd = $currentRow + 2; // Beri jarak 2 baris
-        $colTtdKanan = max(2, $endCol - 2); // Pastikan minimal di kolom B
-        $colTtdKananStr = Coordinate::stringFromColumnIndex($colTtdKanan);
+        // --- BLOK TANDA TANGAN TUNGGAL (BARU) ---
+        $rowTtd = $currentRow + 2;
+        $colTtdStart = max(2, $endCol - 2);
+        $colTtdStartStr = Coordinate::stringFromColumnIndex($colTtdStart);
 
-        $sheet->setCellValue('A' . $rowTtd, 'Mengetahui,');
-        $sheet->setCellValue('A' . ($rowTtd + 1), 'Ketua BUMDES');
-        $sheet->setCellValue('A' . ($rowTtd + 5), $ketua);
-        $sheet->getStyle('A' . ($rowTtd + 5))->getFont()->setBold(true)->setUnderline(true);
-        $sheet->getStyle('A' . $rowTtd . ':A' . ($rowTtd + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->mergeCells($colTtdStartStr . $rowTtd . ':' . $endColStr . $rowTtd)->setCellValue($colTtdStartStr . $rowTtd, $lokasi . ', ' . date('d ') . $bulanIndonesia[(int)date('n')] . date(' Y'));
+        $sheet->mergeCells($colTtdStartStr . ($rowTtd + 1) . ':' . $endColStr . ($rowTtd + 1))->setCellValue($colTtdStartStr . ($rowTtd + 1), 'Ketua BUMDES');
+        $sheet->mergeCells($colTtdStartStr . ($rowTtd + 5) . ':' . $endColStr . ($rowTtd + 5))->setCellValue($colTtdStartStr . ($rowTtd + 5), $ketua);
 
-        $sheet->mergeCells($colTtdKananStr . $rowTtd . ':' . $endColStr . $rowTtd)->setCellValue($colTtdKananStr . $rowTtd, $lokasi . ', ' . date('d ') . $bulanIndonesia[(int)date('n')] . date(' Y'));
-        $sheet->mergeCells($colTtdKananStr . ($rowTtd + 1) . ':' . $endColStr . ($rowTtd + 1))->setCellValue($colTtdKananStr . ($rowTtd + 1), 'Bendahara BUMDES');
-        $sheet->mergeCells($colTtdKananStr . ($rowTtd + 5) . ':' . $endColStr . ($rowTtd + 5))->setCellValue($colTtdKananStr . ($rowTtd + 5), $bendahara);
-        $sheet->getStyle($colTtdKananStr . ($rowTtd + 5))->getFont()->setBold(true)->setUnderline(true);
-        $sheet->getStyle($colTtdKananStr . $rowTtd . ':' . $endColStr . ($rowTtd + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
+        $signatureRange = $colTtdStartStr . $rowTtd . ':' . $endColStr . ($rowTtd + 5);
+        $sheet->getStyle($signatureRange)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle($colTtdStartStr . ($rowTtd + 5))->getFont()->setBold(true)->setUnderline(true);
 
         // --- STYLING AKHIR ---
         $dataEndRow = $totalRow ? $currentRow - 2 : $currentRow - 1;
@@ -285,136 +442,48 @@ class ExportLaporanBumdes extends LaporanBumdes
             'alignment' => ['vertical' => Alignment::VERTICAL_CENTER, 'horizontal' => Alignment::HORIZONTAL_LEFT],
         ];
         $sheet->getStyle('A' . $headerRow . ':' . $endColStr . $dataEndRow)->applyFromArray($styleArray);
-
-        // Style untuk baris total
         if ($totalRow) {
             $sheet->getStyle('A' . ($dataEndRow + 1) . ':' . $endColStr . ($dataEndRow + 1))->applyFromArray($styleArray);
         }
-
-        // Wrap text untuk header
         $sheet->getStyle('A' . $headerRow . ':' . $endColStr . $headerRow)->getAlignment()->setWrapText(true);
-
         for ($i = 1; $i <= $endCol; $i++) {
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($i))->setAutoSize(true);
         }
-    }
-
-
-
-    public function exportRekapMasukPdf()
-    {
-        $filter = [
-            'start_date' => $this->request->getGet('start_date'),
-            'end_date'   => $this->request->getGet('end_date'),
-            'petani'     => $this->request->getGet('petani'),
-        ];
-        $rekapMasuk = $this->rekapService->getRekapKopiMasuk($filter);
-
-        // DIUBAH: Path view
-        $html = view('bumdes/laporan/_kopi_export_pdf', [
-            'title'    => 'Laporan Kopi Masuk per Petani',
-            'subtitle' => 'Periode: ' .
-                (($filter['start_date'] ?? '-') . ' s/d ' . ($filter['end_date'] ?? '-')),
-            'type'     => 'masuk',
-            'data'     => $rekapMasuk,
-            'filter'   => $filter,
-        ]);
-
-        return $this->generatePdf($html, 'laporan_kopi_masuk_bumdes_' . date('YmdHis') . '.pdf');
-    }
-
-    public function pdfKeluar()
-    {
-        $filter = $this->request->getGet();
-        $rekapKeluar = $this->rekapService->getRekapKopiKeluar($filter);
-
-        // DIUBAH: Path view
-        $html = view('bumdes/laporan/_kopi_export_pdf', [
-            'title'    => 'Laporan Kopi Keluar',
-            'subtitle' => 'Periode: ' . ($filter['periode'] ?? date('d/m/Y')),
-            'type'     => 'keluar',
-            'data'     => $rekapKeluar
-        ]);
-
-        return $this->generatePdf($html, 'laporan_kopi_keluar_bumdes_' . date('YmdHis') . '.pdf');
-    }
-
-    public function pdfStok()
-    {
-        $filter = $this->request->getGet();
-        // DIUBAH: Panggil controller BumdesRekapKopi
-        $rekapKopiController = new \App\Controllers\BumdesRekapKopi();
-        $rekapStokData = $rekapKopiController->getStokAkhir($filter, null, null, false);
-        $rekapStok = is_array($rekapStokData) ? $rekapStokData : [];
-
-        // DIUBAH: Path view
-        $html = view('bumdes/laporan/_kopi_export_pdf', [
-            'title'    => 'Laporan Stok Akhir Kopi',
-            'subtitle' => 'Periode: ' . (($filter['start_date'] ?? 'Semua') . ' s/d ' . ($filter['end_date'] ?? 'Sekarang')),
-            'type'     => 'stok',
-            'data'     => $rekapStok
-        ]);
-
-        return $this->generatePdf($html, 'laporan_stok_kopi_bumdes_' . date('YmdHis') . '.pdf');
     }
 
     private function generatePdf(string $html, string $filename)
     {
         $dompdf = new Dompdf();
         $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->setPaper('A4', 'potrait');
         $dompdf->render();
-        $dompdf->stream($filename, ["Attachment" => true]);
+        $dompdf->stream($filename, ["Attachment" => false]);
         exit;
     }
 
-
-
-    public function pdfPetani()
+    private function _getLogoData(): array
     {
-        $filters = [
-            'search'     => $this->request->getGet('search') ?? '',
-            'jenis_kopi' => $this->request->getGet('jenis_kopi') ?? '',
-        ];
-        // DIUBAH: Panggil controller BumdesRekapPetani
-        $rekapPetaniController = new BumdesRekapPetani();
-        $petaniData = $rekapPetaniController->_getFilteredPetaniQuery($filters)->findAll();
+        $logoBase64 = '';
+        $pathToLogo = ROOTPATH . 'public/img/Bumdesfix.png';
 
-        $data = [
-            'title'      => 'Laporan Data Petani Terdaftar',
-            'petaniData' => $petaniData
-        ];
-
-        // DIUBAH: Path view
-        $html = view('bumdes/laporan/_petani_export_pdf', $data);
-        $filename = 'laporan_petani_bumdes_' . date('YmdHis') . '.pdf';
-        return $this->generatePdf($html, $filename);
+        if (file_exists($pathToLogo)) {
+            $logoType = pathinfo($pathToLogo, PATHINFO_EXTENSION);
+            $logoData = file_get_contents($pathToLogo);
+            $logoBase64 = 'data:image/' . $logoType . ';base64,' . base64_encode($logoData);
+        }
+        return ['logoBase64' => $logoBase64];
     }
 
-
-
-    public function pdfAset()
+    protected function _getSignatureData(): array
     {
-        // TETAP: Model Aset tidak diubah sesuai permintaan sebelumnya
-        $asetModel = new AsetKomersialModel();
-        $filterTahun = $this->request->getGet('tahun_aset') ?? 'semua';
+        $pengaturanModel = new PengaturanModel();
+        $ketuaBumdes = $pengaturanModel->where('meta_key', 'ketua_bumdes')->first()['meta_value'] ?? 'NAMA KETUA BUMDES';
+        $lokasiLaporan = $pengaturanModel->where('meta_key', 'lokasi_laporan')->first()['meta_value'] ?? 'LOKASI';
 
-        $query = $asetModel;
-        if ($filterTahun !== 'semua') {
-            $query->where('tahun_perolehan', $filterTahun);
-        }
-        $dataAset = $query->orderBy('tahun_perolehan', 'DESC')->findAll();
-
-        $data = [
-            'title'       => 'Laporan Aset Produksi',
-            'asetData'    => $dataAset,
-            'filterTahun' => $filterTahun
+        return [
+            'namaPenandatangan'    => $ketuaBumdes,
+            'jabatanPenandatangan' => 'Ketua BUMDES',
+            'lokasi'               => $lokasiLaporan,
         ];
-
-        // DIUBAH: Path view
-        $html = view('bumdes/laporan/_aset_export_pdf', $data);
-        $filename = 'laporan_aset_produksi_bumdes_' . date('YmdHis') . '.pdf';
-
-        return $this->generatePdf($html, $filename);
     }
 }

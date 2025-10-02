@@ -51,10 +51,16 @@ class BumdesRekapKopi extends BaseController
 
         list($rekapPetani, $pagerKopiMasuk) = $this->getRekapKopiMasuk($filter, $perPageMasuk, $pageMasuk);
         list($rekapPenjualan, $pagerKopiKeluar) = $this->getRekapKopiKeluar($filter, $perPageKeluar, $pageKeluar);
-        list($stokAkhirPerJenis, $pagerStokAkhir) = $this->getStokAkhir($filter, $perPageStok, $pageStok);
+        $stokAkhirPerJenis = [];
+        $totalStokGlobal = 0;
+        $pagerStokAkhir = null;
 
-        $allStokData = $this->getStokAkhir($filter, 0, 1, false);
-        $totalStokGlobal = array_sum(array_column($allStokData, 'stok_akhir'));
+        $petaniDipilihTanpaData = !empty($filter['petani']) && empty($rekapPetani);
+        if (!$petaniDipilihTanpaData) {
+            list($stokAkhirPerJenis, $pagerStokAkhir) = $this->getStokAkhir($filter, $perPageStok, $pageStok);
+            $allStokData = $this->getStokAkhir($filter, 0, 1, false);
+            $totalStokGlobal = array_sum(array_column($allStokData, 'stok_akhir'));
+        }
 
         $data = [
             'petaniList'        => $petaniList,
@@ -69,6 +75,23 @@ class BumdesRekapKopi extends BaseController
             'perPageKeluar'     => $perPageKeluar,
             'pagerStokAkhir'    => $pagerStokAkhir,
             'perPageStok'       => $perPageStok,
+        ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_bumdes'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan BUMDES',
+                'url'   => site_url('bumdes/laporan'),
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ],
+            [
+                'title' => 'Laporan Rekap Kopi',
+                'url'   => '#',
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ]
         ];
 
         // Mengarahkan ke view di dalam folder bumdes
@@ -198,7 +221,7 @@ class BumdesRekapKopi extends BaseController
             $namaJenis = $jenis['nama_jenis'];
             $masuk = $totalMasuk[$namaJenis] ?? 0;
             $keluar = $totalKeluar[$namaJenis] ?? 0;
-            $hasilStok = $masuk - $keluar;
+            $hasilStok = max(0, $masuk - $keluar);
 
             $stokAkhir[] = [
                 'jenis_kopi' => $namaJenis,

@@ -46,7 +46,7 @@
 <!-- Overlay -->
 <div id="menuOverlay" class="menu-overlay"></div>
 
-<style>
+<style id="dynamic-viewport-styles">
     /* Sembunyikan navbar lama agar tidak dobel */
     .navbar-expand-lg {
         display: none !important;
@@ -58,7 +58,7 @@
         backdrop-filter: blur(0px);
         border-bottom: 1px solid transparent;
         transition: all 0.4s ease;
-        padding: 1.2rem 0;
+        padding: 0.5rem 0;
         z-index: 1000;
     }
 
@@ -139,24 +139,26 @@
         top: 0;
         right: -350px;
         width: 320px;
-        height: 100vh;
+        height: calc(var(--vh, 1vh) * 100);
         background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
         color: #fff;
         z-index: 1100;
         opacity: 0;
         visibility: hidden;
         transition: right .35s ease, opacity .35s ease, visibility .35s ease;
-        overflow-y: auto;
+        overflow-y: hidden;
         box-shadow: -10px 0 30px rgba(0, 0, 0, .3);
         display: flex;
         flex-direction: column;
         /* penting: biar footer nempel bawah */
+        justify-content: space-between;
     }
 
     #offcanvasMenu.show {
         right: 0;
         opacity: 1;
         visibility: visible;
+
     }
 
     .menu-header {
@@ -210,8 +212,11 @@
 
     .menu-list {
         list-style: none;
-        padding: 0;
+        padding: 1rem 0;
         margin: 1rem 0;
+        flex-grow: 1;
+        /* Membuat elemen ini mengisi sisa ruang vertikal */
+        overflow-y: auto;
     }
 
     .menu-list li {
@@ -389,6 +394,21 @@
         }
     }
 </style>
+<script>
+    // Fungsi untuk menyesuaikan tinggi viewport
+    const setViewportHeight = () => {
+        // Mengukur tinggi jendela yang sebenarnya tersedia
+        const vh = window.innerHeight * 0.01;
+        // Mengatur properti kustom '--vh' di root dokumen
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    // Panggil fungsi saat halaman pertama kali dimuat
+    setViewportHeight();
+
+    // Panggil fungsi lagi setiap kali ukuran jendela berubah (misalnya, saat rotasi layar)
+    window.addEventListener('resize', setViewportHeight);
+</script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

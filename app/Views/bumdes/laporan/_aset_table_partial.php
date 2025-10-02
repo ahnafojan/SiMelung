@@ -201,7 +201,7 @@
     <?php if (!empty($aset)): ?>
         <?php $no = 1 + ($pagerAset->getCurrentPage('aset') - 1) * $pagerAset->getPerPage('aset'); ?>
         <?php foreach ($aset as $item): ?>
-            <div class="card border-0 shadow-sm mb-3">
+            <div class="card border-0 shadow-sm mb-3 aset-mobile-card">
                 <div class="card-header bg-primary text-white py-2">
                     <h6 class="mb-0 font-weight-bold">
                         <?= $no++ ?>. <?= esc($item['nama_aset']) ?>
@@ -294,17 +294,3 @@
         </div>
     <?php endif; ?>
 </div>
-
-<!-- Pagination -->
-<?php if (!empty($aset) && $pagerAset): ?>
-    <div class="d-flex justify-content-between align-items-center mt-4">
-        <div>
-            <small class="text-gray-600">
-                Menampilkan <?= count($aset) ?> dari total <?= $pagerAset->getTotal('aset') ?> data
-            </small>
-        </div>
-        <div>
-            <?= $pagerAset->links('aset', 'default_full') ?>
-        </div>
-    </div>
-<?php endif; ?>

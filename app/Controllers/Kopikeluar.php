@@ -8,7 +8,7 @@ use App\Models\StokKopiModel;
 use App\Models\PermissionRequestModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
-class KopiKeluar extends BaseController
+class Kopikeluar extends BaseController
 {
     protected $kopiKeluarModel;
     protected $kopiMasukModel;
@@ -28,31 +28,84 @@ class KopiKeluar extends BaseController
 
     public function index()
     {
-        // QUERY DIPERBARUI untuk mengambil sisa stok terkini per jenis kopi
-        $kopikeluar = $this->kopiKeluarModel
-            ->select('kopi_keluar.*, jenis_pohon.nama_jenis as nama_pohon, stok_kopi.stok as sisa_stok_jenis')
-            ->join('stok_kopi', 'kopi_keluar.stok_kopi_id = stok_kopi.id', 'left')
-            ->join('jenis_pohon', 'jenis_pohon.id = stok_kopi.jenis_pohon_id', 'left')
-            ->orderBy('kopi_keluar.tanggal', 'DESC')
-            ->orderBy('kopi_keluar.id', 'DESC')
-            ->findAll();
+        // Ambil jumlah item per halaman dari URL, default-nya 10
+        $perPage = $this->request->getVar('per_page') ?? 10;
 
-        if (!empty($kopikeluar)) {
-            foreach ($kopikeluar as &$kopi) {
-                $kopi['can_edit']   = $this->hasActivePermission($kopi['id'], 'edit');
-                $kopi['can_delete'] = $this->hasActivePermission($kopi['id'], 'delete');
+        // Ambil data menggunakan method pagination
+        $kopikeluar = $this->kopiKeluarModel->getAllWithPagination($perPage);
+
+        // ▼▼▼ MULAI BAGIAN OPTIMASI & CACHING ▼▼▼
+
+        // 1. Siapkan variabel yang dibutuhkan
+        $requesterId = session()->get('user_id');
+        $permissions = [];
+
+        // 2. Kumpulkan semua ID kopi_keluar dari data yang tampil
+        $kopiKeluarIds = array_column($kopikeluar, 'id');
+
+        if (!empty($kopiKeluarIds) && !empty($requesterId)) {
+            // 3. Buat cache key yang spesifik untuk 'kopi_keluar'
+            $cacheKey = 'permissions_kopi_keluar_user_' . $requesterId;
+
+            if (!$permissionData = cache($cacheKey)) {
+                // Jika cache kosong, ambil semua data izin untuk 'kopi_keluar'
+                $permissionData = $this->permissionModel // Pastikan model ini di-load
+                    ->where('requester_id', $requesterId)
+                    ->where('target_type', 'kopi_keluar') // <-- Target baru
+                    ->whereIn('status', ['approved', 'pending'])
+                    ->findAll();
+
+                // Simpan ke cache
+                cache()->save($cacheKey, $permissionData, 300);
+            }
+
+            // 4. Olah data izin agar mudah diakses
+            if (!empty($permissionData)) {
+                foreach ($permissionData as $perm) {
+                    if ($perm['status'] == 'approved' && strtotime($perm['expires_at']) > now('Asia/Jakarta')) {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'approved';
+                    } elseif ($perm['status'] == 'pending') {
+                        $permissions[$perm['target_id']][$perm['action_type']] = 'pending';
+                    }
+                }
             }
         }
 
+        // 5. Tetapkan status izin ke setiap baris data (tanpa query berulang)
+        if (!empty($kopikeluar)) {
+            foreach ($kopikeluar as &$kopi) {
+                $kopi['edit_status']   = $permissions[$kopi['id']]['edit'] ?? 'none';
+                $kopi['delete_status'] = $permissions[$kopi['id']]['delete'] ?? 'none';
+            }
+        }
+
+        // ▲▲▲ SELESAI BAGIAN OPTIMASI & CACHING ▲▲▲
+
+        // Kalkulasi total stok (logika ini tetap sama)
         $totalMasuk = $this->kopiMasukModel->selectSum('jumlah')->first()['jumlah'] ?? 0;
         $totalKeluar = $this->kopiKeluarModel->selectSum('jumlah')->first()['jumlah'] ?? 0;
         $stok = $totalMasuk - $totalKeluar;
 
         $data = [
-            'title'      => 'Data Kopi Keluar',
-            'kopikeluar' => $kopikeluar,
-            'stokKopi'   => $this->stokKopiModel->getWithJenis(),
-            'stok'       => $stok
+            'title'       => 'Data Kopi Keluar',
+            'kopikeluar'  => $kopikeluar,
+            'stokKopi'    => $this->stokKopiModel->getWithJenis(),
+            'stok'        => $stok,
+            'pager'       => $this->kopiKeluarModel->pager,
+            'perPage'     => $perPage,
+            'currentPage' => $this->kopiKeluarModel->pager->getCurrentPage('kopikeluar'),
+        ];
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Kopi Keluar',
+                'url'   => '#',
+                'icon'  => 'fas fa-seedling'
+            ]
         ];
         return view('admin_komersial/kopi/kopi-keluar', $data);
     }
@@ -206,6 +259,7 @@ class KopiKeluar extends BaseController
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Anda sudah memiliki permintaan yang sama.']);
             }
 
+            // ✅ Simpan permintaan
             $this->permissionModel->save([
                 'requester_id' => $requesterId,
                 'target_id'    => $kopiKeluarId,
@@ -213,6 +267,10 @@ class KopiKeluar extends BaseController
                 'action_type'  => $action,
                 'status'       => 'pending',
             ]);
+
+            // ✅ INVALIDASI CACHE AGAR STATUS UPDATE SAAT REFRESH
+            $cacheKey = 'permissions_kopi_keluar_user_' . $requesterId;
+            cache()->delete($cacheKey);
 
             return $this->response->setJSON(['status' => 'success', 'message' => 'Permintaan izin berhasil dikirim.']);
         }
@@ -237,5 +295,42 @@ class KopiKeluar extends BaseController
         ])->first();
 
         return $permission ? true : false;
+    }
+    private function getPermissionStatus($kopiKeluarId, $action)
+    {
+        $requesterId = session()->get('user_id');
+        if (empty($requesterId)) {
+            return 'none';
+        }
+
+        // 1. Cek dulu apakah izin sudah 'approved' dan aktif
+        $approved = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $kopiKeluarId,
+            'target_type'  => 'kopi_keluar',
+            'action_type'  => $action,
+            'status'       => 'approved',
+            'expires_at >' => date('Y-m-d H:i:s')
+        ])->first();
+
+        if ($approved) {
+            return 'approved';
+        }
+
+        // 2. Jika tidak, cek apakah ada permintaan 'pending'
+        $pending = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $kopiKeluarId,
+            'target_type'  => 'kopi_keluar',
+            'action_type'  => $action,
+            'status'       => 'pending'
+        ])->first();
+
+        if ($pending) {
+            return 'pending';
+        }
+
+        // 3. Jika tidak keduanya, berarti belum ada aksi
+        return 'none';
     }
 }

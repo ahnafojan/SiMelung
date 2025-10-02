@@ -150,7 +150,7 @@ unset($queryParams['page_masuk'], $queryParams['page_keluar'], $queryParams['pag
     <div class="card shadow mb-4">
         <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-warning">
-                <i class="fas fa-cash-register mr-2"></i> Rekap Kopi Keluar (Penjualan)
+                <i class="fas fa-cash-register mr-2"></i> Rekap Kopi Keluar
             </h6>
             <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
                 <a href="<?= base_url('bumdes/export/kopi/keluar/excel?' . http_build_query($filter)) ?>" class="btn btn-sm btn-success">

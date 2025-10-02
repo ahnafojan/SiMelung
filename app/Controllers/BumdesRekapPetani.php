@@ -56,9 +56,11 @@ class BumdesRekapPetani extends BaseController
 
             // Kembalikan JSON dengan format yang benar sesuai harapan JavaScript
             return $this->response->setJSON([
-                'list_view'  => $list_view_html,
-                'pagination' => $petaniPager->links('petani', 'default_full'),
-                'total'      => $petaniPager->getTotal('petani')
+                'list_view'   => $list_view_html,
+                'pagination'  => $petaniPager->links('petani', 'custom_pagination_template'),
+                'total'       => $petaniPager->getTotal('petani'),
+                'currentPage' => $petaniPager->getCurrentPage('petani'),
+                'perPage'     => $petaniPager->getPerPage('petani')
             ]);
         }
 
@@ -76,6 +78,24 @@ class BumdesRekapPetani extends BaseController
             'daftarJenisKopi'      => $daftarJenisKopi,
         ];
         $data['petaniListView'] = $this->_buildPetaniListView($rekapPetaniTerdaftar, $petaniPager);
+
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('dashboard/dashboard_bumdes'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan BUMDES',
+                'url'   => site_url('bumdes/laporan'),
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ],
+            [
+                'title' => 'Laporan Rekap Petani',
+                'url'   => '#',
+                'icon'  => 'fas fa-users'
+            ]
+        ];
 
         // Mengarahkan ke view di dalam folder bumdes
         return view('bumdes/laporan/petani', $data);
@@ -131,9 +151,10 @@ class BumdesRekapPetani extends BaseController
         }
         $mobileHtml .= '</div></div>';
 
-        // Tampilan Desktop
+        // Tampilan Desktop (Dengan penyesuaian perataan tengah)
         $desktopHtml = '<div class="card-body view-desktop p-0"><div class="table-responsive"><table class="table table-custom mb-0" width="100%">';
-        $desktopHtml .= '<thead><tr><th>No</th><th>Nama Petani</th><th>Alamat</th><th>No. HP</th><th>Jenis Kopi</th></tr></thead><tbody>';
+        // Menambahkan class="text-center" pada header tabel yang diinginkan
+        $desktopHtml .= '<thead><tr><th>No</th><th>Nama Petani</th><th class="text-center">Alamat</th><th class="text-center">No. HP</th><th class="text-center">Jenis Kopi</th></tr></thead><tbody>';
         $page = $pager->getCurrentPage('petani');
         $perPage = $pager->getPerPage('petani');
         $no = 1 + (($page - 1) * $perPage);
@@ -141,7 +162,8 @@ class BumdesRekapPetani extends BaseController
             $desktopHtml .= '<tr><td>' . $no++ . '</td>' .
                 '<td><div class="d-flex align-items-center"><div class="icon-circle bg-primary mr-3"><i class="fas fa-user text-white"></i></div>' .
                 '<div><div class="font-weight-bold text-gray-800">' . esc($petani['nama']) . '</div><div class="small text-muted">User ID: ' . esc($petani['user_id']) . '</div></div></div></td>' .
-                '<td>' . esc($petani['alamat']) . '</td><td>' . esc($petani['no_hp']) . '</td><td>' . esc($petani['jenis_kopi_list'] ?? 'Tidak Terdata') . '</td></tr>';
+                // Menambahkan class="text-center" pada sel data yang diinginkan
+                '<td class="text-center">' . esc($petani['alamat']) . '</td><td class="text-center">' . esc($petani['no_hp']) . '</td><td class="text-center">' . esc($petani['jenis_kopi_list'] ?? 'Tidak Terdata') . '</td></tr>';
         }
         $desktopHtml .= '</tbody></table></div></div>';
 

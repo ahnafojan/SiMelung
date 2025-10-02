@@ -1,6 +1,18 @@
 <?php
 // Definisikan daftar role sekali saja di sini untuk menghindari duplikasi
 $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
+
+// Cek apakah role 'keuangan' sudah ada
+$keuanganRoleExists = false;
+if (!empty($users)) {
+    foreach ($users as $user) {
+        $userRoles = explode(',', $user['roles']);
+        if (in_array('keuangan', array_map('trim', $userRoles))) {
+            $keuanganRoleExists = true;
+            break;
+        }
+    }
+}
 ?>
 
 <?= $this->extend('layouts/main_layout_admin') ?>
@@ -57,11 +69,26 @@ $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
         display: flex;
         flex-wrap: wrap;
         gap: 0.75rem;
+        align-items: flex-start;
+        /* Mengatur alignment ke atas */
     }
 
+    /* MODIFIKASI: Perubahan CSS di sini */
     .role-selector {
         position: relative;
+        text-align: center;
+        /* Membuat teks di dalamnya center */
     }
+
+    .role-selector .role-status-text {
+        display: block;
+        font-size: 0.75rem;
+        margin-top: 2px;
+        color: var(--secondary-text);
+        width: 100%;
+    }
+
+    /* AKHIR MODIFIKASI CSS */
 
     .role-selector input[type="checkbox"] {
         opacity: 0;
@@ -76,7 +103,6 @@ $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
         padding: 0.5rem 1rem;
         border: 2px solid var(--border-color);
         border-radius: 50px;
-        /* Pill shape */
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease-in-out;
@@ -94,10 +120,17 @@ $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
         background-color: #f8f9fc;
         color: #b8b8b8;
         cursor: not-allowed;
+        border-color: #e3e6f0;
     }
 
-    .role-selector:hover label:not([disabled]) {
+    .role-selector:hover label:not([for*=":disabled"]) {
         border-color: var(--primary-color);
+    }
+
+    .role-selector label[for*=":disabled"] {
+        background-color: #f8f9fc;
+        color: #b8b8b8;
+        cursor: not-allowed;
     }
 
     /* === Table Enhancements === */
@@ -168,7 +201,19 @@ $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
 
     .role-komersial {
         background-color: var(--warning-color);
-        color: #3a3b45;
+        color: var(--text-dark);
+        /* Kontras warna lebih baik */
+    }
+
+    /* === MODIFIKASI: Tambahkan dua class di bawah ini === */
+    .role-bumdes {
+        background-color: #34495e;
+        /* Warna Abu-abu Tua (Netral) */
+    }
+
+    .role-desa {
+        background-color: #c0392b;
+        /* Warna Merah Tua (Otoritas) */
     }
 
     .empty-state {
@@ -194,7 +239,7 @@ $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
         <p class="page-subtitle">Tambah, edit, dan hapus akun admin untuk berbagai divisi.</p>
     </div>
 
-    <?php if (session()->getFlashdata('success')): ?>
+    <?php if (session()->getFlashdata('success')) : ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fas fa-check-circle mr-2"></i>
             <?= session()->getFlashdata('success') ?>
@@ -230,10 +275,18 @@ $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
                         <div class="form-group">
                             <label class="form-label d-block mb-2" id="add-role-label">Pilih Role (maksimal 2)</label>
                             <div class="role-selector-group" id="add-role-container" role="group" aria-labelledby="add-role-label">
-                                <?php foreach ($roles_list as $role): ?>
+                                <?php foreach ($roles_list as $role) : ?>
+
+                                    <?php
+                                    $isKeuangan = ($role === 'keuangan');
+                                    $isDisabled = ($isKeuangan && $keuanganRoleExists);
+                                    ?>
                                     <div class="role-selector">
-                                        <input class="role-checkbox" type="checkbox" name="roles[]" value="<?= $role ?>" id="role_<?= $role ?>">
-                                        <label for="role_<?= $role ?>">Admin <?= ucfirst($role) ?></label>
+                                        <input class="role-checkbox" type="checkbox" name="roles[]" value="<?= $role ?>" id="role_<?= $role ?>" <?= $isDisabled ? 'disabled' : '' ?>>
+                                        <label for="role_<?= $role ?><?= $isDisabled ? ':disabled' : '' ?>">Admin <?= ucfirst($role) ?></label>
+                                        <?php if ($isDisabled) : ?>
+                                            <small class="role-status-text">(Sudah Ada)</small>
+                                        <?php endif; ?>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -264,8 +317,20 @@ $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php if (!empty($users)): ?>
-                                    <?php foreach ($users as $user): ?>
+                                <?php if (!empty($users)) : ?>
+                                    <?php foreach ($users as $user) : ?>
+
+                                        <?php
+                                        // 1. Ubah string role menjadi array
+                                        $userRoles = array_map('trim', explode(',', $user['roles']));
+
+                                        // 2. Cek apakah role yang dilindungi ada di dalam array
+                                        $isProtected = in_array('bumdes', $userRoles) || in_array('desa', $userRoles);
+
+                                        // 3. Siapkan atribut untuk tombol hapus
+                                        $disabledAttribute = $isProtected ? 'disabled title="User dengan role ini tidak dapat dihapus"' : '';
+                                        ?>
+
                                         <tr>
                                             <td>
                                                 <div class="user-info">
@@ -277,7 +342,7 @@ $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
                                                 <?php
                                                 $roles = explode(',', $user['roles']);
                                                 foreach ($roles as $role) {
-                                                    echo "<span class='role-badge role-" . esc(trim($role)) . " mr-1'>" . esc(ucfirst($role)) . "</span>";
+                                                    echo "<span class='role-badge role-" . esc(trim($role)) . " mr-1'>" . esc(ucfirst(str_replace('_', ' ', $role))) . "</span>";
                                                 }
                                                 ?>
                                             </td>
@@ -289,16 +354,18 @@ $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
                                                         data-roles="<?= esc($user['roles']) ?>">
                                                         <i class="fas fa-edit"></i> Edit
                                                     </button>
+
                                                     <button class="btn btn-danger btn-delete"
                                                         data-id="<?= esc($user['id']) ?>"
-                                                        data-username="<?= esc($user['username']) ?>">
+                                                        data-username="<?= esc($user['username']) ?>"
+                                                        <?= $disabledAttribute ?>>
                                                         <i class="fas fa-trash-alt"></i> Hapus
                                                     </button>
                                                 </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
-                                <?php else: ?>
+                                <?php else : ?>
                                     <tr>
                                         <td colspan="3">
                                             <div class="empty-state">
@@ -345,7 +412,7 @@ $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
                     <div class="form-group">
                         <label class="form-label d-block mb-2" id="edit-role-label">Pilih Role (maksimal 2)</label>
                         <div class="role-selector-group" id="edit-role-container" role="group" aria-labelledby="edit-role-label">
-                            <?php foreach ($roles_list as $role): ?>
+                            <?php foreach ($roles_list as $role) : ?>
                                 <div class="role-selector">
                                     <input class="edit-role-checkbox" type="checkbox" name="roles[]" value="<?= $role ?>" id="edit_role_<?= $role ?>">
                                     <label for="edit_role_<?= $role ?>">Admin <?= ucfirst($role) ?></label>
@@ -369,55 +436,82 @@ $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
 </form>
 
 <script>
-    $(document).ready(function() {
+    const keuanganRoleExists = <?= $keuanganRoleExists ? 'true' : 'false' ?>;
 
+    $(document).ready(function() {
         const MAX_ROLES = 2;
 
         /**
-         * Mengelola batasan pemilihan role pada checkbox.
-         * Checkbox lain akan dinonaktifkan saat batas maksimum tercapai.
-         * @param {string} containerId - ID dari elemen pembungkus checkbox.
+         * Fungsi tunggal untuk menerapkan semua aturan batas role.
          */
-        function handleRoleSelection(containerId) {
-            const container = $(`#${containerId}`);
-            if (!container.length) return;
+        function applyRoleLimits(container) {
+            const checkboxes = container.find('input[type="checkbox"]');
+            const checkedCount = container.find('input:checked').length;
 
-            container.on('change', 'input[type="checkbox"]', function() {
-                const checkedCount = container.find('input:checked').length;
-                const checkboxes = container.find('input[type="checkbox"]');
-
-                if (checkedCount >= MAX_ROLES) {
-                    checkboxes.not(':checked').prop('disabled', true);
-                } else {
-                    checkboxes.prop('disabled', false);
-                }
-            });
+            if (checkedCount >= MAX_ROLES) {
+                checkboxes.not(':checked').prop('disabled', true);
+            } else {
+                checkboxes.not('[data-permanent-disabled]').prop('disabled', false);
+            }
         }
 
-        handleRoleSelection('add-role-container');
-        handleRoleSelection('edit-role-container');
+        // Jalankan fungsi di atas setiap kali ada perubahan
+        $('#add-role-container, #edit-role-container').on('change', 'input[type="checkbox"]', function() {
+            const container = $(this).closest('.role-selector-group');
+            applyRoleLimits(container);
+        });
 
-        /**
-         * Mengaktifkan fitur lihat/sembunyikan password pada input.
-         */
+        // Atur kondisi awal saat modal dibuka
+        $('#editUserModal').on('show.bs.modal', function(event) {
+            const button = $(event.relatedTarget);
+            const userRoles = button.data('roles').toString().split(',').map(r => r.trim()).filter(r => r);
+            const editContainer = $('#edit-role-container');
+
+            // 1. Reset form
+            editContainer.find('.form-text.text-danger, .role-status-text').remove();
+            editContainer.find('input[type="checkbox"]')
+                .prop('checked', false).prop('disabled', false).removeAttr('data-permanent-disabled');
+
+            // 2. Isi data
+            $(this).find('#editUserId').val(button.data('id'));
+            $(this).find('#editUsername').val(button.data('username'));
+            $(this).find('#editPassword').val('');
+            userRoles.forEach(role => {
+                if (role) editContainer.find(`input[value="${role}"]`).prop('checked', true);
+            });
+
+            // 3. Aturan khusus (seperti keuangan & desa)
+            const isCurrentUserKeuangan = userRoles.includes('keuangan');
+            const keuanganCheckbox = editContainer.find('input[value="keuangan"]');
+            if (keuanganRoleExists && !isCurrentUserKeuangan) {
+                keuanganCheckbox.prop('disabled', true).attr('data-permanent-disabled', 'true');
+                keuanganCheckbox.parent().append('<small class="role-status-text">(Sudah Ada)</small>');
+            }
+            const isDesaUser = userRoles.includes('desa');
+            if (isDesaUser) {
+                editContainer.find('input[type="checkbox"]:not(:checked)').prop('disabled', true);
+            }
+
+            // ===================================================================
+            // INI PERBAIKAN FINAL UNTUK KONDISI AWAL MODAL
+            // ===================================================================
+            // Panggil fungsi utama untuk mengatur kondisi awal.
+            // Ini akan secara otomatis menonaktifkan role lain jika user 'bumdes' sudah punya 2 role.
+            applyRoleLimits(editContainer);
+        });
+
+        // --- Sisa kode helper lainnya (tidak berubah) ---
         function setupPasswordToggle() {
-            // Gunakan event delegation agar berfungsi juga untuk elemen dinamis/modal
             $(document).on('click', '.toggle-password', function() {
                 const input = $(this).closest('.input-group').find('input');
                 const icon = $(this).find('i');
                 const isPassword = input.attr('type') === 'password';
-
                 input.attr('type', isPassword ? 'text' : 'password');
                 icon.toggleClass('fa-eye fa-eye-slash');
             });
         }
-
         setupPasswordToggle();
 
-        /**
-         * Memberikan feedback loading pada tombol submit form untuk mencegah double-click.
-         * @param {string} formId - ID dari form.
-         */
         function setupFormLoading(formId) {
             $(`#${formId}`).on('submit', function() {
                 const submitButton = $(this).find('button[type="submit"]');
@@ -425,40 +519,11 @@ $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
                 submitButton.html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
             });
         }
-
         setupFormLoading('addUserForm');
         setupFormLoading('editUserForm');
-
-        // --- Modal & Action Handlers ---
-
-        // Edit Modal: Mengisi data saat modal ditampilkan
-        $('#editUserModal').on('show.bs.modal', function(event) {
-            const button = $(event.relatedTarget);
-            const modal = $(this);
-            const roles = button.data('roles').toString().split(',');
-            const editContainer = $('#edit-role-container');
-
-            modal.find('#editUserId').val(button.data('id'));
-            modal.find('#editUsername').val(button.data('username'));
-            modal.find('#editPassword').val('');
-
-            // Reset state role
-            editContainer.find('input[type="checkbox"]').prop('checked', false).prop('disabled', false);
-            roles.forEach(role => {
-                if (role.trim()) {
-                    editContainer.find(`input[value="${role.trim()}"]`).prop('checked', true);
-                }
-            });
-
-            // Trigger manual untuk mengaplikasikan logika disable jika perlu
-            editContainer.find('input:first').trigger('change');
-        });
-
-        // Delete Action: Menggunakan SweetAlert2 untuk konfirmasi
         $('.btn-delete').on('click', function() {
             const id = $(this).data('id');
             const username = $(this).data('username');
-
             Swal.fire({
                 title: 'Anda Yakin?',
                 html: `User <strong>${username}</strong> akan dihapus permanen.`,
@@ -475,7 +540,6 @@ $roles_list = ['keuangan', 'umkm', 'pariwisata', 'komersial'];
                 }
             });
         });
-
     });
 </script>
 

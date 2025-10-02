@@ -2,6 +2,9 @@
 
 namespace App\Controllers;
 
+use App\Models\AsetPariwisataModel; // <-- Pastikan ini ada
+use App\Models\ObjekWisataModel;
+
 use App\Controllers\BaseController;
 
 class DashboardController extends BaseController

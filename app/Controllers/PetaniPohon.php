@@ -5,22 +5,22 @@ namespace App\Controllers;
 use App\Models\PetaniModel;
 use App\Models\JenisPohonModel;
 use App\Models\PetaniPohonModel;
-use App\Models\PermissionRequestModel; // 1. Tambahkan model permission
+use App\Models\PermissionRequestModel;
 
 class PetaniPohon extends BaseController
 {
     protected $petaniModel;
     protected $jenisPohonModel;
     protected $petaniPohonModel;
-    protected $permissionModel; // 2. Daftarkan model permission
+    protected $permissionModel;
 
     public function __construct()
     {
         $this->petaniModel = new PetaniModel();
         $this->jenisPohonModel = new JenisPohonModel();
         $this->petaniPohonModel = new PetaniPohonModel();
-        $this->permissionModel = new PermissionRequestModel(); // 3. Inisialisasi model
-        helper(['date']); // 4. Tambahkan helper date
+        $this->permissionModel = new PermissionRequestModel();
+        helper(['date']);
     }
 
     // Tampilkan detail pohon berdasarkan user_id
@@ -39,10 +39,13 @@ class PetaniPohon extends BaseController
             ->where('petani_pohon.user_id', $user_id)
             ->findAll();
 
-        // 5. Tambahkan pengecekan izin untuk setiap data pohon
-        if (!empty($detailPohon)) {
+        // Ambil ID admin yang sedang login
+        $requesterId = session()->get('user_id');
+
+        // Tambahkan delete_status untuk setiap pohon
+        if (!empty($detailPohon) && !empty($requesterId)) {
             foreach ($detailPohon as &$pohon) {
-                $pohon['can_delete'] = $this->hasActivePermission($pohon['id'], 'delete');
+                $pohon['delete_status'] = $this->getPermissionStatus($pohon['id'], 'delete');
             }
         }
 
@@ -54,7 +57,6 @@ class PetaniPohon extends BaseController
         ]);
     }
 
-    // Simpan pohon baru (fungsi ini tidak diubah)
     // Simpan pohon baru
     public function store()
     {
@@ -85,14 +87,12 @@ class PetaniPohon extends BaseController
             ->with('success', 'Data pohon berhasil ditambahkan');
     }
 
-
-
-    // Hapus data pohon (fungsi ini dimodifikasi)
+    // Hapus data pohon
     public function delete()
     {
         $id = $this->request->getPost('id');
 
-        // 6. Tambahkan pengecekan izin sebelum menghapus
+        // Tambahkan pengecekan izin sebelum menghapus
         if (!$this->hasActivePermission($id, 'delete')) {
             return redirect()->back()->with('error', 'Akses ditolak. Anda tidak memiliki izin untuk menghapus data ini.');
         }
@@ -110,7 +110,7 @@ class PetaniPohon extends BaseController
         return redirect()->back()->with('success', 'Data pohon berhasil dihapus');
     }
 
-    // 7. [FUNGSI BARU] Untuk menangani permintaan izin via AJAX
+    // Untuk menangani permintaan izin via AJAX
     public function requestAccess()
     {
         if ($this->request->isAJAX()) {
@@ -119,19 +119,25 @@ class PetaniPohon extends BaseController
             $requesterId = session()->get('user_id');
 
             if (empty($requesterId)) {
-                return $this->response->setJSON(['status' => 'error', 'message' => 'Sesi tidak valid.'])->setStatusCode(401);
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Sesi tidak valid.'
+                ])->setStatusCode(401);
             }
 
             $existing = $this->permissionModel->where([
                 'requester_id' => $requesterId,
                 'target_id'    => $pohonId,
                 'action_type'  => $action,
-                'target_type'  => 'pohon', // Tandai ini sebagai permintaan untuk 'pohon'
+                'target_type'  => 'pohon',
                 'status'       => 'pending'
             ])->first();
 
             if ($existing) {
-                return $this->response->setJSON(['status' => 'error', 'message' => 'Anda sudah memiliki permintaan yang sama.']);
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Anda sudah memiliki permintaan yang sama.'
+                ]);
             }
 
             $this->permissionModel->save([
@@ -142,12 +148,19 @@ class PetaniPohon extends BaseController
                 'status'       => 'pending',
             ]);
 
-            return $this->response->setJSON(['status' => 'success', 'message' => 'Permintaan izin berhasil dikirim.']);
+            // Hapus cache agar status terupdate
+            $cacheKey = 'permissions_pohon_user_' . $requesterId;
+            cache()->delete($cacheKey);
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'Permintaan izin berhasil dikirim.'
+            ]);
         }
         return redirect()->back();
     }
 
-    // 8. [FUNGSI BARU] Helper untuk mengecek izin aktif
+    // Helper untuk mengecek izin aktif
     private function hasActivePermission($pohonId, $action)
     {
         $requesterId = session()->get('user_id');
@@ -165,5 +178,43 @@ class PetaniPohon extends BaseController
         ])->first();
 
         return $permission ? true : false;
+    }
+
+    // Helper untuk mendapatkan status permission
+    private function getPermissionStatus($pohonId, $action)
+    {
+        $requesterId = session()->get('user_id');
+        if (empty($requesterId)) {
+            return null;
+        }
+
+        // Cek izin yang 'approved' dan masih aktif
+        $approved = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $pohonId,
+            'target_type'  => 'pohon',
+            'action_type'  => $action,
+            'status'       => 'approved',
+        ])->where('expires_at >', date('Y-m-d H:i:s'))->first();
+
+        if ($approved) {
+            return 'approved';
+        }
+
+        // Cek permintaan yang masih 'pending'
+        $pending = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $pohonId,
+            'target_type'  => 'pohon',
+            'action_type'  => $action,
+            'status'       => 'pending'
+        ])->first();
+
+        if ($pending) {
+            return 'pending';
+        }
+
+        // Jika tidak ada, kembalikan null
+        return null;
     }
 }

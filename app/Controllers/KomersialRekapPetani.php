@@ -62,7 +62,7 @@ class KomersialRekapPetani extends BaseController
             // Kembalikan JSON dengan format yang benar sesuai harapan JavaScript
             return $this->response->setJSON([
                 'list_view'  => $list_view_html,
-                'pagination' => $petaniPager->links('petani', 'default_full'),
+                'pagination' => $petaniPager->links('petani', 'custom_pagination_template'),
                 'total'      => $petaniPager->getTotal('petani')
             ]);
         }
@@ -81,6 +81,23 @@ class KomersialRekapPetani extends BaseController
             'daftarJenisKopi'      => $daftarJenisKopi,
         ];
         $data['petaniListView'] = $this->_buildPetaniListView($rekapPetaniTerdaftar, $petaniPager);
+        $data['breadcrumbs'] = [
+            [
+                'title' => 'Dashboard',
+                'url'   => site_url('/dashboard/dashboard_komersial'),
+                'icon'  => 'fas fa-fw fa-tachometer-alt'
+            ],
+            [
+                'title' => 'Laporan Komersial',
+                'url'   => site_url('admin-komersial/laporan'),
+                'icon'  => 'fas fa-fw fa-file-alt'
+            ],
+            [
+                'title' => 'Laporan Rekap Petani',
+                'url'   => '#',
+                'icon'  => 'fas fa-users'
+            ]
+        ];
 
         return view('admin_komersial/laporan/petani', $data);
     }
@@ -115,7 +132,7 @@ class KomersialRekapPetani extends BaseController
     /**
      * [PRIVATE] Membangun HTML untuk daftar petani (AJAX).
      */
-    private function _buildPetaniListView($petaniData, $pager)
+    protected function _buildPetaniListView($petaniData, $pager)
     {
         $html = '';
         if (empty($petaniData)) {
@@ -138,7 +155,8 @@ class KomersialRekapPetani extends BaseController
 
         // Tampilan Desktop
         $desktopHtml = '<div class="card-body view-desktop p-0"><div class="table-responsive"><table class="table table-custom mb-0" width="100%">';
-        $desktopHtml .= '<thead><tr><th>No</th><th>Nama Petani</th><th>Alamat</th><th>No. HP</th><th>Jenis Kopi</th></tr></thead><tbody>';
+        // MODIFIED: Menambahkan class text-center pada header tabel
+        $desktopHtml .= '<thead><tr><th>No</th><th>Nama Petani</th><th class="text-center">Alamat</th><th class="text-center">No. HP</th><th class="text-center">Jenis Kopi</th></tr></thead><tbody>';
         $page = $pager->getCurrentPage('petani');
         $perPage = $pager->getPerPage('petani');
         $no = 1 + (($page - 1) * $perPage);
@@ -146,7 +164,8 @@ class KomersialRekapPetani extends BaseController
             $desktopHtml .= '<tr><td>' . $no++ . '</td>' .
                 '<td><div class="d-flex align-items-center"><div class="icon-circle bg-primary mr-3"><i class="fas fa-user text-white"></i></div>' .
                 '<div><div class="font-weight-bold text-gray-800">' . esc($petani['nama']) . '</div><div class="small text-muted">User ID: ' . esc($petani['user_id']) . '</div></div></div></td>' .
-                '<td>' . esc($petani['alamat']) . '</td><td>' . esc($petani['no_hp']) . '</td><td>' . esc($petani['jenis_kopi_list']) . '</td></tr>';
+                // MODIFIED: Menambahkan class text-center pada sel data (td)
+                '<td class="text-center">' . esc($petani['alamat']) . '</td><td class="text-center">' . esc($petani['no_hp']) . '</td><td class="text-center">' . esc($petani['jenis_kopi_list']) . '</td></tr>';
         }
         $desktopHtml .= '</tbody></table></div></div>';
 

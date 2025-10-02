@@ -1,9 +1,17 @@
 <?php
-// Tentukan path foto petani
-$fotoPath = FCPATH . 'uploads/foto_petani/' . $petani['foto'];
-$fotoUrl  = base_url('uploads/foto_petani/' . $petani['foto']);
+// Cek environment untuk menentukan path fisik yang benar untuk file_exists()
+if (ENVIRONMENT === 'development') {
+    // Path untuk localhost (XAMPP)
+    $fotoPath = FCPATH . 'uploads/foto_petani/' . $petani['foto'];
+} else {
+    // Path untuk server hosting
+    $fotoPath = ROOTPATH . '../public_html/uploads/foto_petani/' . $petani['foto'];
+}
 
-// Default avatar kalau file tidak ada
+// URL untuk ditampilkan di browser selalu sama karena base_url() sudah benar
+$fotoUrl = base_url('uploads/foto_petani/' . $petani['foto']);
+
+// Cek jika nama file kosong atau file tidak ditemukan di path yang benar, gunakan default
 if (empty($petani['foto']) || !file_exists($fotoPath)) {
     $fotoUrl = base_url('uploads/foto_petani/default.png');
 }
@@ -12,8 +20,6 @@ if (empty($petani['foto']) || !file_exists($fotoPath)) {
 <?= $this->extend('layouts/main_layout_admin') ?>
 
 <?= $this->section('content') ?>
-
-
 
 <div class="container-fluid py-4">
 
@@ -139,16 +145,20 @@ if (empty($petani['foto']) || !file_exists($fotoPath)) {
                                             <td><?= esc(number_format($row['luas_lahan'], 2, ',', '.')) ?></td>
                                             <td><?= esc(number_format($row['jumlah_pohon'], 0, ',', '.')) ?></td>
                                             <td>
-                                                <?php if ($row['can_delete']): ?>
-                                                    <!-- Tombol Hapus Asli jika ada izin -->
+                                                <?php if ($row['delete_status'] == 'approved') : ?>
                                                     <button class="btn btn-danger btn-sm btn-delete-pohon"
                                                         data-id="<?= esc($row['id']) ?>"
                                                         data-nama="<?= esc($row['nama_jenis']) ?>"
-                                                        data-toggle="modal" data-target="#modalHapusPohon">
+                                                        title="Hapus Data">
                                                         <i class="fas fa-trash-alt"></i> Hapus
                                                     </button>
-                                                <?php else: ?>
-                                                    <!-- Tombol Minta Izin jika tidak ada izin -->
+
+                                                <?php elseif ($row['delete_status'] == 'pending') : ?>
+                                                    <button class="btn btn-secondary btn-sm disabled" title="Permintaan hapus sedang diproses">
+                                                        <i class="fas fa-clock"></i> Menunggu
+                                                    </button>
+
+                                                <?php else : ?>
                                                     <button class="btn btn-outline-danger btn-sm btn-request-access"
                                                         data-pohon-id="<?= esc($row['id']) ?>"
                                                         data-action-type="delete"
@@ -178,7 +188,7 @@ if (empty($petani['foto']) || !file_exists($fotoPath)) {
                     <form id="formHapusPohon" method="post" action="<?= site_url('petanipohon/delete') ?>">
                         <?= csrf_field() ?>
                         <input type="hidden" name="id" id="hapusPohonId">
-                        <input type="hidden" name="user_id" id="hapusPohonUserId">
+                        <input type="hidden" name="user_id" value="<?= $petani['user_id'] ?>">
                         <div class="modal-content shadow">
                             <div class="modal-header bg-danger text-white">
                                 <h5 class="modal-title">Konfirmasi Hapus Data Pohon</h5>
@@ -202,14 +212,31 @@ if (empty($petani['foto']) || !file_exists($fotoPath)) {
         </div>
     </div>
 </div>
+
 <script>
     $(document).ready(function() {
-        // Event untuk tombol Minta Izin yang baru
+
+        // --- AJAX REQUEST ACCESS DENGAN RELOAD HALAMAN ---
         $('.btn-request-access').on('click', function() {
             const button = $(this);
             const pohonId = button.data('pohon-id');
             const action = button.data('action-type');
 
+            // Ambil CSRF dari meta tag (lebih aman)
+            const csrfTokenMeta = document.head.querySelector('meta[name="csrf_token"]');
+            const csrfToken = csrfTokenMeta ? csrfTokenMeta.content : null;
+            const csrfHash = '<?= csrf_hash() ?>';
+
+            if (!csrfToken) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Token CSRF tidak ditemukan.'
+                });
+                return;
+            }
+
+            // Nonaktifkan tombol + spinner
             button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
             $.ajax({
@@ -218,7 +245,7 @@ if (empty($petani['foto']) || !file_exists($fotoPath)) {
                 data: {
                     pohon_id: pohonId,
                     action_type: action,
-                    '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+                    [csrfToken]: csrfHash
                 },
                 dataType: "json",
                 success: function(response) {
@@ -227,30 +254,47 @@ if (empty($petani['foto']) || !file_exists($fotoPath)) {
                             icon: 'success',
                             title: 'Berhasil',
                             text: response.message
+                        }).then(() => {
+                            // 🔁 Reload halaman agar PHP render ulang status tombol
+                            location.reload();
                         });
-                        button.removeClass('btn-outline-danger').addClass('btn-secondary disabled')
-                            .html('<i class="fas fa-clock"></i>');
                     } else {
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
                             text: response.message
                         });
-                        button.prop('disabled', false).html('<i class="fas fa-lock"></i> Minta Izin');
+
+                        // Kembalikan tombol ke bentuk awal
+                        button.prop('disabled', false);
+                        if (action === 'edit') {
+                            button.html('<i class="fas fa-lock"></i> Minta Edit');
+                        } else {
+                            button.html('<i class="fas fa-lock"></i> Minta Hapus');
+                        }
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Oops...',
-                        text: 'Terjadi kesalahan koneksi.'
+                        text: 'Terjadi kesalahan koneksi. Coba lagi.'
                     });
-                    button.prop('disabled', false).html('<i class="fas fa-lock"></i> Minta Izin');
+
+                    console.error('AJAX Error:', error);
+                    console.error('Response:', xhr.responseText);
+
+                    button.prop('disabled', false);
+                    if (action === 'edit') {
+                        button.html('<i class="fas fa-lock"></i> Minta Edit');
+                    } else {
+                        button.html('<i class="fas fa-lock"></i> Minta Hapus');
+                    }
                 }
             });
         });
 
-        // Event untuk tombol Hapus yang sudah ada (untuk membuka modal)
+        // --- Event untuk tombol Hapus yang membuka modal ---
         $('.btn-delete-pohon').click(function() {
             const id = $(this).data('id');
             const nama = $(this).data('nama');
@@ -258,6 +302,8 @@ if (empty($petani['foto']) || !file_exists($fotoPath)) {
             $('#hapusPohonNama').text(nama);
             $('#modalHapusPohon').modal('show');
         });
+
     });
 </script>
+
 <?= $this->endSection() ?>
