@@ -6,12 +6,12 @@ use App\Models\PetaniModel;
 use App\Models\KopiMasukModel;
 use App\Models\KopiKeluarModel;
 use App\Models\AsetKomersialModel;
+use App\Models\UmkmModel; // Tambahkan model UMKM
 
 class LandingPage extends BaseController
 {
     public function index()
     {
-        // ... BAGIAN 1 & 2 (Petani & Grafik Kopi) tidak ada perubahan ...
         // ----------------------------------------------------
         // BAGIAN 1: Mengambil Data Petani untuk Tabel
         // ----------------------------------------------------
@@ -44,44 +44,37 @@ class LandingPage extends BaseController
         }
 
         // ----------------------------------------------------
-        // BAGIAN 3: LOGIKA BARU - Menyiapkan Ringkasan Aset Secara Dinamis
+        // BAGIAN 3: Ringkasan Aset Secara Dinamis
         // ----------------------------------------------------
         $asetModel = new AsetKomersialModel();
         $aset_summary = [];
 
-        // 1. Buat "Kamus Visual" untuk memetakan kata kunci ke ikon, warna, dan unit.
-        // Ini membuat tampilan tetap konsisten.
         $asetMapping = [
-            'Mesin Giling'         => ['icon' => 'fas fa-cogs',      'unit' => 'Unit', 'color_class' => 'bg-gradient-primary'],
-            'Mesin Pengupas'       => ['icon' => 'fas fa-fan',       'unit' => 'Unit', 'color_class' => 'bg-gradient-coffee'],
-            'Mesin Pengering'      => ['icon' => 'fas fa-wind',      'unit' => 'Unit', 'color_class' => 'bg-gradient-warning'],
-            'Gudang'               => ['icon' => 'fas fa-warehouse', 'unit' => 'Unit', 'color_class' => 'bg-gradient-success'],
-            'Kendaraan'            => ['icon' => 'fas fa-truck',     'unit' => 'Unit', 'color_class' => 'bg-gradient-info'],
-            'Peralatan'            => ['icon' => 'fas fa-tools',     'unit' => 'Set',  'color_class' => 'bg-gradient-nature'],
-            'default'              => ['icon' => 'fas fa-box',       'unit' => 'Unit', 'color_class' => 'bg-gradient-primary'] // Untuk aset "Lainnya"
+            'Mesin Giling'   => ['icon' => 'fas fa-cogs',      'unit' => 'Unit', 'color_class' => 'bg-gradient-primary'],
+            'Mesin Pengupas' => ['icon' => 'fas fa-fan',       'unit' => 'Unit', 'color_class' => 'bg-gradient-coffee'],
+            'Mesin Pengering'=> ['icon' => 'fas fa-wind',      'unit' => 'Unit', 'color_class' => 'bg-gradient-warning'],
+            'Gudang'         => ['icon' => 'fas fa-warehouse', 'unit' => 'Unit', 'color_class' => 'bg-gradient-success'],
+            'Kendaraan'      => ['icon' => 'fas fa-truck',     'unit' => 'Unit', 'color_class' => 'bg-gradient-info'],
+            'Peralatan'      => ['icon' => 'fas fa-tools',     'unit' => 'Set',  'color_class' => 'bg-gradient-nature'],
+            'default'        => ['icon' => 'fas fa-box',       'unit' => 'Unit', 'color_class' => 'bg-gradient-primary']
         ];
 
-        // 2. Ambil semua nama aset yang unik dari database.
         $uniqueAsetItems = $asetModel->distinct()->select('nama_aset')->findAll();
 
         foreach ($uniqueAsetItems as $item) {
             $namaAset = $item['nama_aset'];
-
-            // 3. Ambil semua aset dengan nama ini untuk dihitung dan dicek kondisinya.
             $asetDalamKategori = $asetModel->where('nama_aset', $namaAset)->findAll();
             $jumlah = count($asetDalamKategori);
 
             if ($jumlah > 0) {
-                // 4. Tentukan detail visual (ikon, warna, unit) dari "Kamus Visual".
-                $detailVisual = $asetMapping['default']; // Gunakan default sebagai awalan
+                $detailVisual = $asetMapping['default'];
                 foreach ($asetMapping as $keyword => $detail) {
                     if ($keyword !== 'default' && strpos($namaAset, $keyword) !== false) {
                         $detailVisual = $detail;
-                        break; // Hentikan pencarian jika kata kunci ditemukan
+                        break;
                     }
                 }
 
-                // 5. Tentukan status berdasarkan kondisi.
                 $butuhPerhatian = false;
                 foreach ($asetDalamKategori as $aset) {
                     if (in_array($aset['keterangan'], ['Perlu Perawatan', 'Rusak', 'Dalam Perbaikan'])) {
@@ -92,7 +85,6 @@ class LandingPage extends BaseController
                 $statusTeks = $butuhPerhatian ? 'Dalam Perawatan' : 'Kondisi Baik';
                 $statusClass = $butuhPerhatian ? 'maintenance' : 'good';
 
-                // 6. Kumpulkan data untuk dikirim ke view.
                 $aset_summary[] = [
                     'nama'         => $namaAset,
                     'jumlah'       => $jumlah,
@@ -106,17 +98,24 @@ class LandingPage extends BaseController
         }
 
         // ----------------------------------------------------
-        // BAGIAN 4: Menggabungkan Semua Data untuk Dikirim ke View
+        // BAGIAN 4: Data dari Menu Informasi (UMKM)
+        // ----------------------------------------------------
+        $umkmModel = new UmkmModel();
+        $umkmList = $umkmModel->findAll(); // Ambil semua data UMKM
+
+        // ----------------------------------------------------
+        // BAGIAN 5: Gabungkan Semua Data ke View
         // ----------------------------------------------------
         $data = [
-            'petani_list' => $petani_list,
-            'pager'       => $pager,
-            'perPage'     => $perPage,
-            'chartLabels'     => json_encode($labels),
-            'chartKopiMasuk'  => json_encode($dataKopiMasuk),
-            'chartKopiKeluar' => json_encode($dataKopiKeluar),
-            'chartYear'       => $currentYear,
-            'aset_summary' => $aset_summary
+            'petani_list'    => $petani_list,
+            'pager'          => $pager,
+            'perPage'        => $perPage,
+            'chartLabels'    => json_encode($labels),
+            'chartKopiMasuk' => json_encode($dataKopiMasuk),
+            'chartKopiKeluar'=> json_encode($dataKopiKeluar),
+            'chartYear'      => $currentYear,
+            'aset_summary'   => $aset_summary,
+            'umkm_list'      => $umkmList // <-- tambahan untuk pop up Informasi
         ];
 
         return view('landing/landing_page', $data);

@@ -6,6 +6,7 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'LandingPage::index');
+$routes->get('/generate-hash', 'HashController::generate');
 $routes->get('DashboardDesa', 'DashboardDesa::index');
 $routes->get('dashboard/dashboard_desa', 'DashboardDesa::index');
 //BUMDES
@@ -82,9 +83,9 @@ $routes->post('/pengaturan/komersial/update', 'Pengaturan::updateKomersial'); //
 
 
 //Pengaturan UMKM
-
-
-
+$routes->get('pengaturanumkm', 'PengaturanUmkm::export');
+$routes->get('pengaturanumkm/exportUmkmExcel', 'PengaturanUmkm::exportUmkmExcel');
+$routes->get('pengaturanumkm/exportUmkmPdf', 'PengaturanUmkm::exportUmkmPdf');
 
 //desa
 $routes->get('LaporanArusKas', 'LaporanArusKas::index');
@@ -98,6 +99,8 @@ $routes->get('Kopimasuk', 'Kopimasuk::index');
 $routes->get('Kopikeluar', 'Kopikeluar::index');
 $routes->get('ManajemenAsetKomersial', 'ManajemenAsetKomersial::index');
 
+//umkm
+$routes->get('informasi', 'Informasi::index');
 
 /*petani*/
 $routes->setAutoRoute(false);
@@ -117,6 +120,7 @@ $routes->post('kopi-masuk/requestAccess', 'KopiMasuk::requestAccess');
 $routes->post('petanipohon/requestAccess', 'PetaniPohon::requestAccess');
 $routes->post('kopikeluar/requestAccess', 'KopiKeluar::requestAccess');
 $routes->post('jenispohon/requestAccess', 'JenisPohon::requestAccess');
+$routes->post('umkm/requestAccess', 'Umkm::requestAccess');
 $routes->post('ManajemenAsetKomersial/requestAccess', 'ManajemenAsetKomersial::requestAccess');
 
 $routes->group('petanipohon', function ($routes) {
@@ -163,11 +167,6 @@ $routes->post('umkm/store', 'Umkm::store');    // tambah UMKM
 $routes->get('umkm/edit/(:num)', 'Umkm::edit/$1'); // form edit (bisa juga modal)
 $routes->post('umkm/update/(:num)', 'Umkm::update/$1'); // update
 $routes->get('umkm/delete/(:num)', 'Umkm::delete/$1');  // hapus
-
-
-
-
-
 
 // Routes Master Aset Komersial
 $routes->get('aset-komersial', 'AsetKomersial::index');
@@ -308,3 +307,5 @@ $routes->group('laporanpariwisata', ['filter' => 'auth'], function ($routes) {
     $routes->get('exportExcel', 'LaporanPariwisata::exportExcel');
     $routes->get('exportPDF', 'LaporanPariwisata::exportPDF');
 });
+
+//Laporan UMKM

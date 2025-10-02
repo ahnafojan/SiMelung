@@ -19,55 +19,52 @@ class PersetujuanKomersial extends BaseController
     }
 
     public function index()
-    {
-        $data['requests'] = $this->permissionModel
-            // Pilih semua kolom yang dibutuhkan dari berbagai tabel
-            ->select([
-                'permission_requests.*',
-                'users.username as requester_name',
-                'p_target.nama as petani_target_name', // Nama petani jika targetnya adalah petani
-                'p_owner.nama as pohon_owner_name',    // Nama petani pemilik pohon
-                'jp.nama_jenis as pohon_jenis_name',
-                'km.jumlah as kopimasuk_jumlah',            // Jumlah dari tabel kopi_masuk
-                'km.tanggal as kopimasuk_tanggal',          // Tanggal dari tabel kopi_masuk
-                'p_kopimasuk.nama as kopimasuk_petani_name',
-                'k_keluar.jumlah as kopikeluar_jumlah',
-                'k_keluar.tujuan as kopikeluar_tujuan',
-                'jp_keluar.nama_jenis as kopikeluar_jenis_kopi',
-                'jp_master.nama_jenis as jenispohon_target_name',
-                'aset.nama_aset as aset_target_name',
-                'aset.kode_aset as aset_target_kode'
-            ])
-            // Join ke tabel users untuk mendapatkan nama pemohon
-            ->join('users', 'users.id = permission_requests.requester_id', 'left')
+{
+    $data['requests'] = $this->permissionModel
+        ->select([
+            'permission_requests.*',
+            'users.username as requester_name',
+            'p_target.nama as petani_target_name',
+            'p_owner.nama as pohon_owner_name',
+            'jp.nama_jenis as pohon_jenis_name',
+            'km.jumlah as kopimasuk_jumlah',
+            'km.tanggal as kopimasuk_tanggal',
+            'p_kopimasuk.nama as kopimasuk_petani_name',
+            'k_keluar.jumlah as kopikeluar_jumlah',
+            'k_keluar.tujuan as kopikeluar_tujuan',
+            'jp_keluar.nama_jenis as kopikeluar_jenis_kopi',
+            'jp_master.nama_jenis as jenispohon_target_name',
+            'aset.nama_aset as aset_target_name',
+            'aset.kode_aset as aset_target_kode',
+            // 🔹 Tambahan untuk UMKM
+            'umkm.nama_umkm as umkm_nama',
+            'umkm.pemilik as umkm_pemilik',
+            'umkm.alamat as umkm_alamat',
+            'umkm.kontak as umkm_kontak'
+        ])
+        ->join('users', 'users.id = permission_requests.requester_id', 'left')
+        ->join('petani as p_target', 'p_target.id = permission_requests.target_id AND permission_requests.target_type = "petani"', 'left')
+        ->join('petani_pohon as pp', 'pp.id = permission_requests.target_id AND permission_requests.target_type = "pohon"', 'left')
+        ->join('petani as p_owner', 'p_owner.user_id = pp.user_id', 'left')
+        ->join('jenis_pohon as jp', 'jp.id = pp.jenis_pohon_id', 'left')
+        ->join('kopi_masuk as km', 'km.id = permission_requests.target_id AND permission_requests.target_type = "kopi_masuk"', 'left')
+        ->join('petani as p_kopimasuk', 'p_kopimasuk.user_id = km.petani_user_id', 'left')
+        ->join('kopi_keluar as k_keluar', 'k_keluar.id = permission_requests.target_id AND permission_requests.target_type = "kopi_keluar"', 'left')
+        ->join('stok_kopi as sk', 'sk.id = k_keluar.stok_kopi_id', 'left')
+        ->join('jenis_pohon as jp_keluar', 'jp_keluar.id = sk.jenis_pohon_id', 'left')
+        ->join('jenis_pohon as jp_master', 'jp_master.id = permission_requests.target_id AND permission_requests.target_type = "jenis_pohon"', 'left')
+        ->join('master_aset as aset', 'aset.id_aset = permission_requests.target_id AND permission_requests.target_type = "aset"', 'left')
+        // 🔹 JOIN baru untuk UMKM
+        ->join('umkm', 'umkm.id = permission_requests.target_id AND permission_requests.target_type = "umkm"', 'left')
 
-            // Join ke tabel petani (sebagai target) jika tipe requestnya 'petani'
-            ->join('petani as p_target', 'p_target.id = permission_requests.target_id AND permission_requests.target_type = "petani"', 'left')
-            // Join ke tabel petani_pohon jika tipe requestnya 'pohon'
-            ->join('petani_pohon as pp', 'pp.id = permission_requests.target_id AND permission_requests.target_type = "pohon"', 'left')
-            // Dari petani_pohon, join ke tabel petani (sebagai pemilik pohon)
-            ->join('petani as p_owner', 'p_owner.user_id = pp.user_id', 'left')
-            // Dari petani_pohon, join ke tabel jenis_pohon
-            ->join('jenis_pohon as jp', 'jp.id = pp.jenis_pohon_id', 'left')
-            // JOIN BARU: untuk target 'kopi_masuk'
-            ->join('kopi_masuk as km', 'km.id = permission_requests.target_id AND permission_requests.target_type = "kopi_masuk"', 'left')
-            ->join('petani as p_kopimasuk', 'p_kopimasuk.user_id = km.petani_user_id', 'left')
-            //kopi keluar 
-            ->join('kopi_keluar as k_keluar', 'k_keluar.id = permission_requests.target_id AND permission_requests.target_type = "kopi_keluar"', 'left')
-            ->join('stok_kopi as sk', 'sk.id = k_keluar.stok_kopi_id', 'left')
-            ->join('jenis_pohon as jp_keluar', 'jp_keluar.id = sk.jenis_pohon_id', 'left')
-            // **JOIN BARU** untuk target 'jenis_pohon'
-            ->join('jenis_pohon as jp_master', 'jp_master.id = permission_requests.target_id AND permission_requests.target_type = "jenis_pohon"', 'left')
-            //aset
-            ->join('master_aset as aset', 'aset.id_aset = permission_requests.target_id AND permission_requests.target_type = "aset"', 'left')
+        ->where('permission_requests.status', 'pending')
+        ->orderBy('permission_requests.created_at', 'DESC')
+        ->paginate(10); // 🔹 ganti findAll() jadi paginate
 
-            ->where('permission_requests.status', 'pending')
-            ->orderBy('permission_requests.created_at', 'DESC')
-            ->findAll();
+    $data['pager'] = $this->permissionModel->pager;
 
-        return view('bumdes/persetujuan/admin_komersial/index', $data);
-    }
-
+    return view('bumdes/persetujuan/admin_komersial/index', $data);
+}
     public function respond()
     {
         // Fungsi respond tidak perlu diubah, biarkan seperti sebelumnya

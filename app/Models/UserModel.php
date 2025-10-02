@@ -6,9 +6,9 @@ use CodeIgniter\Model;
 
 class UserModel extends Model
 {
-    protected $table            = 'users';
-    protected $primaryKey       = 'id';
-    protected $allowedFields    = ['username', 'password'];
+    protected $table         = 'users';
+    protected $primaryKey    = 'id';
+    protected $allowedFields = ['username', 'password'];
 
     public function getUserByUsername($username)
     {
@@ -24,4 +24,12 @@ class UserModel extends Model
         }
         return $user;
     }
+}
+
+// Model baru untuk tabel UMKM
+class UmkmModel extends Model
+{
+    protected $table         = 'umkm';
+    protected $primaryKey    = 'id';
+    protected $allowedFields = ['nama_umkm', 'deskripsi', 'pemilik', 'alamat', 'gmaps_url', 'kontak'];
 }

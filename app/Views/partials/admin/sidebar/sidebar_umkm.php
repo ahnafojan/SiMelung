@@ -19,10 +19,27 @@
         </a>
     </li>
 
+    <!-- Nav Item - Manajemen UMKM -->
     <li class="nav-item">
         <a class="nav-link fs-3" href="<?= site_url('umkm') ?>">
             <i class="fas fa-store"></i>
             <span>Manajemen UMKM</span>
+        </a>
+    </li>
+
+    <!-- Nav Item - Pengaturan Export -->
+    <li class="nav-item">
+        <a class="nav-link fs-3" href="<?= site_url('pengaturanumkm') ?>">
+            <i class="fas fa-file-export"></i>
+            <span>Pengaturan Export</span>
+        </a>
+    </li>
+
+    <!-- Nav Item - Informasi -->
+    <li class="nav-item">
+        <a class="nav-link fs-3" href="<?= site_url('informasi') ?>">
+            <i class="fas fa-info-circle"></i>
+            <span>Informasi</span>
         </a>
     </li>
 
