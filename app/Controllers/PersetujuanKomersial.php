@@ -3,76 +3,39 @@
 namespace App\Controllers;
 
 use App\Models\PermissionRequestModel;
-use App\Models\PetaniModel; // 1. Tambahkan PetaniModel
+use App\Models\PetaniModel; 
+use App\Models\UmkmModel; // 1. Tambahkan UmkmModel
 use CodeIgniter\Controller;
 
 class PersetujuanKomersial extends BaseController
 {
     protected $permissionModel;
-    protected $petaniModel; // 2. Daftarkan PetaniModel
+    protected $petaniModel; 
+    protected $umkmModel; // 2. Daftarkan UmkmModel
 
     public function __construct()
     {
         $this->permissionModel = new PermissionRequestModel();
-        $this->petaniModel = new PetaniModel(); // 3. Inisialisasi PetaniModel
+        $this->petaniModel = new PetaniModel(); 
+        $this->umkmModel = new UmkmModel(); // 3. Inisialisasi UmkmModel
         helper('date');
     }
 
     public function index()
-{
-    $data['requests'] = $this->permissionModel
-        ->select([
-            'permission_requests.*',
-            'users.username as requester_name',
-            'p_target.nama as petani_target_name',
-            'p_owner.nama as pohon_owner_name',
-            'jp.nama_jenis as pohon_jenis_name',
-            'km.jumlah as kopimasuk_jumlah',
-            'km.tanggal as kopimasuk_tanggal',
-            'p_kopimasuk.nama as kopimasuk_petani_name',
-            'k_keluar.jumlah as kopikeluar_jumlah',
-            'k_keluar.tujuan as kopikeluar_tujuan',
-            'jp_keluar.nama_jenis as kopikeluar_jenis_kopi',
-            'jp_master.nama_jenis as jenispohon_target_name',
-            'aset.nama_aset as aset_target_name',
-            'aset.kode_aset as aset_target_kode',
-            // 🔹 Tambahan untuk UMKM
-            'umkm.nama_umkm as umkm_nama',
-            'umkm.pemilik as umkm_pemilik',
-            'umkm.alamat as umkm_alamat',
-            'umkm.kontak as umkm_kontak'
-        ])
-        ->join('users', 'users.id = permission_requests.requester_id', 'left')
-        ->join('petani as p_target', 'p_target.id = permission_requests.target_id AND permission_requests.target_type = "petani"', 'left')
-        ->join('petani_pohon as pp', 'pp.id = permission_requests.target_id AND permission_requests.target_type = "pohon"', 'left')
-        ->join('petani as p_owner', 'p_owner.user_id = pp.user_id', 'left')
-        ->join('jenis_pohon as jp', 'jp.id = pp.jenis_pohon_id', 'left')
-        ->join('kopi_masuk as km', 'km.id = permission_requests.target_id AND permission_requests.target_type = "kopi_masuk"', 'left')
-        ->join('petani as p_kopimasuk', 'p_kopimasuk.user_id = km.petani_user_id', 'left')
-        ->join('kopi_keluar as k_keluar', 'k_keluar.id = permission_requests.target_id AND permission_requests.target_type = "kopi_keluar"', 'left')
-        ->join('stok_kopi as sk', 'sk.id = k_keluar.stok_kopi_id', 'left')
-        ->join('jenis_pohon as jp_keluar', 'jp_keluar.id = sk.jenis_pohon_id', 'left')
-        ->join('jenis_pohon as jp_master', 'jp_master.id = permission_requests.target_id AND permission_requests.target_type = "jenis_pohon"', 'left')
-        ->join('master_aset as aset', 'aset.id_aset = permission_requests.target_id AND permission_requests.target_type = "aset"', 'left')
-        // 🔹 JOIN baru untuk UMKM
-        ->join('umkm', 'umkm.id = permission_requests.target_id AND permission_requests.target_type = "umkm"', 'left')
-
-        ->where('permission_requests.status', 'pending')
-        ->orderBy('permission_requests.created_at', 'DESC')
-        ->paginate(10); // 🔹 ganti findAll() jadi paginate
-
-    $data['pager'] = $this->permissionModel->pager;
     {
+        // Pilihan untuk menampilkan 10 data per halaman (paginate)
+        $limit = 10;
+
         $data['requests'] = $this->permissionModel
             // Pilih semua kolom yang dibutuhkan dari berbagai tabel
             ->select([
                 'permission_requests.*',
                 'users.username as requester_name',
-                'p_target.nama as petani_target_name', // Nama petani jika targetnya adalah petani
-                'p_owner.nama as pohon_owner_name',    // Nama petani pemilik pohon
+                'p_target.nama as petani_target_name', 
+                'p_owner.nama as pohon_owner_name', 
                 'jp.nama_jenis as pohon_jenis_name',
-                'km.jumlah as kopimasuk_jumlah',            // Jumlah dari tabel kopi_masuk
-                'km.tanggal as kopimasuk_tanggal',          // Tanggal dari tabel kopi_masuk
+                'km.jumlah as kopimasuk_jumlah', 
+                'km.tanggal as kopimasuk_tanggal', 
                 'p_kopimasuk.nama as kopimasuk_petani_name',
                 'k_keluar.jumlah as kopikeluar_jumlah',
                 'k_keluar.tujuan as kopikeluar_tujuan',
@@ -80,7 +43,12 @@ class PersetujuanKomersial extends BaseController
                 'jp_master.nama_jenis as jenispohon_target_name',
                 'aset.nama_aset as aset_target_name',
                 'aset.kode_aset as aset_target_kode',
-                // ▼▼▼ PENAMBAHAN UNTUK ASET PARIWISATA ▼▼▼
+                // ▼▼▼ KOLOM BARU UNTUK UMKM ▼▼▼
+                'umkm.nama_umkm as umkm_nama',
+                'umkm.pemilik as umkm_pemilik',
+                'umkm.alamat as umkm_alamat',
+                'umkm.kontak as umkm_kontak',
+                // ▲▲▲ AKHIR KOLOM BARU UNTUK UMKM ▲▲▲
                 'aset_p.nama_pariwisata as aset_pariwisata_target_name',
                 'wisata.nama_wisata as aset_pariwisata_lokasi',
                 'ow_target.nama_wisata as objekwisata_target_name'
@@ -90,54 +58,48 @@ class PersetujuanKomersial extends BaseController
 
             // Join ke tabel petani (sebagai target) jika tipe requestnya 'petani'
             ->join('petani as p_target', 'p_target.id = permission_requests.target_id AND permission_requests.target_type = "petani"', 'left')
-            // Join ke tabel petani_pohon jika tipe requestnya 'pohon'
             ->join('petani_pohon as pp', 'pp.id = permission_requests.target_id AND permission_requests.target_type = "pohon"', 'left')
-            // Dari petani_pohon, join ke tabel petani (sebagai pemilik pohon)
             ->join('petani as p_owner', 'p_owner.user_id = pp.user_id', 'left')
-            // Dari petani_pohon, join ke tabel jenis_pohon
             ->join('jenis_pohon as jp', 'jp.id = pp.jenis_pohon_id', 'left')
-            // JOIN BARU: untuk target 'kopi_masuk'
             ->join('kopi_masuk as km', 'km.id = permission_requests.target_id AND permission_requests.target_type = "kopi_masuk"', 'left')
             ->join('petani as p_kopimasuk', 'p_kopimasuk.user_id = km.petani_user_id', 'left')
-            //kopi keluar 
             ->join('kopi_keluar as k_keluar', 'k_keluar.id = permission_requests.target_id AND permission_requests.target_type = "kopi_keluar"', 'left')
             ->join('stok_kopi as sk', 'sk.id = k_keluar.stok_kopi_id', 'left')
-
             ->join('jenis_pohon as jp_keluar', 'jp_keluar.id = sk.jenis_pohon_id', 'left')
-            // **JOIN BARU** untuk target 'jenis_pohon'
             ->join('jenis_pohon as jp_master', 'jp_master.id = permission_requests.target_id AND permission_requests.target_type = "jenis_pohon"', 'left')
-            //aset
             ->join('master_aset as aset', 'aset.id_aset = permission_requests.target_id AND permission_requests.target_type = "aset"', 'left')
-            // ▼▼▼ JOIN BARU UNTUK ASET PARIWISATA (JOIN BERTINGKAT) ▼▼▼
-            // Langkah 1: Hubungkan permission_requests ke aset_pariwisata
+            
+            // ▼▼▼ JOIN BARU UNTUK UMKM ▼▼▼
+            ->join('umkm', 'umkm.id = permission_requests.target_id AND permission_requests.target_type = "umkm"', 'left')
+            // ▲▲▲ AKHIR JOIN BARU UNTUK UMKM ▲▲▲
+            
+            // JOIN UNTUK ASET PARIWISATA
             ->join('aset_pariwisata as aset_p', 'aset_p.id = permission_requests.target_id AND permission_requests.target_type = "aset_pariwisata"', 'left')
-            // Langkah 2: Hubungkan hasil dari join pertama (aset_p) ke tabel pivot
             ->join('aset_wisata', 'aset_wisata.aset_id = aset_p.id', 'left')
-            // Langkah 3: Hubungkan tabel pivot ke tabel objek_wisata untuk mendapatkan nama lokasi
             ->join('objek_wisata as wisata', 'wisata.id = aset_wisata.wisata_id', 'left')
             ->join('objek_wisata as ow_target', 'ow_target.id = permission_requests.target_id AND permission_requests.target_type = "objek_wisata"', 'left')
 
-            // ▲▲▲ AKHIR DARI JOIN BARU ▲▲▲
             ->where('permission_requests.status', 'pending')
             ->orderBy('permission_requests.created_at', 'DESC')
-            ->findAll();
+            ->paginate($limit); 
+
+        $data['pager'] = $this->permissionModel->pager;
+        
         $data['breadcrumbs'] = [
             [
                 'title' => 'Dashboard',
-                'url'   => site_url('dashboard/dashboard_bumdes'), // Sesuaikan URL dashboard Anda
+                'url'   => site_url('dashboard/dashboard_bumdes'), 
                 'icon'  => 'fas fa-fw fa-tachometer-alt'
             ],
             [
                 'title' => 'Permission Requests',
                 'url'   => '#',
-                'icon'  => 'fas fa-fw fa-tasks fa-lg' // Ikon untuk stok atau barang masuk
+                'icon'  => 'fas fa-fw fa-tasks fa-lg'
             ]
         ];
         return view('bumdes/persetujuan/admin_komersial/index', $data);
     }
 
-    return view('bumdes/persetujuan/admin_komersial/index', $data);
-}
     public function respond()
     {
         if ($this->request->isAJAX()) {
@@ -163,18 +125,17 @@ class PersetujuanKomersial extends BaseController
             ];
 
             if ($decision == 'approve') {
-                $updateData['expires_at'] = date('Y-m-d H:i:s', strtotime('+1 hour'));
+                // Berikan masa kadaluarsa (expires_at) 1 jam
+                $updateData['expires_at'] = date('Y-m-d H:i:s', strtotime('+1 hour')); 
             }
 
             if ($this->permissionModel->update($requestId, $updateData)) {
 
                 // ▼▼▼ BAGIAN LOGIKA PENGHAPUSAN CACHE ▼▼▼
-                // Logika ini secara dinamis menentukan cache mana yang harus dihapus.
                 $targetType = $requestData['target_type'];
                 $requesterId = $requestData['requester_id'];
 
                 // Buat nama cache key berdasarkan target_type
-                // Contoh: 'permissions_petani_user_1', 'permissions_pohon_user_1', dll.
                 $cacheKey = 'permissions_' . $targetType . '_user_' . $requesterId;
 
                 // Hapus cache yang sesuai

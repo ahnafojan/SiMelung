@@ -178,6 +178,8 @@ $routes->post('umkm/store', 'Umkm::store');    // tambah UMKM
 $routes->get('umkm/edit/(:num)', 'Umkm::edit/$1'); // form edit (bisa juga modal)
 $routes->post('umkm/update/(:num)', 'Umkm::update/$1'); // update
 $routes->get('umkm/delete/(:num)', 'Umkm::delete/$1');  // hapus
+$routes->post('umkm/togglePublish/(:num)', 'Umkm::togglePublish/$1');
+
 
 // Routes Master Aset Komersial
 $routes->get('aset-komersial', 'AsetKomersial::index');
@@ -354,7 +356,6 @@ $routes->group('laporanpariwisata', ['filter' => 'auth'], function ($routes) {
     $routes->get('exportPDF', 'LaporanPariwisata::exportPDF');
 });
 
-//Laporan UMKM
 
 //DESA
 //komersial
