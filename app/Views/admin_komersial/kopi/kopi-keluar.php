@@ -217,7 +217,7 @@
                         </select>
                     </div>
                     <div class="form-group"><label>Tujuan</label><input type="text" name="tujuan" class="form-control" required></div>
-                    <div class="form-group"><label>Jumlah (Kg)</label><input type="number" name="jumlah" step="0.01" class="form-control" min="0.01" required></div>
+                    <div class="form-group"><label>Jumlah (Kg)</label><input type="text" name="jumlah" class="form-control" placeholder="Contoh: 15 atau 1000.5" required></div>
                     <div class="form-group"><label>Tanggal Keluar</label><input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required></div>
                     <div class="form-group"><label>Keterangan</label><textarea name="keterangan" class="form-control" rows="2"></textarea></div>
                 </div>

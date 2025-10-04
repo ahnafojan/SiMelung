@@ -113,24 +113,71 @@ class Kopikeluar extends BaseController
     public function store()
     {
         $stokKopiId = $this->request->getPost('stok_kopi_id');
-        $jumlah     = (float) $this->request->getPost('jumlah');
+        $jumlahRaw  = $this->request->getPost('jumlah');
 
-        $stokTerkini = $this->stokKopiModel->find($stokKopiId)['stok'] ?? 0;
+        // === Validasi stok_kopi_id ===
+        if (empty($stokKopiId) || !is_numeric($stokKopiId)) {
+            session()->setFlashdata('error', 'Pilih jenis kopi terlebih dahulu.');
+            return redirect()->to(site_url('/kopikeluar'));
+        }
+
+        // === Bersihkan dan konversi jumlah ===
+        // Hapus semua karakter kecuali angka, koma, dan titik
+        $jumlahClean = preg_replace('/[^0-9.,]/', '', $jumlahRaw);
+        // Ganti koma (desimal Indonesia) menjadi titik
+        $jumlahClean = str_replace(',', '.', $jumlahClean);
+        // Tangani kasus seperti "1.000.000" → ambil hanya bagian sebelum titik pertama jika lebih dari satu titik
+        $parts = explode('.', $jumlahClean);
+        if (count($parts) > 2) {
+            // Gabungkan bagian integer, abaikan ribuan
+            $integerPart = preg_replace('/[^0-9]/', '', $parts[0]);
+            $decimalPart = $parts[1];
+            $jumlahClean = $integerPart . '.' . $decimalPart;
+        }
+        $jumlah = floatval($jumlahClean);
+
+        if ($jumlah <= 0) {
+            session()->setFlashdata('error', 'Jumlah harus lebih dari 0.');
+            return redirect()->to(site_url('/kopikeluar'));
+        }
+
+        // === Ambil stok terkini langsung dari database (bukan dari model cache) ===
+        $stokRow = $this->db->table('stok_kopi')
+            ->select('stok')
+            ->where('id', (int)$stokKopiId)
+            ->get()
+            ->getRow();
+
+        if (!$stokRow) {
+            session()->setFlashdata('error', 'Data stok kopi tidak ditemukan.');
+            return redirect()->to(site_url('/kopikeluar'));
+        }
+
+        $stokTerkini = (float) $stokRow->stok;
+
         if ($jumlah > $stokTerkini) {
             session()->setFlashdata('error', 'Gagal! Jumlah keluar melebihi stok yang tersedia (' . number_format($stokTerkini, 2, ',', '.') . ' Kg).');
             return redirect()->to(site_url('/kopikeluar'));
         }
 
+        // === Simpan data dengan transaksi ===
         $this->db->transStart();
         try {
+            // Simpan ke kopi_keluar
             $this->kopiKeluarModel->save([
-                'stok_kopi_id' => $stokKopiId,
+                'stok_kopi_id' => (int)$stokKopiId,
                 'tujuan'       => $this->request->getPost('tujuan'),
                 'jumlah'       => $jumlah,
                 'tanggal'      => $this->request->getPost('tanggal'),
                 'keterangan'   => $this->request->getPost('keterangan'),
             ]);
-            $this->stokKopiModel->set('stok', "stok - $jumlah", false)->where('id', $stokKopiId)->update();
+
+            // Update stok dengan nilai baru (lebih aman daripada raw SQL)
+            $newStok = $stokTerkini - $jumlah;
+            $this->db->table('stok_kopi')
+                ->where('id', (int)$stokKopiId)
+                ->update(['stok' => $newStok]);
+
             if ($this->db->transStatus() === false) {
                 $this->db->transRollback();
                 session()->setFlashdata('error', 'Terjadi kesalahan pada database saat menyimpan data.');
@@ -140,11 +187,12 @@ class Kopikeluar extends BaseController
             }
         } catch (\Exception $e) {
             $this->db->transRollback();
+            log_message('error', 'Error di Kopikeluar::store(): ' . $e->getMessage());
             session()->setFlashdata('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
+
         return redirect()->to(site_url('/kopikeluar'));
     }
-
     public function edit($id)
     {
         if ($this->request->isAJAX()) {
