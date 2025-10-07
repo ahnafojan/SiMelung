@@ -6,7 +6,7 @@ use App\Models\PetaniModel;
 use App\Models\KopiMasukModel;
 use App\Models\KopiKeluarModel;
 use App\Models\AsetKomersialModel;
-use App\Models\UmkmModel; // Tambahkan model UMKM
+use App\Models\UmkmModel;
 
 class LandingPage extends BaseController
 {
@@ -101,8 +101,7 @@ class LandingPage extends BaseController
         // BAGIAN 4: Data dari Menu Informasi (UMKM) - DIFILTER
         // ----------------------------------------------------
         $umkmModel = new UmkmModel();
-        // Hanya ambil data UMKM yang statusnya sudah dipublikasikan (is_published = 1)
-        $publishedUmkm = $umkmModel->where('is_published', 1)->findAll();
+        $publishedUmkm = $umkmModel->where('is_published', 1)->findAll(); // Ambil semua data UMKM
 
         // ----------------------------------------------------
         // BAGIAN 5: Gabungkan Semua Data ke View

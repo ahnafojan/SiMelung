@@ -5,7 +5,6 @@
 <h1 class="h3 mb-4 text-gray-800">Dashboard Admin UMKM</h1>
 
 <div class="row">
-
     <!-- 1. Card: Jumlah UMKM Terdaftar (DINAMIS - FOKUS) -->
     <div class="col-xl-4 col-md-6 mb-4">
         <div class="card border-left-success shadow h-100 py-2">
@@ -13,7 +12,6 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total UMKM Terdaftar</div>
-                        <!-- Menampilkan total UMKM, default 0 jika data tidak ada -->
                         <div class="h5 mb-0 font-weight-bold text-gray-800"><?= esc($totalUmkm ?? 0) ?></div>
                     </div>
                     <i class="fas fa-store fa-2x text-success"></i>
@@ -31,34 +29,30 @@
             <div class="card-body">
                 <div class="row">
                     <?php
-                    // Menggunakan data dari Controller
                     $umkmPerKategori = $umkmPerKategori ?? [];
                     if (empty($umkmPerKategori) || $totalUmkm == 0): ?>
                         <div class="col-12 text-center text-muted py-3">Data kategori belum tersedia atau total UMKM masih 0.</div>
-                    <?php else: ?>
-                        <?php
-                        // Tampilkan kategori dalam bentuk card kecil (maksimal 4 per baris)
+                        <?php else:
                         $colors = ['success', 'info', 'warning', 'danger', 'primary', 'secondary'];
                         $colorIndex = 0;
 
                         foreach ($umkmPerKategori as $item):
-                            // Pastikan kategori tidak kosong
-                            if (!empty($item['kategori'])):
-                        ?>
+                            if (!empty($item['kategori'])): ?>
                                 <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
                                     <div class="card bg-light border-left-<?= $colors[$colorIndex % count($colors)] ?> shadow-sm">
                                         <div class="card-body py-2">
-                                            <div class="text-xs font-weight-bold text-<?= $colors[$colorIndex % count($colors)] ?> text-uppercase mb-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?= esc($item['kategori']) ?></div>
+                                            <div class="text-xs font-weight-bold text-<?= $colors[$colorIndex % count($colors)] ?> text-uppercase mb-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                <?= esc($item['kategori']) ?>
+                                            </div>
                                             <div class="h6 mb-0 font-weight-bold text-gray-800"><?= esc($item['jumlah']) ?> UMKM</div>
                                         </div>
                                     </div>
                                 </div>
-                        <?php
+                    <?php
                                 $colorIndex++;
                             endif;
                         endforeach;
-                        ?>
-                    <?php endif; ?>
+                    endif; ?>
                 </div>
                 <div class="mt-2 text-right">
                     <span class="text-muted small">Total: <?= esc($totalUmkm ?? 0) ?> UMKM</span>
@@ -69,8 +63,7 @@
 </div>
 
 <div class="row mb-4">
-
-    <!-- 3. Grafik Distribusi UMKM per Kategori (Doughnut Chart) - Penuh (col-xl-12) -->
+    <!-- 3. Grafik Distribusi UMKM per Kategori (Doughnut Chart) -->
     <div class="col-xl-12 mb-4">
         <div class="card shadow h-100">
             <div class="card-header py-3">
@@ -83,12 +76,10 @@
             </div>
         </div>
     </div>
-
 </div>
 
 <div class="row">
-
-    <!-- 4. Tabel Detail UMKM Terdaftar (DINAMIS - Full Width) -->
+    <!-- 4. Tabel Detail UMKM Terdaftar -->
     <div class="col-xl-12 mb-4">
         <div class="card shadow h-100">
             <div class="card-header py-3">
@@ -108,14 +99,14 @@
                     </thead>
                     <tbody>
                         <?php
-                        $umkmData = $umkmData ?? []; // Memastikan variabel ada
+                        $umkmData = $umkmData ?? [];
                         if (empty($umkmData)): ?>
                             <tr>
                                 <td colspan="6" class="text-center text-muted">Belum ada data UMKM yang terdaftar.</td>
                             </tr>
-                        <?php else: ?>
-                            <?php $no = 1; ?>
-                            <?php foreach ($umkmData as $umkm): ?>
+                            <?php else:
+                            $no = 1;
+                            foreach ($umkmData as $umkm): ?>
                                 <tr>
                                     <td><?= $no++ ?></td>
                                     <td><?= esc($umkm['nama_umkm'] ?? 'N/A') ?></td>
@@ -124,8 +115,8 @@
                                     <td><?= esc($umkm['alamat'] ?? 'N/A') ?></td>
                                     <td><?= esc($umkm['deskripsi'] ?? 'N/A') ?></td>
                                 </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                        <?php endforeach;
+                        endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -187,7 +178,7 @@
                         const value = data.datasets[0].data[tooltipItem.index];
                         const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
                         const percentage = ((value / total) * 100).toFixed(1) + '%';
-                        return `${label}: ${value} UMKM (${percentage})`;
+                        return label + ': ' + value + ' UMKM (' + percentage + ')';
                     }
                 }
             },

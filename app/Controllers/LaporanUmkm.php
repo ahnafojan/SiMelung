@@ -42,7 +42,7 @@ class LaporanUmkm extends BaseController
             ]
         ];
 
-        return view('admin_umkm/pengaturan/pengaturanumkm', $data);
+        return view('admin_umkm/laporan/laporan', $data);
     }
 
     /**
