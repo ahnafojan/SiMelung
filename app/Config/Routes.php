@@ -91,9 +91,7 @@ $routes->post('/pengaturan/pariwisata/update', 'Pengaturan::updatePariwisata');
 
 
 //Pengaturan UMKM
-$routes->get('pengaturanumkm', 'PengaturanUmkm::export');
-$routes->get('pengaturanumkm/exportUmkmExcel', 'PengaturanUmkm::exportUmkmExcel');
-$routes->get('pengaturanumkm/exportUmkmPdf', 'PengaturanUmkm::exportUmkmPdf');
+
 
 //desa
 $routes->get('/desa/laporan_keuangan/laporan_aruskas', 'LaporanArusKas::index');
@@ -179,7 +177,10 @@ $routes->get('umkm/edit/(:num)', 'Umkm::edit/$1'); // form edit (bisa juga modal
 $routes->post('umkm/update/(:num)', 'Umkm::update/$1'); // update
 $routes->get('umkm/delete/(:num)', 'Umkm::delete/$1');  // hapus
 $routes->post('umkm/togglePublish/(:num)', 'Umkm::togglePublish/$1');
-
+$routes->post('informasi/togglePublish/(:num)', 'Informasi::togglePublish/$1');
+$routes->get('laporanumkm', 'LaporanUmkm::index');
+$routes->get('laporanumkm/exportExcel', 'LaporanUmkm::exportExcel');
+$routes->get('laporanumkm/exportPDF', 'LaporanUmkm::exportPDF');
 
 // Routes Master Aset Komersial
 $routes->get('aset-komersial', 'AsetKomersial::index');

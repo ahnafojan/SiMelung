@@ -6,7 +6,7 @@ use App\Models\PetaniModel;
 use App\Models\KopiMasukModel;
 use App\Models\KopiKeluarModel;
 use App\Models\AsetKomersialModel;
-use App\Models\UmkmModel; // Tambahkan model UMKM
+use App\Models\UmkmModel;
 
 class LandingPage extends BaseController
 {
@@ -98,10 +98,11 @@ class LandingPage extends BaseController
         }
 
         // ----------------------------------------------------
-        // BAGIAN 4: Data dari Menu Informasi (UMKM)
+        // BAGIAN 4: Data dari Menu Informasi (UMKM) - DIFILTER
         // ----------------------------------------------------
         $umkmModel = new UmkmModel();
-        $umkmList = $umkmModel->findAll(); // Ambil semua data UMKM
+        // Hanya ambil data UMKM yang statusnya sudah dipublikasikan (is_published = 1)
+        $publishedUmkm = $umkmModel->where('is_published', 1)->findAll(); 
 
         // ----------------------------------------------------
         // BAGIAN 5: Gabungkan Semua Data ke View
@@ -115,7 +116,7 @@ class LandingPage extends BaseController
             'chartKopiKeluar'=> json_encode($dataKopiKeluar),
             'chartYear'      => $currentYear,
             'aset_summary'   => $aset_summary,
-            'umkm_list'      => $umkmList // <-- tambahan untuk pop up Informasi
+            'published_umkm' => $publishedUmkm // <-- Tambahan data UMKM yang sudah difilter
         ];
 
         return view('landing/landing_page', $data);
