@@ -179,6 +179,12 @@ $routes->get('umkm/edit/(:num)', 'Umkm::edit/$1'); // form edit (bisa juga modal
 $routes->post('umkm/update/(:num)', 'Umkm::update/$1'); // update
 $routes->get('umkm/delete/(:num)', 'Umkm::delete/$1');  // hapus
 $routes->post('umkm/togglePublish/(:num)', 'Umkm::togglePublish/$1');
+$routes->post('informasi/togglePublish/(:num)', 'Informasi::togglePublish/$1');
+$routes->get('laporanumkm', 'LaporanUmkm::index');
+$routes->get('laporanumkm/exportExcel', 'LaporanUmkm::exportExcel');
+$routes->get('laporanumkm/exportPDF', 'LaporanUmkm::exportPDF');
+$routes->get('umkm/detail/(:num)', 'LandingPage::detailUmkm/$1');
+$routes->get('umkm/all', 'LandingPage::allUmkm');
 
 
 // Routes Master Aset Komersial

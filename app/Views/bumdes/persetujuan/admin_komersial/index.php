@@ -355,7 +355,15 @@
                                         <br><small class="text-muted">Lokasi: <?= esc($req['aset_pariwisata_lokasi']) ?></small>
                                     <?php elseif ($req['target_type'] === 'objek_wisata' && !empty($req['objekwisata_target_name'])): ?>
                                         Objek Wisata: <strong><?= esc($req['objekwisata_target_name']) ?></strong>
-                                    <?php else: ?>
+                                    <?php elseif ($req['target_type'] === 'umkm' && !empty($req['umkm_nama'])): ?>
+                                        UMKM: <strong><?= esc($req['umkm_nama']) ?></strong>
+                                        <br><small class="text-muted">
+                                            Pemilik: <?= esc($req['umkm_pemilik']) ?> |
+                                            Alamat: <?= esc($req['umkm_alamat']) ?>
+                                        </small>
+                                        <?php if (!empty($req['umkm_kontak'])): ?>
+                                            <br><small class="text-muted">Kontak: <?= esc($req['umkm_kontak']) ?></small>
+                                        <?php endif; ?>
                                         <?= esc(ucfirst(str_replace('_', ' ', $req['target_type']))) ?> ID: #<?= esc($req['target_id']) ?>
 
                                     <?php endif; ?>
@@ -434,7 +442,15 @@
                                             <br><small class="text-muted">Lokasi: <?= esc($req['aset_pariwisata_lokasi']) ?></small>
                                         <?php elseif ($req['target_type'] === 'objek_wisata' && !empty($req['objekwisata_target_name'])): ?>
                                             Objek Wisata: <strong><?= esc($req['objekwisata_target_name']) ?></strong>
-                                        <?php else: ?>
+                                        <?php elseif ($req['target_type'] === 'umkm' && !empty($req['umkm_nama'])): ?>
+                                            UMKM: <strong><?= esc($req['umkm_nama']) ?></strong>
+                                            <br><small class="text-muted">
+                                                Pemilik: <?= esc($req['umkm_pemilik']) ?> |
+                                                Alamat: <?= esc($req['umkm_alamat']) ?>
+                                            </small>
+                                            <?php if (!empty($req['umkm_kontak'])): ?>
+                                                <br><small class="text-muted">Kontak: <?= esc($req['umkm_kontak']) ?></small>
+                                            <?php endif; ?>
                                             <?= esc(ucfirst(str_replace('_', ' ', $req['target_type']))) ?> ID: #<?= esc($req['target_id']) ?>
                                         <?php endif; ?>
                                     </td>

@@ -52,7 +52,7 @@ class LandingPage extends BaseController
         $asetMapping = [
             'Mesin Giling'   => ['icon' => 'fas fa-cogs',      'unit' => 'Unit', 'color_class' => 'bg-gradient-primary'],
             'Mesin Pengupas' => ['icon' => 'fas fa-fan',       'unit' => 'Unit', 'color_class' => 'bg-gradient-coffee'],
-            'Mesin Pengering'=> ['icon' => 'fas fa-wind',      'unit' => 'Unit', 'color_class' => 'bg-gradient-warning'],
+            'Mesin Pengering' => ['icon' => 'fas fa-wind',      'unit' => 'Unit', 'color_class' => 'bg-gradient-warning'],
             'Gudang'         => ['icon' => 'fas fa-warehouse', 'unit' => 'Unit', 'color_class' => 'bg-gradient-success'],
             'Kendaraan'      => ['icon' => 'fas fa-truck',     'unit' => 'Unit', 'color_class' => 'bg-gradient-info'],
             'Peralatan'      => ['icon' => 'fas fa-tools',     'unit' => 'Set',  'color_class' => 'bg-gradient-nature'],
@@ -98,10 +98,11 @@ class LandingPage extends BaseController
         }
 
         // ----------------------------------------------------
-        // BAGIAN 4: Data dari Menu Informasi (UMKM)
+        // BAGIAN 4: Data dari Menu Informasi (UMKM) - DIFILTER
         // ----------------------------------------------------
         $umkmModel = new UmkmModel();
-        $umkmList = $umkmModel->findAll(); // Ambil semua data UMKM
+        // Hanya ambil data UMKM yang statusnya sudah dipublikasikan (is_published = 1)
+        $publishedUmkm = $umkmModel->where('is_published', 1)->findAll();
 
         // ----------------------------------------------------
         // BAGIAN 5: Gabungkan Semua Data ke View
@@ -112,12 +113,46 @@ class LandingPage extends BaseController
             'perPage'        => $perPage,
             'chartLabels'    => json_encode($labels),
             'chartKopiMasuk' => json_encode($dataKopiMasuk),
-            'chartKopiKeluar'=> json_encode($dataKopiKeluar),
+            'chartKopiKeluar' => json_encode($dataKopiKeluar),
             'chartYear'      => $currentYear,
             'aset_summary'   => $aset_summary,
-            'umkm_list'      => $umkmList // <-- tambahan untuk pop up Informasi
+            'published_umkm' => $publishedUmkm // <-- Tambahan data UMKM yang sudah difilter
         ];
 
         return view('landing/landing_page', $data);
+    }
+    public function detailUmkm($id)
+    {
+        $umkmModel = new UmkmModel();
+        $umkm = $umkmModel->find($id);
+
+        if (!$umkm || $umkm['is_published'] != 1) {
+            return redirect()->to('/')->with('error', 'UMKM tidak ditemukan atau belum dipublikasikan');
+        }
+
+        // Ambil UMKM lainnya (maksimal 5)
+        $other_umkm = $umkmModel
+            ->where('is_published', 1)
+            ->where('id !=', $id)
+            ->limit(5)
+            ->findAll();
+
+        $data = [
+            'umkm' => $umkm,
+            'other_umkm' => $other_umkm
+        ];
+
+        return view('landing/detail_umkm', $data);
+    }
+    public function allUmkm()
+    {
+        $umkmModel = new UmkmModel();
+        $all_umkm = $umkmModel->where('is_published', 1)->findAll();
+
+        $data = [
+            'all_umkm' => $all_umkm
+        ];
+
+        return view('landing/all_umkm', $data);
     }
 }

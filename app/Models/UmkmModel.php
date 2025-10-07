@@ -1,4 +1,6 @@
-<?php namespace App\Models;
+<?php
+
+namespace App\Models;
 
 use CodeIgniter\Model;
 
@@ -12,15 +14,15 @@ class UmkmModel extends Model
     protected $returnType     = 'array';
 
     protected $allowedFields = [
-        'nama_umkm', 
-        'pemilik', 
-        'kategori', 
-        'deskripsi', 
-        'alamat', 
-        'gmaps_url', 
-        'kontak', 
+        'nama_umkm',
+        'pemilik',
+        'kategori',
+        'deskripsi',
+        'alamat',
+        'gmaps_url',
+        'kontak',
         'foto_umkm',
-        'is_published' 
+        'is_published'
     ];
 
     protected $useTimestamps = false;
@@ -28,15 +30,11 @@ class UmkmModel extends Model
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
 
-    
 
-    
-    
     protected $validationRules = [
         'nama_umkm' => 'required|min_length[3]|max_length[255]',
         'kategori' => 'required',
     ];
     protected $validationMessages = [];
     protected $skipValidation = false;
-    
 }

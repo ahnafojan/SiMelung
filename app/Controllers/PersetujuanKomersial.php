@@ -3,20 +3,20 @@
 namespace App\Controllers;
 
 use App\Models\PermissionRequestModel;
-use App\Models\PetaniModel; 
+use App\Models\PetaniModel;
 use App\Models\UmkmModel; // 1. Tambahkan UmkmModel
 use CodeIgniter\Controller;
 
 class PersetujuanKomersial extends BaseController
 {
     protected $permissionModel;
-    protected $petaniModel; 
+    protected $petaniModel;
     protected $umkmModel; // 2. Daftarkan UmkmModel
 
     public function __construct()
     {
         $this->permissionModel = new PermissionRequestModel();
-        $this->petaniModel = new PetaniModel(); 
+        $this->petaniModel = new PetaniModel();
         $this->umkmModel = new UmkmModel(); // 3. Inisialisasi UmkmModel
         helper('date');
     }
@@ -31,11 +31,11 @@ class PersetujuanKomersial extends BaseController
             ->select([
                 'permission_requests.*',
                 'users.username as requester_name',
-                'p_target.nama as petani_target_name', 
-                'p_owner.nama as pohon_owner_name', 
+                'p_target.nama as petani_target_name',
+                'p_owner.nama as pohon_owner_name',
                 'jp.nama_jenis as pohon_jenis_name',
-                'km.jumlah as kopimasuk_jumlah', 
-                'km.tanggal as kopimasuk_tanggal', 
+                'km.jumlah as kopimasuk_jumlah',
+                'km.tanggal as kopimasuk_tanggal',
                 'p_kopimasuk.nama as kopimasuk_petani_name',
                 'k_keluar.jumlah as kopikeluar_jumlah',
                 'k_keluar.tujuan as kopikeluar_tujuan',
@@ -68,11 +68,11 @@ class PersetujuanKomersial extends BaseController
             ->join('jenis_pohon as jp_keluar', 'jp_keluar.id = sk.jenis_pohon_id', 'left')
             ->join('jenis_pohon as jp_master', 'jp_master.id = permission_requests.target_id AND permission_requests.target_type = "jenis_pohon"', 'left')
             ->join('master_aset as aset', 'aset.id_aset = permission_requests.target_id AND permission_requests.target_type = "aset"', 'left')
-            
+
             // ▼▼▼ JOIN BARU UNTUK UMKM ▼▼▼
             ->join('umkm', 'umkm.id = permission_requests.target_id AND permission_requests.target_type = "umkm"', 'left')
             // ▲▲▲ AKHIR JOIN BARU UNTUK UMKM ▲▲▲
-            
+
             // JOIN UNTUK ASET PARIWISATA
             ->join('aset_pariwisata as aset_p', 'aset_p.id = permission_requests.target_id AND permission_requests.target_type = "aset_pariwisata"', 'left')
             ->join('aset_wisata', 'aset_wisata.aset_id = aset_p.id', 'left')
@@ -81,14 +81,14 @@ class PersetujuanKomersial extends BaseController
 
             ->where('permission_requests.status', 'pending')
             ->orderBy('permission_requests.created_at', 'DESC')
-            ->paginate($limit); 
+            ->paginate($limit);
 
         $data['pager'] = $this->permissionModel->pager;
-        
+
         $data['breadcrumbs'] = [
             [
                 'title' => 'Dashboard',
-                'url'   => site_url('dashboard/dashboard_bumdes'), 
+                'url'   => site_url('dashboard/dashboard_bumdes'),
                 'icon'  => 'fas fa-fw fa-tachometer-alt'
             ],
             [
@@ -126,7 +126,7 @@ class PersetujuanKomersial extends BaseController
 
             if ($decision == 'approve') {
                 // Berikan masa kadaluarsa (expires_at) 1 jam
-                $updateData['expires_at'] = date('Y-m-d H:i:s', strtotime('+1 hour')); 
+                $updateData['expires_at'] = date('Y-m-d H:i:s', strtotime('+1 hour'));
             }
 
             if ($this->permissionModel->update($requestId, $updateData)) {

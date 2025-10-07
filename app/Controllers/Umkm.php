@@ -27,11 +27,11 @@ class Umkm extends BaseController
         if ($keyword) {
             // Jika ada keyword, filter data berdasarkan nama UMKM, pemilik, atau kategori
             $umkmList = $this->umkmModel
-                             ->like('nama_umkm', $keyword)
-                             ->orLike('pemilik', $keyword)
-                             ->orLike('kategori', $keyword)
-                             ->orderBy('id', 'DESC')
-                             ->findAll();
+                ->like('nama_umkm', $keyword)
+                ->orLike('pemilik', $keyword)
+                ->orLike('kategori', $keyword)
+                ->orderBy('id', 'DESC')
+                ->findAll();
         } else {
             // Jika tidak ada keyword, ambil semua data
             $umkmList = $this->umkmModel->orderBy('id', 'DESC')->findAll();
@@ -39,7 +39,7 @@ class Umkm extends BaseController
         // Akhir Logic Pencarian
 
         $umkmWithStatus = [];
-        
+
         // Loop untuk menambahkan status izin ke setiap data UMKM
         foreach ($umkmList as $u) {
             $u['edit_status'] = $this->getPermissionStatus($u['id'], 'edit', $userId, 'umkm');
@@ -51,7 +51,7 @@ class Umkm extends BaseController
             'umkm' => $umkmWithStatus,
             'keyword' => $keyword // <-- KIRIM KEMBALI KEYWORD KE VIEW
         ];
-        
+
         return view('admin_umkm/umkm/index', $data);
     }
 
@@ -86,7 +86,7 @@ class Umkm extends BaseController
     public function update($id)
     {
         $userId = session()->get('user_id') ?? 0;
-        
+
         // 1. Cek Izin Edit
         if (!$this->hasActivePermission($id, 'edit', $userId, 'umkm')) {
             return redirect()->to(site_url('umkm'))->with('error', 'Aksi edit dibatalkan. Anda tidak memiliki izin aktif.');
@@ -144,12 +144,12 @@ class Umkm extends BaseController
 
         // Ambil data UMKM sebelum dihapus untuk mendapatkan nama file foto
         $umkm = $this->umkmModel->find($id);
-        
+
         // Hapus file foto dari server jika ada
         if ($umkm['foto_umkm'] != null && file_exists('./uploads/foto_umkm/' . $umkm['foto_umkm'])) {
             unlink('./uploads/foto_umkm/' . $umkm['foto_umkm']);
         }
-        
+
         // Hapus data dari database
         $this->umkmModel->delete($id);
 
@@ -187,11 +187,11 @@ class Umkm extends BaseController
                 'target_type' => 'umkm',
                 'action_type' => $action,
             ])
-            ->groupStart()
+                ->groupStart()
                 ->where('status', 'pending')
                 ->orWhere('expires_at >', date('Y-m-d H:i:s'))
-            ->groupEnd()
-            ->first();
+                ->groupEnd()
+                ->first();
 
             if ($existing) {
                 if ($existing['status'] === 'approved') {
@@ -238,7 +238,7 @@ class Umkm extends BaseController
     private function getPermissionStatus($targetId, $action, $requesterId, $targetType)
     {
         if (empty($requesterId)) {
-            return 'none'; 
+            return 'none';
         }
 
         // 1. Cek status APPROVED dan aktif

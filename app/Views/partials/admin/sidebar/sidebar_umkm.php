@@ -29,7 +29,8 @@
 
     <!-- Nav Item - Pengaturan Export -->
     <li class="nav-item">
-        <a class="nav-link fs-3" href="<?= site_url('pengaturanumkm') ?>">
+        <!-- LINK DIPERBAIKI: Menggunakan lowercase 'laporanumkm' untuk URL -->
+        <a class="nav-link fs-3" href="<?= site_url('laporanumkm') ?>">
             <i class="fas fa-file-export"></i>
             <span>Pengaturan Export</span>
         </a>

@@ -127,106 +127,118 @@
     </div>
 </section>
 <!-- UMKM Showcase -->
-<!--<section id="umkm" class="py-5 bg-white scroll-section">
-    <div class="container">
-        <div class="row">
-            <div class="col-12 text-center mb-5">
-                <div class="section-header fade-up">
-                    <span class="section-subtitle text-coffee-medium">Produk Unggulan</span>
-                    <h2 class="section-title text-mountain-dark">UMKM Terbaik Kami</h2>
-                    <p class="section-description text-muted">Produk berkualitas dari tangan-tangan terampil masyarakat Desa Melung</p>
+<?php if (!empty($published_umkm)): ?>
+    <section id="umkm" class="py-5 bg-white scroll-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <div class="section-header fade-up">
+                        <span class="section-subtitle text-coffee-medium">Produk Unggulan</span>
+                        <h2 class="section-title text-mountain-dark">UMKM Terbaik Kami</h2>
+                        <p class="section-description text-muted">Produk berkualitas dari tangan-tangan terampil masyarakat Desa Melung</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div id="umkmCarousel" class="carousel slide" data-ride="carousel">
+                        <div class="carousel-inner">
+                            <?php
+                            $chunks = array_chunk($published_umkm, 3); // Bagi menjadi kelompok 3
+                            foreach ($chunks as $index => $chunk):
+                            ?>
+                                <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                                    <div class="row">
+                                        <?php foreach ($chunk as $umkm): ?>
+                                            <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-0">
+                                                <div class="umkm-card card border-0 shadow-sm h-100" onclick="window.location='<?= base_url('umkm/detail/' . $umkm['id']) ?>'">
+                                                    <div class="card-img-wrapper">
+                                                        <?php if (!empty($umkm['foto_umkm'])): ?>
+                                                            <img src="<?= base_url('uploads/foto_umkm/' . $umkm['foto_umkm']) ?>"
+                                                                alt="<?= esc($umkm['nama_umkm']) ?>"
+                                                                class="card-img-top umkm-img">
+                                                        <?php else: ?>
+                                                            <img src="<?= base_url('assets/img/default-umkm.jpg') ?>"
+                                                                alt="No Image Available"
+                                                                class="card-img-top umkm-img">
+                                                        <?php endif; ?>
+
+                                                        <div class="card-hover-overlay">
+                                                            <div class="hover-content">
+                                                                <i class="fas fa-eye"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card-body p-3">
+                                                        <div class="product-category mb-2"><?= esc($umkm['kategori'] ?? 'UMKM') ?></div>
+                                                        <h5 class="card-title text-mountain-dark umkm-title"><?= esc($umkm['nama_umkm']) ?></h5>
+                                                        <p class="card-text text-muted umkm-desc">
+                                                            <?= esc($umkm['deskripsi'] ? substr($umkm['deskripsi'], 0, 100) . '...' : 'Deskripsi belum tersedia') ?>
+                                                        </p>
+                                                        <div class="mt-2">
+                                                            <small class="text-muted d-block mb-2 umkm-owner">
+                                                                <i class="fas fa-user mr-1"></i> <?= esc($umkm['pemilik'] ?? 'Pemilik tidak diketahui') ?>
+                                                            </small>
+                                                            <div class="d-flex justify-content-between umkm-actions">
+                                                                <a href="<?= esc($umkm['gmaps_url'] ?? '#') ?>" target="_blank" class="btn btn-outline-primary btn-sm flex-fill mr-1">
+                                                                    <i class="fas fa-map-marker-alt"></i> <span class="btn-text">Lokasi</span>
+                                                                </a>
+                                                                <a href="tel:<?= esc($umkm['kontak'] ?? '#') ?>" class="btn btn-outline-success btn-sm flex-fill ml-1">
+                                                                    <i class="fas fa-phone"></i> <span class="btn-text">Hubungi</span>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <!-- Controls -->
+                        <?php if (count($chunks) > 1): ?>
+                            <a class="carousel-control-prev" href="#umkmCarousel" role="button" data-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="sr-only">Sebelumnya</span>
+                            </a>
+                            <a class="carousel-control-next" href="#umkmCarousel" role="button" data-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="sr-only">Berikutnya</span>
+                            </a>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Tombol Lihat Semua -->
+                    <?php if (count($published_umkm) > 3): ?>
+                        <div class="text-center mt-4">
+                            <a href="<?= base_url('umkm/all') ?>" class="btn-explore-village">
+                                <i class="fas fa-store mr-2"></i> Lihat Semua UMKM
+                            </a>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="umkm-card card border-0 shadow-elegant fade-up" data-delay="100">
-                    <div class="card-img-wrapper">
-                        <img src="<?= base_url('img/llung.png') ?>" alt="Warung Kopi"
-                            class="card-img-top">
-                        <div class="card-overlay">
-                            <span class="badge badge-bestseller">
-                                <i class="fas fa-fire mr-1"></i>Terlaris
-                            </span>
-                        </div>
-                        <div class="card-hover-overlay">
-                            <div class="hover-content">
-                                <i class="fas fa-coffee"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="product-category mb-2">Kuliner</div>
-                        <h5 class="card-title text-mountain-dark">Warung Kopi Melung</h5>
-                        <p class="card-text text-muted">Kopi robusta asli dengan cita rasa khas pegunungan Desa Melung yang autentik</p>
-                        <div class="product-footer">
-                            <div class="rating">
-                                <span class="stars">★★★★★</span>
-                                <span class="rating-text">4.8/5</span>
-                            </div>
-                            <span class="badge badge-active">Aktif</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="umkm-card card border-0 shadow-elegant fade-up" data-delay="200">
-                    <div class="card-img-wrapper">
-                        <img src="<?= base_url('img/lung.png') ?>" alt="Kerajinan"
-                            class="card-img-top">
-                        <div class="card-overlay">
-                            <span class="badge badge-new">
-                                <i class="fas fa-star mr-1"></i>Baru
-                            </span>
-                        </div>
-                        <div class="card-hover-overlay">
-                            <div class="hover-content">
-                                <i class="fas fa-hand-holding-heart"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="product-category mb-2">Kerajinan</div>
-                        <h5 class="card-title text-mountain-dark">Kerajinan Tangan</h5>
-                        <p class="card-text text-muted">Produk anyaman bambu dan kerajinan kopi unik dengan sentuhan seni lokal</p>
-                        <div class="product-footer">
-                            <div class="rating">
-                                <span class="stars">★★★★☆</span>
-                                <span class="rating-text">4.6/5</span>
-                            </div>
-                            <span class="badge badge-active">Aktif</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="umkm-card card border-0 shadow-elegant fade-up" data-delay="300">
-                    <div class="card-img-wrapper">
-                        <img src="<?= base_url('img/kopp.png') ?>" alt="Oleh-oleh"
-                            class="card-img-top">
-                        <div class="card-hover-overlay">
-                            <div class="hover-content">
-                                <i class="fas fa-gift"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="product-category mb-2">Souvenir</div>
-                        <h5 class="card-title text-mountain-dark">Toko Oleh-oleh</h5>
-                        <p class="card-text text-muted">Produk khas Desa Melung untuk kenang-kenangan yang berkesan</p>
-                        <div class="product-footer">
-                            <div class="rating">
-                                <span class="stars">★★★★★</span>
-                                <span class="rating-text">4.7/5</span>
-                            </div>
-                            <span class="badge badge-active">Aktif</span>
-                        </div>
+    </section>
+<?php else: ?>
+    <!-- Tampilkan pesan jika tidak ada UMKM yang dipublikasikan -->
+    <section id="umkm" class="py-5 bg-white scroll-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <div class="empty-state">
+                        <i class="fas fa-store text-muted" style="font-size: 3rem;"></i>
+                        <h4 class="text-muted mt-3">Belum Ada UMKM Ditampilkan</h4>
+                        <p class="text-muted">UMKM yang aktif akan muncul di sini setelah dipublikasikan oleh admin.</p>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>  -->
+    </section>
+<?php endif; ?>
 
 <section id="petani" class="py-5 bg-mountain-mist scroll-section">
     <div class="container">
@@ -406,9 +418,8 @@
                         <p class="section-description text-muted">Perkembangan produksi kopi berkualitas dari pegunungan Desa Melung</p>
                         <!-- Tombol Download SOP -->
                         <div class="mt-4">
-                            <a href="<?php echo base_url('sop/download'); ?>"
-                                class="btn btn-primary">
-                                <i class="fas fa-file-pdf"></i> Download SOP Budidaya Kopi (PDF)
+                            <a href="<?php echo base_url('sop/download'); ?>" class="btn-download-sop">
+                                <i class="fas fa-file-pdf mr-2"></i> SOP Budidaya Kopi (PDF)
                             </a>
                         </div>
                         <!-- End Tombol Download SOP -->
@@ -2564,6 +2575,325 @@
 
     ::-webkit-scrollbar-thumb:hover {
         background: var(--coffee-medium);
+    }
+
+    /* UMKM */
+    .umkm-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+    }
+
+    .card-hover-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        transition: opacity 0.1s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .umkm-card:hover .card-hover-overlay {
+        opacity: 1;
+    }
+
+    .hover-content i {
+        font-size: 2rem;
+        color: white;
+    }
+
+    /* view responsif mobile umkm */
+    @media (max-width: 767px) {
+
+        /* Section padding lebih kecil di mobile */
+        #umkm.py-5 {
+            padding-top: 2rem !important;
+            padding-bottom: 2rem !important;
+        }
+
+        /* Header section */
+        .section-header {
+            margin-bottom: 1.5rem !important;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-description {
+            font-size: 0.875rem;
+            padding: 0 1rem;
+        }
+
+        /* UMKM Card - ukuran lebih kecil */
+        .umkm-card {
+            margin-bottom: 1rem;
+        }
+
+        /* Image height lebih kecil */
+        .umkm-img {
+            height: 180px !important;
+            object-fit: cover;
+        }
+
+        /* Card body padding lebih kecil */
+        .umkm-card .card-body {
+            padding: 0.75rem !important;
+        }
+
+        /* Product category */
+        .product-category {
+            font-size: 0.7rem;
+            margin-bottom: 0.5rem !important;
+        }
+
+        /* Title lebih kecil */
+        .umkm-title {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Deskripsi lebih kecil */
+        .umkm-desc {
+            font-size: 0.8rem;
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Owner info lebih kecil */
+        .umkm-owner {
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem !important;
+        }
+
+        /* Button actions lebih compact */
+        .umkm-actions .btn-sm {
+            font-size: 0.75rem;
+            padding: 0.375rem 0.5rem;
+        }
+
+        .umkm-actions .btn-text {
+            display: inline;
+        }
+
+        /* Carousel controls */
+        .carousel-control-prev,
+        .carousel-control-next {
+            width: 8%;
+        }
+
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        /* Button lihat semua */
+        .btn-explore-village {
+            font-size: 0.875rem;
+            padding: 0.5rem 1.25rem;
+        }
+
+        /* Hover overlay - disable di mobile untuk performa */
+        .card-hover-overlay {
+            display: none;
+        }
+
+        /* Card clickable effect */
+        .umkm-card {
+            transition: transform 0.2s;
+        }
+
+        .umkm-card:active {
+            transform: scale(0.98);
+        }
+    }
+
+    /* Responsive untuk Tablet kecil */
+    @media (min-width: 576px) and (max-width: 767px) {
+        .umkm-img {
+            height: 200px !important;
+        }
+
+        .umkm-title {
+            font-size: 1.1rem;
+        }
+
+        .umkm-desc {
+            font-size: 0.85rem;
+        }
+    }
+
+    /* Responsive untuk layar sangat kecil */
+    @media (max-width: 375px) {
+        .umkm-img {
+            height: 160px !important;
+        }
+
+        .umkm-title {
+            font-size: 0.95rem;
+        }
+
+        .umkm-desc {
+            font-size: 0.75rem;
+        }
+
+        .umkm-actions .btn-sm {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.4rem;
+        }
+
+        .umkm-actions .btn-text {
+            display: none;
+            /* Hanya tampilkan icon */
+        }
+    }
+
+    /* Memastikan 3 kolom tetap tampil di desktop */
+    @media (min-width: 992px) {
+        .carousel-item .row>div {
+            margin-bottom: 0 !important;
+        }
+    }
+
+    .btn-explore-village {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #4f5cadff, #4a608bff);
+        color: white;
+        text-decoration: none;
+        /* 👈 INI YANG PENTING: HILANGKAN GARIS BAWAH */
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 15px rgba(58, 66, 179, 0.3);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border: none;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-explore-village:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(94, 131, 217, 0.5);
+        background: linear-gradient(135deg, #73a6dcff, #5872a4ff);
+        color: white;
+        text-decoration: none;
+        /* 👈 JAGA AGAR TIDAK ADA GARIS BAWAH SAAT HOVER */
+    }
+
+    .btn-explore-village::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-explore-village:hover::before {
+        left: 100%;
+    }
+
+    .btn-explore-village i {
+        font-size: 1.2rem;
+        margin-right: 0.5rem;
+    }
+
+    /* Pastikan tidak ada underline di semua state */
+    .btn-explore-village,
+    .btn-explore-village:link,
+    .btn-explore-village:visited,
+    .btn-explore-village:hover,
+    .btn-explore-village:active {
+        text-decoration: none !important;
+        color: white !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .btn-explore-village {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+        }
+    }
+
+    .btn-download-sop {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+        color: white;
+        text-decoration: none;
+        /* 👈 HILANGKAN GARIS BAWAH */
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border: none;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-download-sop:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5);
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+        color: white;
+        text-decoration: none;
+        /* 👈 JAGA AGAR TIDAK ADA GARIS BAWAH SAAT HOVER */
+    }
+
+    .btn-download-sop::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-download-sop:hover::before {
+        left: 100%;
+    }
+
+    .btn-download-sop i {
+        font-size: 1.2rem;
+        margin-right: 0.5rem;
+    }
+
+    /* Pastikan tidak ada underline di semua state */
+    .btn-download-sop,
+    .btn-download-sop:link,
+    .btn-download-sop:visited,
+    .btn-download-sop:hover,
+    .btn-download-sop:active {
+        text-decoration: none !important;
+        color: white !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .btn-download-sop {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+        }
     }
 </style>
 

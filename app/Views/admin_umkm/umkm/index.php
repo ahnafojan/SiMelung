@@ -82,7 +82,7 @@
                         <input class="form-control mr-sm-2" type="search" placeholder="Cari UMKM..." aria-label="Search" name="keyword" value="<?= esc($keyword ?? '') ?>">
                         <button class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fas fa-search"></i> Cari</button>
                     </form>
-                    
+
                     <!-- TOMBOL RESET: Muncul hanya jika ada keyword -->
                     <?php if (!empty($keyword)): ?>
                         <a href="<?= base_url('umkm') ?>" class="btn btn-secondary my-2 my-sm-0 ml-2" title="Tampilkan Semua Data">
@@ -114,7 +114,8 @@
                 </thead>
                 <tbody class="text-center">
                     <?php if (!empty($umkm) && is_array($umkm)): ?>
-                        <?php $no = 1; foreach ($umkm as $u): ?>
+                        <?php $no = 1;
+                        foreach ($umkm as $u): ?>
                             <tr>
                                 <td><?= $no++ ?></td>
                                 <td><?= esc($u['nama_umkm']) ?></td>
@@ -141,7 +142,7 @@
                                     <?php endif; ?>
                                 </td>
                                 <td class="d-flex justify-content-center">
-                                    
+
                                     <!-- Logika Tombol EDIT (Gembok Kuning) -->
                                     <?php if ($u['edit_status'] === 'approved'): ?>
                                         <!-- APPROVED: Tombol Edit/Buka -->
@@ -269,18 +270,18 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Event delegation untuk menangani tombol permintaan izin
         document.body.addEventListener('click', function(e) {
-            
+
             const button = e.target.closest('.request-permission-btn');
             if (!button) return;
 
             e.preventDefault();
-            
+
             const umkmId = button.dataset.id;
             const actionType = button.dataset.action;
-            
+
             // Konfirmasi sebelum mengirim permintaan (Ganti dengan modal kustom di lingkungan produksi)
             const confirmMessage = 'Anda yakin ingin mengajukan permintaan izin untuk ' + actionType.toUpperCase() + ' data UMKM ini?';
-            
+
             if (!confirm(confirmMessage)) { // Menggunakan confirm() karena lingkungan tidak mengizinkan modal kustom yang kompleks
                 return;
             }
@@ -292,38 +293,38 @@
 
             // Menggunakan Fetch API untuk mengirim permintaan AJAX ke Controller
             fetch('<?= base_url('umkm/requestAccess') ?>', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new URLSearchParams({
-                    // Menggunakan 'kopimasuk_id' untuk sementara sesuai yang didefinisikan di Controller Anda
-                    'kopimasuk_id': umkmId, 
-                    'action_type': actionType,
-                    // Mengambil hash CSRF
-                    '<?= csrf_token() ?>': document.querySelector('input[name="<?= csrf_token() ?>"]').value 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: new URLSearchParams({
+                        // Menggunakan 'kopimasuk_id' untuk sementara sesuai yang didefinisikan di Controller Anda
+                        'kopimasuk_id': umkmId,
+                        'action_type': actionType,
+                        // Mengambil hash CSRF
+                        '<?= csrf_token() ?>': document.querySelector('input[name="<?= csrf_token() ?>"]').value
+                    })
                 })
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Ganti dengan notifikasi yang lebih baik
-                if (data.status === 'success') {
-                    alert(data.message); 
-                    // Muat ulang halaman untuk menampilkan status PENDING yang baru
-                    window.location.reload(); 
-                } else {
-                    alert('Gagal: ' + data.message);
+                .then(response => response.json())
+                .then(data => {
+                    // Ganti dengan notifikasi yang lebih baik
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        // Muat ulang halaman untuk menampilkan status PENDING yang baru
+                        window.location.reload();
+                    } else {
+                        alert('Gagal: ' + data.message);
+                        button.innerHTML = originalContent;
+                        button.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan jaringan atau server.');
                     button.innerHTML = originalContent;
                     button.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan jaringan atau server.');
-                button.innerHTML = originalContent;
-                button.disabled = false;
-            });
+                });
         });
     });
 </script>
