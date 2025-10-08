@@ -158,7 +158,7 @@
     </li>
 
     <li class="nav-item">
-        <a class="nav-link fs-3" href="<?= site_url('UmkmTerdaftar') ?>">
+        <a class="nav-link fs-3" href="<?= site_url('DesaRekapUmkm') ?>">
             <i class="fas fa-fw fa-store fa-lg"></i>
             <span>UMKM Terdaftar</span>
         </a>

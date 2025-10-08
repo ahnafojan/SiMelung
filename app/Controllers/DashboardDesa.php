@@ -8,6 +8,7 @@ use App\Models\KopiKeluarModel;
 use App\Models\KopiMasukModel;
 use App\Models\ObjekWisataModel;
 use App\Models\PetaniModel;
+use App\Models\UmkmModel;
 
 class DashboardDesa extends BaseController
 {
@@ -25,10 +26,17 @@ class DashboardDesa extends BaseController
         $asetKomersialModel  = new AsetKomersialModel();
         $asetPariwisataModel = new AsetPariwisataModel();
         $objekWisataModel    = new ObjekWisataModel();
+        $umkmModel           = new UmkmModel();
 
         // Filter
         $bulan = (int) ($this->request->getGet('bulan') ?? date('m'));
         $tahun = (int) ($this->request->getGet('tahun') ?? date('Y'));
+
+        // Ambil data UMKM (hanya yang dipublikasikan, opsional)
+        $umkmData = $umkmModel
+            ->where('is_published', 1) // opsional: hanya tampilkan yang aktif
+            ->orderBy('nama_umkm', 'ASC')
+            ->findAll();
 
         // KPI Data
         $totalMasuk = (int) ($kopiMasukModel->selectSum('jumlah')->first()['jumlah'] ?? 0);
@@ -128,6 +136,7 @@ class DashboardDesa extends BaseController
             'totalAsetPariwisata' => $totalAsetPariwisata,
             'totalNilaiAsetPariwisata' => $totalNilaiAsetPariwisata,
             'asetsPariwisata' => $asetsPariwisata,
+            'umkmData' => $umkmData,
             'totalData' => $totalData,
             'currentPage' => $currentPage,
             'totalPages' => $totalPages,

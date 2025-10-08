@@ -35,6 +35,8 @@ $routes->group('bumdes', ['namespace' => 'App\Controllers'], function ($routes) 
         $routes->get('aset', 'BumdesRekapAset::index');
         $routes->get('pariwisata', 'BumdesRekapPariwisata::index');
         $routes->get('umkm', 'BumdesRekapUmkm::index');
+        $routes->get('umkm/exportExcel', 'BumdesRekapUmkm::exportExcel');
+        $routes->get('umkm/exportPDF', 'BumdesRekapUmkm::exportPDF');
     });
 
     /**
@@ -372,5 +374,7 @@ $routes->get('desa/laporan_komersial/petani', 'DesaRekapPetani::index');
 $routes->get('desa/laporan_pariwisata/objekwisata', 'DesaRekapPariwisata::laporanObjekWisata');
 // URL: http://domain-anda.com/desa/laporan_pariwisata/asetpariwisata
 $routes->get('desa/laporan_pariwisata/asetpariwisata', 'DesaRekapPariwisata::laporanAset');
+//UMKM
+$routes->get('DesaRekapUmkm', 'DesaRekapUmkm::index');
 //download sop
 $routes->get('/sop/download', 'Sop::download');

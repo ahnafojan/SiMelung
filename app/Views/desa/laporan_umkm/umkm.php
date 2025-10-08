@@ -4,29 +4,8 @@
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <div>
-            <h1 class="h3 page-title">Laporan Rekap UMKM</h1>
+            <h1 class="h3 page-title">Laporan UMKM</h1>
             <p class="mb-0 page-subtitle">Detail Rekap UMKM desa Melung yang terdaftar.</p>
-        </div>
-        <a href="<?= base_url('bumdes/laporan') ?>" class="btn btn-sm btn-outline-secondary shadow-sm">
-            <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
-        </a>
-    </div>
-
-
-    <!-- Tombol Export -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Opsi Export Data UMKM</h6>
-        </div>
-        <div class="card-body">
-            <p>Silakan gunakan tombol di bawah ini untuk mengeksport seluruh data UMKM yang terdaftar di sistem:</p>
-
-            <a href="<?= site_url('bumdes/laporan/umkm/exportExcel') ?>" class="btn btn-success btn-lg mb-2">
-                <i class="fas fa-file-excel"></i> Export ke Excel (.xlsx)
-            </a>
-            <a href="<?= site_url('bumdes/laporan/umkm/exportPDF') ?>" class="btn btn-danger btn-lg mb-2">
-                <i class="fas fa-file-pdf"></i> Export ke PDF (.pdf)
-            </a>
         </div>
     </div>
 
