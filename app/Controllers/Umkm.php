@@ -57,18 +57,28 @@ class Umkm extends BaseController
 
     public function store()
     {
-        // Mendapatkan file foto dari request
         $foto_umkm = $this->request->getFile('foto_umkm');
         $nama_foto = null;
 
-        // Cek apakah ada file foto yang diunggah
         if ($foto_umkm && $foto_umkm->isValid() && !$foto_umkm->hasMoved()) {
             $nama_foto = $foto_umkm->getRandomName();
-            // Memindahkan file ke folder 'uploads/foto_umkm'
-            $foto_umkm->move('./uploads/foto_umkm', $nama_foto);
+
+            // Tentukan path berdasarkan environment
+            if (ENVIRONMENT === 'development') {
+                $uploadPath = FCPATH . 'uploads/foto_umkm';
+            } else {
+                $uploadPath = ROOTPATH . '../public_html/uploads/foto_umkm';
+            }
+
+            // Pastikan folder ada
+            if (!is_dir($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+
+            $foto_umkm->move($uploadPath, $nama_foto);
         }
 
-        // Simpan data ke database
+        // Simpan ke database...
         $this->umkmModel->save([
             'nama_umkm' => $this->request->getPost('nama_umkm'),
             'pemilik' => $this->request->getPost('pemilik'),
@@ -92,47 +102,65 @@ class Umkm extends BaseController
             return redirect()->to(site_url('umkm'))->with('error', 'Aksi edit dibatalkan. Anda tidak memiliki izin aktif.');
         }
 
-        // Ambil data UMKM yang lama untuk mengecek foto lama
+        // Ambil data UMKM yang lama
         $old_umkm = $this->umkmModel->find($id);
+        if (!$old_umkm) {
+            return redirect()->to(site_url('umkm'))->with('error', 'Data UMKM tidak ditemukan.');
+        }
 
         $foto_umkm = $this->request->getFile('foto_umkm');
-        $nama_foto = $old_umkm['foto_umkm'];
+        $nama_foto = $old_umkm['foto_umkm']; // Pertahankan foto lama jika tidak ada upload baru
+
+        // Tentukan path upload berdasarkan environment
+        if (ENVIRONMENT === 'development') {
+            $uploadPath = FCPATH . 'uploads/foto_umkm';
+        } else {
+            $uploadPath = ROOTPATH . '../public_html/uploads/foto_umkm';
+        }
+
+        // Pastikan folder upload ada
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
+        }
 
         // Cek apakah ada file foto baru yang diunggah
         if ($foto_umkm && $foto_umkm->isValid() && !$foto_umkm->hasMoved()) {
             // Hapus file foto lama jika ada
-            if ($old_umkm['foto_umkm'] != null && file_exists('./uploads/foto_umkm/' . $old_umkm['foto_umkm'])) {
-                unlink('./uploads/foto_umkm/' . $old_umkm['foto_umkm']);
+            if (!empty($old_umkm['foto_umkm'])) {
+                $oldFilePath = $uploadPath . '/' . $old_umkm['foto_umkm'];
+                if (file_exists($oldFilePath)) {
+                    unlink($oldFilePath);
+                }
             }
+
+            // Simpan file baru
             $nama_foto = $foto_umkm->getRandomName();
-            $foto_umkm->move('./uploads/foto_umkm', $nama_foto);
+            $foto_umkm->move($uploadPath, $nama_foto);
         }
 
         // Update data ke database
         $this->umkmModel->update($id, [
-            'nama_umkm' => $this->request->getPost('nama_umkm'),
-            'pemilik' => $this->request->getPost('pemilik'),
-            'kategori' => $this->request->getPost('kategori'),
-            'deskripsi' => $this->request->getPost('deskripsi'),
-            'alamat' => $this->request->getPost('alamat'),
-            'gmaps_url' => $this->request->getPost('gmaps_url'),
-            'kontak' => $this->request->getPost('kontak'),
-            'foto_umkm' => $nama_foto
+            'nama_umkm'   => $this->request->getPost('nama_umkm'),
+            'pemilik'     => $this->request->getPost('pemilik'),
+            'kategori'    => $this->request->getPost('kategori'),
+            'deskripsi'   => $this->request->getPost('deskripsi'),
+            'alamat'      => $this->request->getPost('alamat'),
+            'gmaps_url'   => $this->request->getPost('gmaps_url'),
+            'kontak'      => $this->request->getPost('kontak'),
+            'foto_umkm'   => $nama_foto
         ]);
 
-        // Hapus permintaan izin yang sudah digunakan setelah update berhasil
+        // Hapus permintaan izin yang sudah digunakan
         $this->permissionModel->where([
             'requester_id' => $userId,
-            'target_id' => $id,
-            'target_type' => 'umkm',
-            'action_type' => 'edit',
-            'status' => 'approved'
+            'target_id'    => $id,
+            'target_type'  => 'umkm',
+            'action_type'  => 'edit',
+            'status'       => 'approved'
         ])->delete();
-
 
         return redirect()->to(site_url('umkm'))->with('success', 'UMKM berhasil diupdate');
     }
-
     public function delete($id)
     {
         $userId = session()->get('user_id') ?? 0;
