@@ -7,7 +7,7 @@
     <meta name="description" content="Website Resmi BUMDes Melung - Badan Usaha Milik Desa Melung">
     <meta name="keywords" content="BUMDes, Melung, Desa, Usaha Desa, UMKM, Petani Kopi, Kopi Melung">
     <title><?= $title ?? 'Simelung | Landingpage' ?></title>
-    <link rel="icon" type="image/png" href="<?= base_url('img/nojdl.png') ?>">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
     <!-- Bootstrap 4 CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
