@@ -95,7 +95,7 @@
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Kopi Masuk</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= number_format($totalMasuk ?? 0, 0, ',', '.') ?> <span class="text-gray-600 small">Kg</span>
+                                <?= number_format($totalMasuk ?? 0, 2, ',', '.') ?> <span class="text-gray-600 small">Kg</span>
                             </div>
                             <div class="mt-2 text-success small font-weight-bold">
                                 <i class="fas fa-arrow-up mr-1"></i> Periode: <?= $namaBulan[$bulan] ?? '' ?> <?= $tahun ?>
@@ -116,7 +116,7 @@
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Kopi Keluar</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= number_format($totalKeluar ?? 0, 0, ',', '.') ?> <span class="text-gray-600 small">Kg</span>
+                                <?= number_format($totalKeluar ?? 0, 2, ',', '.') ?> <span class="text-gray-600 small">Kg</span>
                             </div>
                             <div class="mt-2 text-danger small font-weight-bold">
                                 <i class="fas fa-arrow-down mr-1"></i> Distribusi & Penjualan
@@ -135,12 +135,12 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Stok Tersedia</div>
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Sisa Kopi Tersedia</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= number_format($stokBersih ?? 0, 0, ',', '.') ?> <span class="text-gray-600 small">Kg</span>
+                                <?= number_format($stokBersihGlobal ?? 0, 2, ',', '.') ?> <span class="text-gray-600 small">Kg</span>
                             </div>
                             <?php
-                            $persentaseStok = ($totalMasuk > 0) ? ($stokBersih / $totalMasuk) * 100 : 0;
+                            $persentaseStok = ($totalMasukGlobal > 0) ? (($stokBersihGlobal / $totalMasukGlobal) * 100) : 0;
                             $statusColor = $persentaseStok > 50 ? 'success' : ($persentaseStok > 20 ? 'warning' : 'danger');
                             ?>
                             <div class="mt-2 text-<?= $statusColor ?> small font-weight-bold">
@@ -162,7 +162,7 @@
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Petani Aktif</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= number_format($totalPetani ?? 0, 0, ',', '.') ?> <span class="text-gray-600 small">Orang</span>
+                                <?= number_format($totalPetaniGlobal ?? 0, 0, ',', '.') ?> <span class="text-gray-600 small">Orang</span>
                             </div>
                             <div class="mt-2 text-primary small font-weight-bold">
                                 <i class="fas fa-users mr-1"></i> Mitra Terdaftar
@@ -184,7 +184,7 @@
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Aset Terdaftar</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?= number_format($totalAset ?? 0, 0, ',', '.') ?> <span class="text-gray-600 small">Unit</span>
+                                <?= number_format($totalAsetGlobal ?? 0, 0, ',', '.') ?> <span class="text-gray-600 small">Unit</span>
                             </div>
                             <div class="mt-2 text-warning small font-weight-bold">
                                 <i class="fas fa-tools mr-1"></i> Peralatan & Fasilitas
@@ -205,13 +205,10 @@
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">Tingkat Distribusi</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?php
-                                $tingkatDistribusi = ($totalMasuk > 0) ? ($totalKeluar / $totalMasuk) * 100 : 0;
-                                echo number_format($tingkatDistribusi, 1);
-                                ?>%
+                                <?= number_format($tingkatDistribusiGlobal ?? 0, 1, ',', '.') ?>%
                             </div>
                             <div class="mt-2 text-dark small font-weight-bold">
-                                <i class="fas fa-shipping-fast mr-1"></i> Dari Total Kopi Masuk
+                                <i class="fas fa-shipping-fast mr-1"></i> Dari Seluruh Periode
                             </div>
                         </div>
                         <div class="col-auto">
@@ -222,28 +219,88 @@
             </div>
         </div>
 
+        <?php
+        // ===== STATUS OPERASIONAL (GLOBAL) =====
+        $stokPersen = ($totalMasukGlobal > 0)
+            ? ($stokBersihGlobal / $totalMasukGlobal) * 100
+            : 0;
+
+        // Default
+        $statusText  = 'Sistem Normal';
+        $statusColor = 'success';
+        $statusIcon  = 'fa-check-circle';
+        $borderColor = 'secondary';
+
+        // Rules
+        if ($totalMasukGlobal == 0 && $totalKeluarGlobal == 0) {
+            $statusText  = 'Tidak Ada Aktivitas';
+            $statusColor = 'secondary';
+            $statusIcon  = 'fa-ban';
+            $borderColor = 'secondary';
+        } elseif ($totalKeluarGlobal > $totalMasukGlobal) {
+            $statusText  = 'Stok Defisit';
+            $statusColor = 'danger';
+            $statusIcon  = 'fa-exclamation-triangle';
+            $borderColor = 'danger';
+        } elseif ($stokPersen < 10) {
+            $statusText  = 'Stok Menipis';
+            $statusColor = 'danger';
+            $statusIcon  = 'fa-arrow-down';
+            $borderColor = 'danger';
+        } elseif ($stokPersen > 80) {
+            $statusText  = 'Stok Berlebih';
+            $statusColor = 'warning';
+            $statusIcon  = 'fa-box';
+            $borderColor = 'warning';
+        } elseif (($tingkatDistribusiGlobal ?? 0) > 95) {
+            $statusText  = 'Distribusi Tinggi';
+            $statusColor = 'info';
+            $statusIcon  = 'fa-shipping-fast';
+            $borderColor = 'info';
+        }
+        ?>
+
         <div class="col-xl-6 col-md-12 mb-4">
-            <div class="card border-left-secondary shadow h-100 py-2">
+            <div class="card border-left-<?= $borderColor ?> shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col-8">
-                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Status Operasional</div>
+
+                            <!-- TITLE -->
+                            <div class="text-xs font-weight-bold text-<?= $borderColor ?> text-uppercase mb-1">
+                                Status Operasional (Real-time)
+                            </div>
+
                             <div class="row">
+                                <!-- STATUS -->
                                 <div class="col-6">
                                     <div class="text-gray-800 font-weight-bold">
-                                        <i class="fas fa-circle text-success mr-2"></i>Sistem Normal
+                                        <i class="fas <?= $statusIcon ?> text-<?= $statusColor ?> mr-2"></i>
+                                        <?= $statusText ?>
                                     </div>
-                                    <small class="text-gray-600">Update: <?= date('d M Y, H:i') ?></small>
+                                    <small class="text-gray-600">
+                                        Update: <?= date('d M Y, H:i') ?>
+                                    </small>
                                 </div>
+
+                                <!-- INFO -->
                                 <div class="col-6">
-                                    <div class="text-gray-800"><strong>Periode:</strong> <?= $namaBulan[$bulan] ?? '' ?> <?= $tahun ?></div>
-                                    <div class="text-gray-800"><strong>Transaksi:</strong> <?= number_format(($totalMasuk + $totalKeluar), 0, ',', '.') ?> Kg</div>
+                                    <div class="text-gray-800">
+                                        <strong>Periode:</strong> <?= $namaBulan[$bulan] ?? '' ?> <?= $tahun ?>
+                                    </div>
+                                    <div class="text-gray-800">
+                                        <strong>Stok (Total):</strong>
+                                        <?= number_format($stokBersihGlobal ?? 0, 2, ',', '.') ?> Kg
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- ICON -->
                         <div class="col-auto">
-                            <i class="fas fa-cog fa-2x text-secondary fa-spin-slow"></i>
+                            <i class="fas fa-cog fa-2x text-<?= $borderColor ?> fa-spin-slow"></i>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -290,7 +347,7 @@
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-chart-pie mr-2"></i>Distribusi Jenis Kopi
+                        <i class="fas fa-chart-pie mr-2"></i>Jenis Kopi yang tercatat
                     </h6>
                     <div class="dropdown no-arrow">
                         <a class="dropdown-toggle" href="#" role="button" id="pieChartDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -303,15 +360,75 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="card-body">
-                    <div class="chart-pie pt-4 pb-2">
-                        <canvas id="jenisKopiChart" style="height: 245px;"></canvas>
-                    </div>
-                    <div class="mt-4 text-center small">
-                        <span class="mr-2"><i class="fas fa-circle text-primary"></i> Arabika</span>
-                        <span class="mr-2"><i class="fas fa-circle text-success"></i> Robusta</span>
-                        <span class="mr-2"><i class="fas fa-circle text-info"></i> Liberika</span>
-                    </div>
+                    <?php
+                    $labelsArr = json_decode($jenisLabels ?? '[]', true);
+                    $totalsArr = json_decode($jenisTotals ?? '[]', true);
+
+                    $labelsArr = is_array($labelsArr) ? $labelsArr : [];
+                    $totalsArr = is_array($totalsArr) ? $totalsArr : [];
+
+                    $totalKg = 0;
+                    foreach ($totalsArr as $v) {
+                        $totalKg += (int) $v;
+                    }
+
+                    $isEmpty = empty($totalsArr) || $totalKg <= 0;
+                    ?>
+
+                    <?php if ($isEmpty): ?>
+                        <!-- EMPTY STATE (tanpa CSS tambahan, pakai bootstrap) -->
+                        <div class="text-center py-4">
+                            <div class="mb-2">
+                                <i class="fas fa-seedling fa-2x text-gray-400"></i>
+                            </div>
+
+                            <div class="h4 font-weight-bold text-gray-800 mb-0">
+                                0 <span class="small text-gray-600">Kg</span>
+                            </div>
+                            <div class="small text-gray-600 mb-3">
+                                Total distribusi jenis kopi
+                            </div>
+
+                            <div class="alert alert-light border small text-left mb-3">
+                                <div class="font-weight-bold text-gray-800 mb-1">
+                                    Tidak ada data pada periode <?= $namaBulan[$bulan] ?? '' ?> <?= $tahun ?>
+                                </div>
+                                <div class="text-gray-600">
+                                    Alasan: belum ada data <strong>kopi masuk</strong> pada periode ini, sehingga distribusi per jenis belum bisa dihitung.
+                                </div>
+                            </div>
+
+                            <a href="<?= base_url('dashboard/dashboard_komersial') ?>" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-sync-alt mr-1"></i> Reset Filter
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <!-- CHART -->
+                        <div class="chart-pie pt-4 pb-2">
+                            <canvas id="jenisKopiChart" style="height: 245px;"></canvas>
+                        </div>
+
+                        <!-- LEGEND OTOMATIS DARI DATA -->
+                        <div class="mt-3 small">
+                            <?php foreach ($labelsArr as $i => $lbl): ?>
+                                <div class="d-flex justify-content-between border-bottom py-1">
+                                    <div class="text-gray-700">
+                                        <?= esc($lbl) ?>
+                                    </div>
+                                    <div class="font-weight-bold text-gray-800">
+                                        <?= number_format((int)($totalsArr[$i] ?? 0), 0, ',', '.') ?> Kg
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+
+                            <div class="d-flex justify-content-between pt-2">
+                                <div class="text-gray-600 font-weight-bold">Total</div>
+                                <div class="text-gray-800 font-weight-bold"><?= number_format($totalKg, 0, ',', '.') ?> Kg</div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

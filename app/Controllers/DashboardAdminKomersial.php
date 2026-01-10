@@ -27,14 +27,27 @@ class DashboardAdminKomersial extends BaseController
         $bulan = (int) ($this->request->getGet('bulan') ?? date('m'));
         $tahun = (int) ($this->request->getGet('tahun') ?? date('Y'));
 
-        // ================== Hitung Total ==================
-        $totalMasuk  = (int) ($kopiMasukModel->selectSum('jumlah')->first()['jumlah'] ?? 0);
-        $totalKeluar = (int) ($kopiKeluarModel->selectSum('jumlah')->first()['jumlah'] ?? 0);
-        $stokBersih  = $totalMasuk - $totalKeluar;
-        $totalPetani = $petaniModel->countAll();
-        $totalAset   = $asetModel->countAll();
+        // =================================================
+        // A) DATA FILTERED (hanya untuk card masuk/keluar + grafik + pie)
+        // =================================================
 
-        // ================== Data Grafik Masuk ==================
+        // Total kopi masuk FILTERED
+        $totalMasukRow = $kopiMasukModel
+            ->selectSum('jumlah', 'total')
+            ->where('MONTH(tanggal)', $bulan)
+            ->where('YEAR(tanggal)', $tahun)
+            ->first();
+        $totalMasuk = (float) ($totalMasukRow['total'] ?? 0);
+
+        // Total kopi keluar FILTERED
+        $totalKeluarRow = $kopiKeluarModel
+            ->selectSum('jumlah', 'total')
+            ->where('MONTH(tanggal)', $bulan)
+            ->where('YEAR(tanggal)', $tahun)
+            ->first();
+        $totalKeluar = (float) ($totalKeluarRow['total'] ?? 0);
+
+        // Grafik Masuk FILTERED
         $kopiMasuk = $kopiMasukModel
             ->select("DATE(tanggal) as tgl, SUM(jumlah) as total")
             ->where('MONTH(tanggal)', $bulan)
@@ -43,7 +56,7 @@ class DashboardAdminKomersial extends BaseController
             ->orderBy('tanggal', 'ASC')
             ->findAll();
 
-        // ================== Data Grafik Keluar ==================
+        // Grafik Keluar FILTERED
         $kopiKeluar = $kopiKeluarModel
             ->select("DATE(tanggal) as tgl, SUM(jumlah) as total")
             ->where('MONTH(tanggal)', $bulan)
@@ -52,18 +65,18 @@ class DashboardAdminKomersial extends BaseController
             ->orderBy('tanggal', 'ASC')
             ->findAll();
 
-        // ================== Gabungkan Data ==================
+        // Gabungkan data grafik
         $tanggalList = [];
         foreach ($kopiMasuk as $row) {
             $tanggalList[$row['tgl']] = [
-                'masuk' => (int) $row['total'],
+                'masuk'  => (int) $row['total'],
                 'keluar' => 0
             ];
         }
         foreach ($kopiKeluar as $row) {
             if (!isset($tanggalList[$row['tgl']])) {
                 $tanggalList[$row['tgl']] = [
-                    'masuk' => 0,
+                    'masuk'  => 0,
                     'keluar' => (int) $row['total']
                 ];
             } else {
@@ -77,23 +90,47 @@ class DashboardAdminKomersial extends BaseController
         $dataMasuk  = array_column($tanggalList, 'masuk');
         $dataKeluar = array_column($tanggalList, 'keluar');
 
-        // ================== Data Distribusi Stok per Jenis Kopi ==================
+        // Pie Chart Jenis Kopi FILTERED
         $stokPerJenis = $kopiMasukModel
             ->select('jenis_pohon.nama_jenis, SUM(kopi_masuk.jumlah) as total')
             ->join('petani_pohon', 'petani_pohon.id = kopi_masuk.petani_pohon_id', 'left')
             ->join('jenis_pohon', 'jenis_pohon.id = petani_pohon.jenis_pohon_id', 'left')
+            ->where('MONTH(kopi_masuk.tanggal)', $bulan)
+            ->where('YEAR(kopi_masuk.tanggal)', $tahun)
             ->groupBy('jenis_pohon.nama_jenis')
             ->findAll();
 
-
-        // Pisahkan label & data
         $jenisLabels = [];
         $jenisTotals = [];
         foreach ($stokPerJenis as $row) {
             $jenisLabels[] = $row['nama_jenis'] ?? 'Tidak Diketahui';
-            $jenisTotals[] = (int) $row['total'];
+            $jenisTotals[] = (int) ($row['total'] ?? 0);
         }
 
+        // =================================================
+        // B) DATA GLOBAL (TIDAK IKUT FILTER) untuk card tertentu
+        // =================================================
+
+        // Total Masuk GLOBAL
+        $totalMasukGlobalRow = $kopiMasukModel->selectSum('jumlah', 'total')->first();
+        $totalMasukGlobal = (float) ($totalMasukGlobalRow['total'] ?? 0);
+
+        $totalKeluarGlobalRow = $kopiKeluarModel->selectSum('jumlah', 'total')->first();
+        $totalKeluarGlobal = (float) ($totalKeluarGlobalRow['total'] ?? 0);
+
+        $stokBersihGlobal = $totalMasukGlobal - $totalKeluarGlobal;
+
+
+        // Petani GLOBAL (total terdaftar)
+        $totalPetaniGlobal = $petaniModel->countAll();
+
+        // Aset GLOBAL (total terdaftar)
+        $totalAsetGlobal = $asetModel->countAll();
+
+        // Tingkat distribusi GLOBAL
+        $tingkatDistribusiGlobal = ($totalMasukGlobal > 0)
+            ? ($totalKeluarGlobal / $totalMasukGlobal) * 100
+            : 0;
 
         // ================== Dropdown Tahun Dinamis ==================
         $startYear = 2020;
@@ -102,34 +139,45 @@ class DashboardAdminKomersial extends BaseController
         $maxKeluar = $kopiKeluarModel->selectMax('tanggal')->first()['tanggal'] ?? null;
 
         $maxYearDb = max(
-            $maxMasuk ? date('Y', strtotime($maxMasuk)) : date('Y'),
-            $maxKeluar ? date('Y', strtotime($maxKeluar)) : date('Y')
+            $maxMasuk ? (int) date('Y', strtotime($maxMasuk)) : (int) date('Y'),
+            $maxKeluar ? (int) date('Y', strtotime($maxKeluar)) : (int) date('Y')
         );
 
-        $currentYear = date('Y');
+        $currentYear = (int) date('Y');
         $endYear     = max($currentYear, $maxYearDb);
 
         $years = range($startYear, $endYear);
 
         // ================== Kirim Data ke View ==================
         $data = [
-            'stokBersih'   => $stokBersih,
-            'totalMasuk'   => $totalMasuk,
-            'totalKeluar'  => $totalKeluar,
-            'totalPetani'  => $totalPetani,
-            'totalAset'    => $totalAset,
-            'labels'       => json_encode($labels),
-            'dataMasuk'    => json_encode($dataMasuk),
-            'dataKeluar'   => json_encode($dataKeluar),
-            'years'        => $years,
-            'bulan'        => $bulan,
-            'tahun'        => $tahun,
-            'jenisLabels'  => json_encode($jenisLabels),
-            'jenisTotals'  => json_encode($jenisTotals),
+            // FILTERED (untuk card Kopi Masuk/Keluar + grafik)
+            'totalMasuk'  => $totalMasuk,
+            'totalKeluar' => $totalKeluar,
+
+            'labels'      => json_encode($labels),
+            'dataMasuk'   => json_encode($dataMasuk),
+            'dataKeluar'  => json_encode($dataKeluar),
+
+            'jenisLabels' => json_encode($jenisLabels),
+            'jenisTotals' => json_encode($jenisTotals),
+
+            // GLOBAL (untuk card yang tidak ikut filter)
+            'stokBersihGlobal'          => $stokBersihGlobal,
+            'totalPetaniGlobal'         => $totalPetaniGlobal,
+            'totalAsetGlobal'           => $totalAsetGlobal,
+            'tingkatDistribusiGlobal'   => $tingkatDistribusiGlobal,
+            'totalMasukGlobal'          => $totalMasukGlobal,     // opsional kalau mau dipakai di view
+            'totalKeluarGlobal'         => $totalKeluarGlobal,    // opsional kalau mau dipakai di view
+
+            // filter UI
+            'years'      => $years,
+            'bulan'      => $bulan,
+            'tahun'      => $tahun,
+
             'breadcrumbs' => [
                 [
                     'title' => 'Dashboard',
-                    'url'   => '#', // Halaman aktif, tidak perlu link
+                    'url'   => '#',
                     'icon'  => 'fas fa-fw fa-tachometer-alt'
                 ]
             ]

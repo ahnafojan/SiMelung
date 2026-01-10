@@ -30,8 +30,8 @@
                             <span class="counter" data-target="<?= $totalStokKopi ?? 0 ?>">0</span>
                             <span class="stats-unit">Kg</span>
                         </div>
-                        <h3 class="stats-title">Total Stok Kopi Bumdes</h3>
-                        <p class="stats-subtitle">Stok kopi tersedia saat ini</p>
+                        <h3 class="stats-title">Total Stok Kopi</h3>
+                        <p class="stats-subtitle">Stok kopi yang tercatat saat ini</p>
                     </div>
                 </div>
             </div>
