@@ -257,6 +257,7 @@
                             <option value="kopi_masuk">Kopi Masuk</option>
                             <option value="kopi_keluar">Kopi Keluar</option>
                             <option value="jenis_pohon">Jenis Pohon</option>
+                            <option value="harga_jenis_kopi">Harga Jenis Kopi</option>
                             <option value="aset">Aset</option>
                             <option value="aset_pariwisata">Aset Pariwisata</option>
                             <option value="objek_wisata">Objek Wisata</option>
@@ -365,7 +366,16 @@
                                             <br><small class="text-muted">Kontak: <?= esc($req['umkm_kontak']) ?></small>
                                         <?php endif; ?>
                                         <?= esc(ucfirst(str_replace('_', ' ', $req['target_type']))) ?> ID: #<?= esc($req['target_id']) ?>
-
+                                    <?php elseif ($req['target_type'] === 'harga_jenis_kopi' && !empty($req['harga_jenis_nama'])): ?>
+                                        Harga Jenis: <strong><?= esc($req['harga_jenis_nama']) ?></strong>
+                                        <br><small class="text-muted">
+                                            Beli: <?= esc(number_format((float)$req['harga_beli'], 0, ',', '.')) ?> /Kg |
+                                            Jual: <?= esc(number_format((float)$req['harga_jual'], 0, ',', '.')) ?> /Kg
+                                        </small>
+                                        <?php if (!empty($req['harga_tanggal_berlaku'])): ?>
+                                            <br><small class="text-muted">Berlaku: <?= esc(date('d M Y', strtotime($req['harga_tanggal_berlaku']))) ?></small>
+                                        <?php endif; ?>
+                                        <br><small class="text-muted">ID Harga: #<?= esc($req['target_id']) ?></small>
                                     <?php endif; ?>
                                 </span>
                             </div>
@@ -452,6 +462,17 @@
                                                 <br><small class="text-muted">Kontak: <?= esc($req['umkm_kontak']) ?></small>
                                             <?php endif; ?>
                                             <?= esc(ucfirst(str_replace('_', ' ', $req['target_type']))) ?> ID: #<?= esc($req['target_id']) ?>
+                                        <?php elseif ($req['target_type'] === 'harga_jenis_kopi' && !empty($req['harga_jenis_nama'])): ?>
+                                            Harga Jenis: <strong><?= esc($req['harga_jenis_nama']) ?></strong>
+                                            <br><small class="text-muted">
+                                                Beli: <?= esc(number_format((float)$req['harga_beli'], 0, ',', '.')) ?> /Kg |
+                                                Jual: <?= esc(number_format((float)$req['harga_jual'], 0, ',', '.')) ?> /Kg
+                                            </small>
+                                            <?php if (!empty($req['harga_tanggal_berlaku'])): ?>
+                                                <br><small class="text-muted">Berlaku: <?= esc(date('d M Y', strtotime($req['harga_tanggal_berlaku']))) ?></small>
+                                            <?php endif; ?>
+                                            <br><small class="text-muted">ID Harga: #<?= esc($req['target_id']) ?></small>
+
                                         <?php endif; ?>
                                     </td>
                                     <td>

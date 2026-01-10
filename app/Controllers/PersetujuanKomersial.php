@@ -51,7 +51,13 @@ class PersetujuanKomersial extends BaseController
                 // ▲▲▲ AKHIR KOLOM BARU UNTUK UMKM ▲▲▲
                 'aset_p.nama_pariwisata as aset_pariwisata_target_name',
                 'wisata.nama_wisata as aset_pariwisata_lokasi',
-                'ow_target.nama_wisata as objekwisata_target_name'
+                'ow_target.nama_wisata as objekwisata_target_name',
+                // ▼▼▼ KOLOM BARU UNTUK HARGA JENIS KOPI ▼▼▼
+                'hjk.harga_beli_per_kg as harga_beli',
+                'hjk.harga_jual_per_kg as harga_jual',
+                'hjk.tanggal_berlaku as harga_tanggal_berlaku',
+                'jp_harga.nama_jenis as harga_jenis_nama'
+                // ▲▲▲ AKHIR KOLOM BARU UNTUK HARGA JENIS KOPI ▲▲▲
             ])
             // Join ke tabel users untuk mendapatkan nama pemohon
             ->join('users', 'users.id = permission_requests.requester_id', 'left')
@@ -78,6 +84,10 @@ class PersetujuanKomersial extends BaseController
             ->join('aset_wisata', 'aset_wisata.aset_id = aset_p.id', 'left')
             ->join('objek_wisata as wisata', 'wisata.id = aset_wisata.wisata_id', 'left')
             ->join('objek_wisata as ow_target', 'ow_target.id = permission_requests.target_id AND permission_requests.target_type = "objek_wisata"', 'left')
+            // ▼▼▼ JOIN BARU UNTUK HARGA JENIS KOPI ▼▼▼
+            ->join('harga_jenis_kopi as hjk', 'hjk.id = permission_requests.target_id AND permission_requests.target_type = "harga_jenis_kopi"', 'left')
+            ->join('jenis_pohon as jp_harga', 'jp_harga.id = hjk.jenis_pohon_id', 'left')
+            // ▲▲▲ AKHIR JOIN BARU UNTUK HARGA JENIS KOPI ▲▲▲
 
             ->where('permission_requests.status', 'pending')
             ->orderBy('permission_requests.created_at', 'DESC')

@@ -244,8 +244,10 @@ $queryParams = service('request')->getGet();
                             <tr>
                                 <th>No</th>
                                 <th>Nama Petani</th>
+                                <th>Jenis Kopi</th>
                                 <th class="text-right">Total Masuk (Kg)</th>
-                                <th>Tanggal Setor Terakhir</th>
+                                <th class="text-right">Total Harga Masuk (Rp)</th>
+                                <th class="text-center">Tanggal</th>
                                 <th class="text-center">Jumlah Transaksi</th>
                                 <th class="text-right">Rata-rata Setoran (Kg)</th>
                             </tr>
@@ -258,15 +260,17 @@ $queryParams = service('request')->getGet();
                                     <tr>
                                         <td><?= $no++ ?></td>
                                         <td class="font-weight-bold text-primary"><?= esc($p['nama_petani']) ?></td>
+                                        <td><?= esc($p['jenis_kopi']) ?></td>
                                         <td class="text-right text-success"><?= number_format($p['total_masuk'], 2) ?></td>
-                                        <td><?= esc($p['tanggal_terakhir']) ?></td>
+                                        <td class="text-right text-primary font-weight-bold">Rp <?= number_format($p['total_nilai_masuk'] ?? 0, 0, ',', '.') ?></td>
+                                        <td><?= esc($p['tanggal_transaksi']) ?></td>
                                         <td class="text-center"><?= $p['jumlah_transaksi'] ?></td>
                                         <td class="text-right"><?= number_format($p['rata_rata_setoran'], 2) ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else : ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted">Tidak ada data kopi masuk.</td>
+                                    <td colspan="8" class="text-center text-muted">Tidak ada data kopi masuk.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -290,8 +294,16 @@ $queryParams = service('request')->getGet();
                                     <span class="mobile-card-value text-success font-weight-bold"><?= number_format($p['total_masuk'], 2) ?> Kg</span>
                                 </div>
                                 <div class="mobile-card-row">
-                                    <span class="mobile-card-label">Tgl Setor Terakhir</span>
-                                    <span class="mobile-card-value"><?= esc($p['tanggal_terakhir']) ?></span>
+                                    <span class="mobile-card-label">Jenis Kopi</span>
+                                    <span class="mobile-card-value"><?= esc($p['jenis_kopi']) ?></span>
+                                </div>
+                                <div class="mobile-card-row"> <!-- [BARU] -->
+                                    <span class="mobile-card-label">Total Harga Masuk</span>
+                                    <span class="mobile-card-value text-primary font-weight-bold">Rp <?= number_format($p['total_nilai_masuk'] ?? 0, 0, ',', '.') ?></span>
+                                </div>
+                                <div class="mobile-card-row">
+                                    <span class="mobile-card-label">Tanggal</span>
+                                    <span class="mobile-card-value"><?= esc($p['tanggal_transaksi']) ?></span>
                                 </div>
                                 <div class="mobile-card-row">
                                     <span class="mobile-card-label">Jml Transaksi</span>
@@ -374,9 +386,13 @@ $queryParams = service('request')->getGet();
                             <tr>
                                 <th>No</th>
                                 <th>Tanggal</th>
+                                <th>Nama Petani</th>
                                 <th>Jenis Kopi</th>
                                 <th>Tujuan Pembeli</th>
                                 <th class="text-right">Jumlah (Kg)</th>
+                                <th class="text-right">Harga Jual (Rp/Kg)</th> <!-- [BARU] -->
+                                <th class="text-right">Keuntungan BUMDes (Rp)</th>
+                                <th class="text-right">Total Harga Jual Petani (Rp)</th>
                                 <th>Keterangan</th>
                             </tr>
                         </thead>
@@ -388,15 +404,23 @@ $queryParams = service('request')->getGet();
                                     <tr>
                                         <td><?= $no++ ?></td>
                                         <td><?= esc($j['tanggal']) ?></td>
+                                        <td><?= esc($j['nama_petani']) ?></td>
                                         <td><?= esc($j['jenis_kopi']) ?></td>
                                         <td><?= esc($j['tujuan_pembeli']) ?></td>
                                         <td class="text-right text-danger"><?= number_format($j['jumlah_kg'], 2) ?></td>
+                                        <td class="text-right"><?= number_format($j['harga_jual_per_kg'] ?? 0, 0, ',', '.') ?></td> <!-- [BARU] -->
+                                        <td class="text-right text-success font-weight-bold">
+                                            Rp <?= number_format($j['keuntungan_bumdes'] ?? 0, 0, ',', '.') ?>
+                                        </td>
+                                        <td class="text-right text-primary font-weight-bold">
+                                            Rp <?= number_format($j['total_harga_petani'] ?? 0, 0, ',', '.') ?>
+                                        </td>
                                         <td><?= esc($j['keterangan']) ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else : ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted">Tidak ada data penjualan.</td>
+                                    <td colspan="8" class="text-center text-muted">Tidak ada data penjualan.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -416,8 +440,28 @@ $queryParams = service('request')->getGet();
                             </div>
                             <div class="card-body">
                                 <div class="mobile-card-row">
+                                    <span class="mobile-card-label">Nama Petani</span>
+                                    <span class="mobile-card-value"><?= esc($j['nama_petani']) ?></span>
+                                </div>
+                                <div class="mobile-card-row">
                                     <span class="mobile-card-label">Jumlah Keluar</span>
                                     <span class="mobile-card-value text-danger font-weight-bold"><?= number_format($j['jumlah_kg'], 2) ?> Kg</span>
+                                </div>
+                                <div class="mobile-card-row"> <!-- [BARU] -->
+                                    <span class="mobile-card-label">Harga Jual</span>
+                                    <span class="mobile-card-value">Rp <?= number_format($j['harga_jual_per_kg'] ?? 0, 0, ',', '.') ?>/Kg</span>
+                                </div>
+                                <div class="mobile-card-row">
+                                    <span class="mobile-card-label">Keuntungan BUMDes</span>
+                                    <span class="mobile-card-value text-success font-weight-bold">
+                                        Rp <?= number_format($j['keuntungan_bumdes'] ?? 0, 0, ',', '.') ?>
+                                    </span>
+                                </div>
+                                <div class="mobile-card-row">
+                                    <span class="mobile-card-label">Total Harga Jual Petani</span>
+                                    <span class="mobile-card-value text-primary font-weight-bold">
+                                        Rp <?= number_format($j['total_harga_petani'] ?? 0, 0, ',', '.') ?>
+                                    </span>
                                 </div>
                                 <div class="mobile-card-row">
                                     <span class="mobile-card-label">Tujuan Pembeli</span>
@@ -481,7 +525,7 @@ $queryParams = service('request')->getGet();
     <div class="card shadow mb-4">
         <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-info">
-                <i class="fas fa-warehouse mr-2"></i> Stok Akhir Jenis Kopi
+                <i class="fas fa-warehouse mr-2"></i> Stok Kopi yang Tercatat
             </h6>
             <div class="export-buttons d-flex flex-wrap gap-2 mt-2 mt-md-0">
                 <a href="<?= base_url('admin-komersial/export/stok/excel?' . http_build_query($filter)) ?>" class="btn btn-sm btn-success">
@@ -492,7 +536,9 @@ $queryParams = service('request')->getGet();
                 </a>
             </div>
         </div>
+
         <div class="card-body">
+            <!-- DESKTOP VIEW -->
             <div class="desktop-view">
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover" width="100%">
@@ -500,13 +546,15 @@ $queryParams = service('request')->getGet();
                             <tr>
                                 <th>No</th>
                                 <th>Jenis Kopi</th>
-                                <th class="text-right">Total Stok (Kg)</th>
+                                <th class="text-right">Total Stok Kopi (Kg)</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (!empty($stokAkhirPerJenis)) : ?>
-                                <?php $page = (int)(service('request')->getGet('page_stok') ?? 1);
-                                $no = 1 + (($page - 1) * $perPageStok); ?>
+                                <?php
+                                $page = (int)(service('request')->getGet('page_stok') ?? 1);
+                                $no = 1 + (($page - 1) * $perPageStok);
+                                ?>
                                 <?php foreach ($stokAkhirPerJenis as $s) : ?>
                                     <tr>
                                         <td><?= $no++ ?></td>
@@ -520,11 +568,14 @@ $queryParams = service('request')->getGet();
                                 </tr>
                             <?php endif; ?>
                         </tbody>
+
                         <?php if (!empty($stokAkhirPerJenis)) : ?>
                             <tfoot class="table-info">
                                 <tr>
-                                    <th colspan="2" class="text-right">Total Stok Akhir Global</th>
-                                    <th class="text-right text-primary font-weight-bold"><?= number_format($totalStokGlobal, 2) ?></th>
+                                    <th colspan="2" class="text-right">Total</th>
+                                    <th class="text-right text-primary font-weight-bold">
+                                        <?= number_format($totalStokGlobal, 2) ?>
+                                    </th>
                                 </tr>
                             </tfoot>
                         <?php endif; ?>
@@ -532,23 +583,29 @@ $queryParams = service('request')->getGet();
                 </div>
             </div>
 
+            <!-- MOBILE VIEW -->
             <div class="mobile-view">
                 <?php if (!empty($stokAkhirPerJenis)) : ?>
                     <?php foreach ($stokAkhirPerJenis as $s) : ?>
                         <div class="card mobile-card">
                             <div class="card-body">
-                                <div class="mobile-card-row">
+                                <div class="mobile-card-row" style="border-bottom:none;">
                                     <span class="mobile-card-label"><?= esc($s['jenis_kopi']) ?></span>
-                                    <span class="mobile-card-value font-weight-bold"><?= number_format($s['stok_akhir'], 2) ?> Kg</span>
+                                    <span class="mobile-card-value font-weight-bold">
+                                        <?= number_format($s['stok_akhir'], 2) ?> Kg
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
+
                     <div class="card mobile-card bg-info text-white">
                         <div class="card-body">
-                            <div class="mobile-card-row" style="border-bottom: none;">
-                                <span class="mobile-card-label text-white">Total Stok Global</span>
-                                <span class="mobile-card-value font-weight-bolder"><?= number_format($totalStokGlobal, 2) ?> Kg</span>
+                            <div class="mobile-card-row" style="border-bottom:none;">
+                                <span class="mobile-card-label text-white">Total Stok Semua Kopi</span>
+                                <span class="mobile-card-value font-weight-bolder">
+                                    <?= number_format($totalStokGlobal, 2) ?> Kg
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -557,6 +614,7 @@ $queryParams = service('request')->getGet();
                 <?php endif; ?>
             </div>
         </div>
+
 
         <?php if (isset($pagerStokAkhir) && $pagerStokAkhir->getPageCount('stok') > 1) : ?>
             <div class="card-footer">

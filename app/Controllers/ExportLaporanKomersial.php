@@ -17,9 +17,24 @@ class ExportLaporanKomersial extends LaporanKomersial
 
     protected $rekapService;
 
+
+
     public function __construct()
     {
         $this->rekapService = new RekapKopiService();
+        helper(['session']);
+    }
+
+    private function _getSetting(array $candidates, $default = '')
+    {
+        $model = new PengaturanModel();
+        foreach ($candidates as $key) {
+            $row = $model->where('meta_key', $key)->first();
+            if (!empty($row) && isset($row['meta_value']) && $row['meta_value'] !== '') {
+                return $row['meta_value'];
+            }
+        }
+        return $default;
     }
 
 
@@ -38,9 +53,28 @@ class ExportLaporanKomersial extends LaporanKomersial
         $headers = ['No', 'User ID', 'Nama Petani', 'Alamat', 'No. HP', 'Jenis Kopi'];
         $dataMapping = ['user_id', 'nama', 'alamat', 'no_hp', 'jenis_kopi_list'];
 
+        // TAMBAHAN: Total row untuk petani
+        $totalRow = [
+            'cells' => [
+                'Total Petani Terdaftar: ' . count($petaniData) . ' Petani',
+            ],
+            'start_column' => 1,
+            'merge_until' => 6 // Merge seluruh kolom
+        ];
+
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $this->_generateExcelTemplate($sheet, $title, $headers, $petaniData, $dataMapping);
+
+        // Format filter untuk Excel
+        $filterInfo = [];
+        if (!empty($filters['jenis_kopi'])) {
+            $filterInfo['jenis_kopi'] = $filters['jenis_kopi'];
+        }
+        if (!empty($filters['search'])) {
+            $filterInfo['search'] = $filters['search'];
+        }
+
+        $this->_generateExcelTemplate($sheet, $title, $headers, $petaniData, $dataMapping, $totalRow, $filterInfo);
 
         $filename = 'Laporan_Petani_Komersial_' . date('Ymd') . '.xlsx';
         $writer = new Xlsx($spreadsheet);
@@ -58,17 +92,57 @@ class ExportLaporanKomersial extends LaporanKomersial
             'end_date'   => $this->request->getGet('end_date'),
             'petani'     => $this->request->getGet('petani'),
         ];
-        $rekapMasuk = $this->rekapService->getRekapKopiMasuk($filter);
 
-        $title = 'Laporan Rekap Kopi Masuk per Petani (Komersial)';
-        $headers = ['No', 'Nama Petani', 'Total Masuk (Kg)', 'Tanggal Setor Terakhir', 'Jumlah Transaksi', 'Rata-rata Setoran (Kg)'];
-        $dataMapping = ['nama_petani', 'total_masuk', 'tanggal_terakhir', 'jumlah_transaksi', 'rata_rata_setoran'];
+        // ✅ Ambil data tanpa pagination (semua data)
+        $rekapMasuk = $this->rekapService->getRekapKopiMasuk($filter, null, null, false);
 
-        $totalMasuk = array_sum(array_column($rekapMasuk, 'total_masuk'));
-        $totalRow = ['cells' => ['Total Kopi Masuk', number_format($totalMasuk, 2)], 'start_column' => 2];
+        $title = 'Laporan Rekap Kopi Masuk (Komersial)';
+
+        // ✅ Header sesuai view dan gambar
+        $headers = [
+            'No',
+            'Nama Petani',
+            'Jenis Kopi',
+            'Total Masuk (Kg)',
+            'Total Harga Masuk (Rp)',
+            'Tanggal',
+            'Jumlah Transaksi',
+            'Rata-rata Setoran (Kg)'
+        ];
+
+        // ✅ Mapping sesuai data dari controller
+        $dataMapping = [
+            'nama_petani',
+            'jenis_kopi',
+            'total_masuk',
+            'total_nilai_masuk',
+            'tanggal_transaksi',
+            'jumlah_transaksi',
+            'rata_rata_setoran'
+        ];
+
+        // ✅ Hitung total dari semua data
+        $totalMasuk        = array_sum(array_column($rekapMasuk, 'total_masuk'));
+        $totalNilaiMasuk   = array_sum(array_column($rekapMasuk, 'total_nilai_masuk'));
+        $totalTransaksi    = array_sum(array_column($rekapMasuk, 'jumlah_transaksi'));
+        $avgSetoranGlobal  = $totalTransaksi > 0 ? $totalMasuk / $totalTransaksi : 0;
+
+        // ✅ PERBAIKAN FINAL: Hanya 6 elemen (1 label merge + 5 kolom data)
+        $totalRow = [
+            'cells' => [
+                'TOTAL',                                             // Index 0 → Kolom A-B-C (merge)
+                number_format($totalMasuk, 2, ',', '.'),            // Index 1 → Kolom D
+                $totalNilaiMasuk,                                    // Index 2 → Kolom E
+                '-',                                                 // Index 3 → Kolom F
+                $totalTransaksi,                                     // Index 4 → Kolom G
+                number_format($avgSetoranGlobal, 2, ',', '.')       // Index 5 → Kolom H
+            ],
+            'merge_until' => 3 // merge kolom A, B, C (1-3)
+        ];
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
+
         $this->_generateExcelTemplate($sheet, $title, $headers, $rekapMasuk, $dataMapping, $totalRow, $filter);
 
         $filename = 'Laporan_Kopi_Masuk_Komersial_' . date('Ymd') . '.xlsx';
@@ -80,20 +154,68 @@ class ExportLaporanKomersial extends LaporanKomersial
         exit();
     }
 
+
     public function exportRekapKeluarExcel()
     {
-        $filter = $this->request->getGet();
-        $rekapKeluar = $this->rekapService->getRekapKopiKeluar($filter);
+        $filter = [
+            'start_date' => $this->request->getGet('start_date'),
+            'end_date'   => $this->request->getGet('end_date'),
+            'petani'     => $this->request->getGet('petani'),
+        ];
+
+        // ✅ Ambil SEMUA data tanpa pagination
+        $rekapKeluar = $this->rekapService->getRekapKopiKeluar($filter, null, null, false);
 
         $title = 'Laporan Rekap Kopi Keluar (Komersial)';
-        $headers = ['No', 'Tanggal', 'Jenis Kopi', 'Tujuan Pembeli', 'Jumlah (Kg)', 'Keterangan'];
-        $dataMapping = ['tanggal', 'jenis_kopi', 'tujuan', 'jumlah', 'keterangan'];
 
-        $totalKeluar = array_sum(array_column($rekapKeluar, 'jumlah'));
-        $totalRow = ['cells' => ['Total Kopi Keluar', number_format($totalKeluar, 2)], 'start_column' => 4];
+        // ✅ Header sesuai view
+        $headers = [
+            'No',
+            'Tanggal',
+            'Nama Petani',
+            'Jenis Kopi',
+            'Tujuan Pembeli',
+            'Jumlah (Kg)',
+            'Harga Jual (Rp/Kg)',
+            'Keuntungan BUMDes (Rp)',
+            'Total Harga Jual Petani (Rp)',
+            'Keterangan'
+        ];
+
+        // ✅ Mapping sesuai data dari controller
+        $dataMapping = [
+            'tanggal',
+            'nama_petani',
+            'jenis_kopi',
+            'tujuan_pembeli',
+            'jumlah_kg',
+            'harga_jual_per_kg',
+            'keuntungan_bumdes',
+            'total_harga_petani',
+            'keterangan'
+        ];
+
+        // ✅ Hitung total sesuai view
+        $totalKeluar       = array_sum(array_column($rekapKeluar, 'jumlah_kg'));
+        $totalKeuntungan   = array_sum(array_column($rekapKeluar, 'keuntungan_bumdes'));
+        $totalHargaPetani  = array_sum(array_column($rekapKeluar, 'total_harga_petani'));
+
+        // ✅ PERBAIKAN: Total row dengan 6 elemen saja (merge 5 kolom pertama)
+        $totalRow = [
+            'cells' => [
+                'TOTAL KOPI KELUAR',                              // Index 0 → Kolom A-E (merge)
+                number_format($totalKeluar, 2, ',', '.'),        // Index 1 → Kolom F (Jumlah Kg)
+                '-',                                              // Index 2 → Kolom G (Harga Jual/Kg)
+                $totalKeuntungan,                                 // Index 3 → Kolom H (Keuntungan)
+                $totalHargaPetani,                                // Index 4 → Kolom I (Total Harga Petani)
+                '-'                                               // Index 5 → Kolom J (Keterangan)
+            ],
+            'merge_until' => 5 // merge kolom A-E (1-5)
+        ];
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
+
         $this->_generateExcelTemplate($sheet, $title, $headers, $rekapKeluar, $dataMapping, $totalRow, $filter);
 
         $filename = 'Laporan_Kopi_Keluar_Komersial_' . date('Ymd') . '.xlsx';
@@ -107,20 +229,49 @@ class ExportLaporanKomersial extends LaporanKomersial
 
     public function excelStok()
     {
-        $filter = $this->request->getGet();
+        $filter = [
+            'start_date' => $this->request->getGet('start_date'),
+            'end_date'   => $this->request->getGet('end_date'),
+            'petani'     => $this->request->getGet('petani'),
+        ];
+
+        // ✅ Stok hanya ikut filter tanggal, petani diabaikan
+        $filter['petani'] = '';
+
         $rekapKopiController = new \App\Controllers\KomersialRekapKopi();
         $stokAkhirData = $rekapKopiController->getStokAkhir($filter, null, null, false);
         $stokAkhir = is_array($stokAkhirData) ? $stokAkhirData : [];
 
-        $title = 'Laporan Stok Akhir Kopi (Komersial)';
-        $headers = ['No', 'Jenis Kopi', 'Total Stok (Kg)'];
-        $dataMapping = ['jenis_kopi', 'stok_akhir'];
+        $title = 'Laporan Stok Akhir Jenis Kopi (Komersial)';
 
+        // ✅ Header sesuai view (tanpa harga)
+        $headers = [
+            'No',
+            'Jenis Kopi',
+            'Total Stok Kopi (Kg)',
+        ];
+
+        // ✅ Mapping sesuai data (tanpa harga)
+        $dataMapping = [
+            'jenis_kopi',
+            'stok_akhir',
+        ];
+
+        // ✅ Total hanya stok
         $totalStok = array_sum(array_column($stokAkhir, 'stok_akhir'));
-        $totalRow = ['cells' => ['Total Stok Global', number_format($totalStok, 2)], 'start_column' => 2];
+
+        // ✅ Total row: merge A-B, isi C
+        $totalRow = [
+            'cells' => [
+                'TOTAL STOK GLOBAL',
+                number_format($totalStok, 2, ',', '.'),
+            ],
+            'merge_until' => 2 // merge kolom A-B
+        ];
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
+
         $this->_generateExcelTemplate($sheet, $title, $headers, $stokAkhir, $dataMapping, $totalRow, $filter);
 
         $filename = 'Laporan_Stok_Kopi_Komersial_' . date('Ymd') . '.xlsx';
@@ -131,6 +282,7 @@ class ExportLaporanKomersial extends LaporanKomersial
         $writer->save('php://output');
         exit();
     }
+
 
     public function excelAset()
     {
@@ -174,40 +326,41 @@ class ExportLaporanKomersial extends LaporanKomersial
         ?array $totalRow = null,
         ?array $filter = null
     ) {
-        $pengaturanModel = new PengaturanModel();
+        $namaKetua = $this->_getSetting(['ketua_bumdes', 'nama_ketua_bumdes', 'ketua'], 'NAMA KETUA BUMDES');
+        $lokasi    = $this->_getSetting(['lokasi_laporan', 'lokasi_bumdes', 'alamat_bumdes', 'lokasi'], 'LOKASI');
 
-        // --- PENYESUAIAN DIMULAI DI SINI ---
-
-        // 1. Ambil data nama Ketua BUMDES dari form
-        $namaKetua = $pengaturanModel->where('meta_key', 'ketua_komersial')->first()['meta_value'] ?? 'NAMA KETUA BUMDES';
-
-        // 2. Ambil data Admin Komersial dari form
-        $jabatanKanan = $pengaturanModel->where('meta_key', 'jabatan_kanan_komersial')->first()['meta_value'] ?? 'Admin Komersial';
-        $namaKanan = $pengaturanModel->where('meta_key', 'nama_kanan_komersial')->first()['meta_value'] ?? 'NAMA ADMIN';
-
-        // 3. Ambil lokasi dari form
-        $lokasi = $pengaturanModel->where('meta_key', 'lokasi_komersial')->first()['meta_value'] ?? 'LOKASI';
-
-        // --- AKHIR PENYESUAIAN ---
+        $jabatanKanan = 'Admin Komersial';
+        $namaKanan    = session()->get('username') ?: 'NAMA ADMIN';
 
         $bulanIndonesia = [1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'];
 
         $endCol = count($headers);
         $endColStr = Coordinate::stringFromColumnIndex($endCol);
 
+        // Header
         $sheet->mergeCells('A1:' . $endColStr . '1')->setCellValue('A1', 'UNIT USAHA KOMERSIAL - BUMDES "ALAM LESTARI"');
         $sheet->mergeCells('A2:' . $endColStr . '2')->setCellValue('A2', strtoupper($title));
 
+        // Filter subtitle
         $periode = 'Keseluruhan';
         if (!empty($filter['start_date']) && !empty($filter['end_date'])) {
-            $periode = date('d/m/Y', strtotime($filter['start_date'])) . ' s/d ' . date('d/m/Y', strtotime($filter['end_date']));
+            $start = $this->_formatTanggalIndonesia($filter['start_date']);
+            $end   = $this->_formatTanggalIndonesia($filter['end_date']);
+            $periode = $start . ' s/d ' . $end;
         } elseif (!empty($filter['tahun_aset']) && $filter['tahun_aset'] != 'semua') {
             $periode = 'Tahun ' . $filter['tahun_aset'];
+        } elseif (!empty($filter['jenis_kopi']) || !empty($filter['search'])) {
+            $filterParts = [];
+            if (!empty($filter['jenis_kopi'])) $filterParts[] = 'Jenis Kopi: ' . $filter['jenis_kopi'];
+            if (!empty($filter['search']))     $filterParts[] = 'Pencarian: "' . $filter['search'] . '"';
+            $periode = implode(' | ', $filterParts);
         }
-        $sheet->mergeCells('A3:' . $endColStr . '3')->setCellValue('A3', 'PERIODE: ' . $periode);
+
+        $sheet->mergeCells('A3:' . $endColStr . '3')->setCellValue('A3', 'FILTER: ' . $periode);
         $sheet->getStyle('A1:A3')->getFont()->setBold(true);
         $sheet->getStyle('A1:A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
+        // Table Headers
         $headerRow = 5;
         foreach ($headers as $index => $header) {
             $colStr = Coordinate::stringFromColumnIndex($index + 1);
@@ -216,6 +369,7 @@ class ExportLaporanKomersial extends LaporanKomersial
         $sheet->getStyle('A' . $headerRow . ':' . $endColStr . $headerRow)->getFont()->setBold(true);
         $sheet->getStyle('A' . $headerRow . ':' . $endColStr . $headerRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
+        // Data Rows
         $currentRow = $headerRow + 1;
         foreach ($data as $index => $item) {
             $sheet->setCellValue('A' . $currentRow, $index + 1);
@@ -238,49 +392,105 @@ class ExportLaporanKomersial extends LaporanKomersial
             }
             $currentRow++;
         }
+        $dataEndRow = $currentRow - 1;
 
+        // Total Row (tetap sama seperti implementasi Anda)
+        // Total Row
         if ($totalRow) {
-            $labelColIndex = $totalRow['start_column'] - 1;
-            if ($labelColIndex < 1) $labelColIndex = 1;
-            $labelStartColStr = Coordinate::stringFromColumnIndex(1);
-            $labelEndColStr = Coordinate::stringFromColumnIndex($labelColIndex);
-            $valueColStr = Coordinate::stringFromColumnIndex($totalRow['start_column']);
+            $mergeUntil = $totalRow['merge_until'] ?? 1;
+            $labelStartColStr = 'A';
+            $labelEndColStr = Coordinate::stringFromColumnIndex($mergeUntil);
+
+            // Merge cells untuk label
             $sheet->mergeCells($labelStartColStr . $currentRow . ':' . $labelEndColStr . $currentRow);
             $sheet->setCellValue($labelStartColStr . $currentRow, $totalRow['cells'][0]);
-            $sheet->setCellValue($valueColStr . $currentRow, $totalRow['cells'][1]);
+            $sheet->getStyle($labelStartColStr . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            // ✅ PERBAIKAN: Loop mulai dari index 1, tapi isi ke kolom setelah merge
+            // Karena cells[0] sudah dipakai untuk label merge, cells[1] dst untuk kolom setelah merge
+            for ($i = 1; $i < count($totalRow['cells']); $i++) {
+                // ✅ PERBAIKAN CRITICAL: Kolom dimulai dari (mergeUntil + 1), bukan (mergeUntil + i)
+                $colIndex = $mergeUntil + $i; // Ini yang benar: merge sampai kolom 3, maka mulai dari 4, 5, 6...
+                $colStr = Coordinate::stringFromColumnIndex($colIndex);
+                $cellValue = $totalRow['cells'][$i];
+
+                // Set value
+                if (is_numeric($cellValue) && $cellValue !== '-') {
+                    $sheet->getCell($colStr . $currentRow)->setValueExplicit($cellValue, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
+
+                    // Format berdasarkan header kolom
+                    $headerText = $headers[$colIndex - 1] ?? '';
+                    if (strpos(strtolower($headerText), '(rp)') !== false) {
+                        $sheet->getStyle($colStr . $currentRow)->getNumberFormat()->setFormatCode('"Rp "#,##0');
+                    } elseif (strpos(strtolower($headerText), '(kg)') !== false || strpos(strtolower($headerText), 'rata-rata') !== false) {
+                        $sheet->getStyle($colStr . $currentRow)->getNumberFormat()->setFormatCode('#,##0.00');
+                    }
+                    $sheet->getStyle($colStr . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                } else {
+                    $sheet->setCellValue($colStr . $currentRow, $cellValue);
+
+                    if (is_string($cellValue) && strpos($cellValue, 'Rp') !== false) {
+                        $sheet->getStyle($colStr . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                    } elseif ($cellValue === '-') {
+                        $sheet->getStyle($colStr . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    } elseif (is_numeric(str_replace(['.', ','], '', (string)$cellValue))) {
+                        $sheet->getStyle($colStr . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                    } else {
+                        $sheet->getStyle($colStr . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    }
+                }
+            }
+
             $sheet->getStyle('A' . $currentRow . ':' . $endColStr . $currentRow)->getFont()->setBold(true);
             $currentRow++;
         }
 
-        $rowTtd = $currentRow + 2;
-        $colTtdKanan = max(2, $endCol - 2);
-        $colTtdKananStr = Coordinate::stringFromColumnIndex($colTtdKanan);
-
-        // --- PENYESUAIAN TANDA TANGAN ---
-        // TTD Kiri (Ketua BUMDES)
-        $sheet->setCellValue('A' . $rowTtd, 'Mengetahui,');
-        $sheet->setCellValue('A' . ($rowTtd + 1), 'Ketua BUMDES'); // Jabatan ditulis langsung
-        $sheet->setCellValue('A' . ($rowTtd + 5), $namaKetua); // Nama diambil dari variabel
-        $sheet->getStyle('A' . ($rowTtd + 5))->getFont()->setBold(true)->setUnderline(true);
-        $sheet->getStyle('A' . $rowTtd . ':A' . ($rowTtd + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-        // TTD Kanan (Admin Komersial)
-        $sheet->mergeCells($colTtdKananStr . $rowTtd . ':' . $endColStr . $rowTtd)->setCellValue($colTtdKananStr . $rowTtd, $lokasi . ', ' . date('d ') . $bulanIndonesia[(int)date('n')] . date(' Y'));
-        $sheet->mergeCells($colTtdKananStr . ($rowTtd + 1) . ':' . $endColStr . ($rowTtd + 1))->setCellValue($colTtdKananStr . ($rowTtd + 1), $jabatanKanan); // Jabatan dari variabel
-        $sheet->mergeCells($colTtdKananStr . ($rowTtd + 5) . ':' . $endColStr . ($rowTtd + 5))->setCellValue($colTtdKananStr . ($rowTtd + 5), $namaKanan); // Nama dari variabel
-        $sheet->getStyle($colTtdKananStr . ($rowTtd + 5))->getFont()->setBold(true)->setUnderline(true);
-        $sheet->getStyle($colTtdKananStr . $rowTtd . ':' . $endColStr . ($rowTtd + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-        $dataEndRow = $totalRow ? $currentRow - 2 : $currentRow - 1;
-        $styleArray = ['borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]], 'alignment' => ['vertical' => Alignment::VERTICAL_CENTER, 'horizontal' => Alignment::HORIZONTAL_LEFT]];
+        // Border + styling (tetap)
+        $styleArray = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000']
+                ]
+            ],
+            'alignment' => [
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'horizontal' => Alignment::HORIZONTAL_LEFT
+            ]
+        ];
         $sheet->getStyle('A' . $headerRow . ':' . $endColStr . $dataEndRow)->applyFromArray($styleArray);
         if ($totalRow) {
             $sheet->getStyle('A' . ($dataEndRow + 1) . ':' . $endColStr . ($dataEndRow + 1))->applyFromArray($styleArray);
         }
         $sheet->getStyle('A' . $headerRow . ':' . $endColStr . $headerRow)->getAlignment()->setWrapText(true);
+
+        // Auto size
         for ($i = 1; $i <= $endCol; $i++) {
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($i))->setAutoSize(true);
         }
+
+        // Signature Section – gunakan BUMDES + session
+        $rowTtd = $currentRow + 2;
+        $colTtdKanan = max(2, $endCol - 2);
+        $colTtdKananStr = Coordinate::stringFromColumnIndex($colTtdKanan);
+
+        $sheet->setCellValue('A' . $rowTtd, 'Mengetahui,');
+        $sheet->setCellValue('A' . ($rowTtd + 1), 'Ketua BUMDES');
+        $sheet->setCellValue('A' . ($rowTtd + 5), $namaKetua);
+        $sheet->getStyle('A' . ($rowTtd + 5))->getFont()->setBold(true)->setUnderline(true);
+        $sheet->getStyle('A' . $rowTtd . ':A' . ($rowTtd + 5))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $bulanIndonesia2 = $bulanIndonesia[(int)date('n')];
+        $sheet->mergeCells($colTtdKananStr . $rowTtd . ':' . $endColStr . $rowTtd)
+            ->setCellValue($colTtdKananStr . $rowTtd, $lokasi . ', ' . date('d ') . $bulanIndonesia2 . date(' Y'));
+        $sheet->mergeCells($colTtdKananStr . ($rowTtd + 1) . ':' . $endColStr . ($rowTtd + 1))
+            ->setCellValue($colTtdKananStr . ($rowTtd + 1), $jabatanKanan);
+        $sheet->mergeCells($colTtdKananStr . ($rowTtd + 5) . ':' . $endColStr . ($rowTtd + 5))
+            ->setCellValue($colTtdKananStr . ($rowTtd + 5), $namaKanan);
+
+        $sheet->getStyle($colTtdKananStr . ($rowTtd + 5))->getFont()->setBold(true)->setUnderline(true);
+        $sheet->getStyle($colTtdKananStr . $rowTtd . ':' . $endColStr . ($rowTtd + 5))
+            ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     }
 
     /**
@@ -290,22 +500,24 @@ class ExportLaporanKomersial extends LaporanKomersial
     {
         $dompdf = new Dompdf();
         $dompdf->loadHtml($html);
-
-        // orientasi
         $dompdf->setPaper('A4', 'potrait');
-
         $dompdf->render();
         $dompdf->stream($filename, ["Attachment" => true]);
         exit;
     }
     private function _getSignatureData(): array
     {
-        $pengaturanModel = new PengaturanModel();
+        $namaKetua    = $this->_getSetting(['ketua_bumdes', 'nama_ketua_bumdes', 'ketua'], 'NAMA KETUA BUMDES');
+        $lokasi       = $this->_getSetting(['lokasi_laporan', 'lokasi_bumdes', 'alamat_bumdes', 'lokasi'], 'LOKASI');
+
+        $jabatanKanan = 'Admin Komersial';
+        $namaKanan    = session()->get('username') ?: 'NAMA ADMIN';
+
         return [
-            'namaKetua'    => $pengaturanModel->where('meta_key', 'ketua_komersial')->first()['meta_value'] ?? 'NAMA KETUA BUMDES',
-            'jabatanKanan' => $pengaturanModel->where('meta_key', 'jabatan_kanan_komersial')->first()['meta_value'] ?? 'Admin Komersial',
-            'namaKanan'    => $pengaturanModel->where('meta_key', 'nama_kanan_komersial')->first()['meta_value'] ?? 'NAMA ADMIN',
-            'lokasi'       => $pengaturanModel->where('meta_key', 'lokasi_komersial')->first()['meta_value'] ?? 'LOKASI',
+            'namaKetua'    => $namaKetua,
+            'jabatanKanan' => $jabatanKanan,
+            'namaKanan'    => $namaKanan,
+            'lokasi'       => $lokasi,
         ];
     }
 
@@ -329,61 +541,127 @@ class ExportLaporanKomersial extends LaporanKomersial
 
         return ['logoBase64' => $logoBase64];
     }
+    /**
+     * Format tanggal ke format Indonesia (dd Bulan yyyy)
+     * 
+     * @param string $date Format Y-m-d
+     * @return string
+     */
+    private function _formatTanggalIndonesia($date)
+    {
+        if (empty($date)) {
+            return '';
+        }
+
+        $bulanIndonesia = [
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember'
+        ];
+
+        $timestamp = strtotime($date);
+        $hari = date('d', $timestamp);
+        $bulan = $bulanIndonesia[(int)date('n', $timestamp)];
+        $tahun = date('Y', $timestamp);
+
+        return $hari . ' ' . $bulan . ' ' . $tahun;
+    }
+
+    /**
+     * Format periode untuk subtitle PDF
+     * 
+     * @param array $filter
+     * @return string
+     */
+    private function _formatPeriodePDF($filter)
+    {
+        if (!empty($filter['start_date']) && !empty($filter['end_date'])) {
+            $start = $this->_formatTanggalIndonesia($filter['start_date']);
+            $end = $this->_formatTanggalIndonesia($filter['end_date']);
+            return $start . ' s/d ' . $end;
+        } elseif (!empty($filter['start_date'])) {
+            return 'Sejak ' . $this->_formatTanggalIndonesia($filter['start_date']);
+        } elseif (!empty($filter['end_date'])) {
+            return 'Sampai ' . $this->_formatTanggalIndonesia($filter['end_date']);
+        } elseif (!empty($filter['tahun_aset']) && $filter['tahun_aset'] != 'semua') {
+            return 'Tahun ' . $filter['tahun_aset'];
+        }
+
+        return 'Semua Periode';
+    }
 
     // --- SEMUA FUNGSI PDF YANG SUDAH DISESUAIKAN ---
 
     public function exportRekapMasukPdf()
     {
-        // ... (kode filter dan get data rekapMasuk) ...
         $filter = [
             'start_date' => $this->request->getGet('start_date'),
             'end_date'   => $this->request->getGet('end_date'),
             'petani'     => $this->request->getGet('petani'),
         ];
-        $rekapMasuk = $this->rekapService->getRekapKopiMasuk($filter);
+
+        // ✅ Ambil semua data tanpa pagination
+        $rekapMasuk = $this->rekapService->getRekapKopiMasuk($filter, null, null, false);
 
         $data = [
-            'title'    => 'Laporan Kopi Masuk per Petani',
-            'subtitle' => 'Periode: ' . (($filter['start_date'] ?? '-') . ' s/d ' . ($filter['end_date'] ?? '-')),
-            'type'     => 'masuk',
+            'title'    => 'Laporan Rekap Kopi Masuk per Petani (Komersial)',
+            'subtitle' => 'Periode: ' . $this->_formatPeriodePDF($filter),
+            'type'     => 'masuk_dengan_harga',
             'data'     => $rekapMasuk,
         ];
 
         $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
         $html = view('admin_komersial/laporan/_kopi_export_pdf', $data);
-        return $this->generatePdf($html, 'laporan_kopi_masuk_' . date('YmdHis') . '.pdf');
+        return $this->generatePdf($html, 'laporan_kopi_masuk_dengan_harga_' . date('YmdHis') . '.pdf');
     }
 
     public function pdfKeluar()
     {
-        // ... (kode filter dan get data rekapKeluar) ...
-        $filter = $this->request->getGet();
-        $rekapKeluar = $this->rekapService->getRekapKopiKeluar($filter);
+        $filter = [
+            'start_date' => $this->request->getGet('start_date'),
+            'end_date'   => $this->request->getGet('end_date'),
+            'petani'     => $this->request->getGet('petani'),
+        ];
+
+        // ✅ Ambil SEMUA data tanpa pagination
+        $rekapKeluar = $this->rekapService->getRekapKopiKeluar($filter, null, null, false);
 
         $data = [
-            'title'    => 'Laporan Kopi Keluar',
-            'subtitle' => 'Periode: ' . ($filter['periode'] ?? date('d/m/Y')),
-            'type'     => 'keluar',
+            'title'    => 'Laporan Rekap Kopi Keluar (Komersial)',
+            'subtitle' => 'Periode: ' . $this->_formatPeriodePDF($filter),
+            'type'     => 'keluar_dengan_harga',
             'data'     => $rekapKeluar,
         ];
 
         $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
         $html = view('admin_komersial/laporan/_kopi_export_pdf', $data);
-        return $this->generatePdf($html, 'laporan_kopi_keluar_' . date('YmdHis') . '.pdf');
+        return $this->generatePdf($html, 'laporan_kopi_keluar_dengan_harga_' . date('YmdHis') . '.pdf');
     }
 
     public function pdfStok()
     {
-        // ... (kode filter dan get data rekapStok) ...
         $filter = $this->request->getGet();
+
+        // ✅ Stok hanya ikut filter tanggal, petani diabaikan
+        $filter['petani'] = '';
+
         $rekapKopiController = new \App\Controllers\KomersialRekapKopi();
         $rekapStokData = $rekapKopiController->getStokAkhir($filter, null, null, false);
         $rekapStok = is_array($rekapStokData) ? $rekapStokData : [];
 
         $data = [
-            'title'    => 'Laporan Stok Akhir Kopi',
-            'subtitle' => 'Periode: ' . (($filter['start_date'] ?? 'Semua') . ' s/d ' . ($filter['end_date'] ?? 'Sekarang')),
-            'type'     => 'stok',
+            'title'    => 'Laporan Stok Akhir Kopi (Komersial)',
+            'subtitle' => 'Periode: ' . $this->_formatPeriodePDF($filter),
+            'type'     => 'stok', // ✅ penting: stok tanpa harga (sesuai view)
             'data'     => $rekapStok,
         ];
 
@@ -392,9 +670,9 @@ class ExportLaporanKomersial extends LaporanKomersial
         return $this->generatePdf($html, 'laporan_stok_kopi_' . date('YmdHis') . '.pdf');
     }
 
+
     public function pdfPetani()
     {
-        // ... (kode filter dan get data petaniData) ...
         $filters = [
             'search'     => $this->request->getGet('search') ?? '',
             'jenis_kopi' => $this->request->getGet('jenis_kopi') ?? '',
@@ -402,10 +680,25 @@ class ExportLaporanKomersial extends LaporanKomersial
         $rekapPetaniController = new \App\Controllers\KomersialRekapPetani();
         $petaniData = $rekapPetaniController->_getFilteredPetaniQuery($filters)->findAll();
 
+        // Format subtitle dengan filter yang diterapkan
+        $subtitleParts = ['Unit Usaha Komersial'];
+
+        if (!empty($filters['jenis_kopi'])) {
+            $subtitleParts[] = 'Jenis Kopi: ' . esc($filters['jenis_kopi']);
+        }
+
+        if (!empty($filters['search'])) {
+            $subtitleParts[] = 'Pencarian: "' . esc($filters['search']) . '"';
+        }
+
+        $subtitle = implode(' | ', $subtitleParts);
+
         $data = [
             'title'      => 'Laporan Data Petani Terdaftar',
-            'subtitle'   => 'Unit Usaha Komersial',
+            'subtitle'   => $subtitle,
             'petaniData' => $petaniData,
+            'filters'    => $filters, // Kirim filter untuk info tambahan
+            'totalPetani' => count($petaniData), // Total petani
         ];
 
         $data = array_merge($data, $this->_getSignatureData(), $this->_getLogoData());
@@ -415,7 +708,6 @@ class ExportLaporanKomersial extends LaporanKomersial
 
     public function pdfAset()
     {
-        // ... (kode filter dan get data dataAset) ...
         $asetModel = new AsetKomersialModel();
         $filterTahun = $this->request->getGet('tahun_aset') ?? 'semua';
         $query = $asetModel;
@@ -425,8 +717,8 @@ class ExportLaporanKomersial extends LaporanKomersial
         $dataAset = $query->orderBy('tahun_perolehan', 'DESC')->findAll();
 
         $data = [
-            'title'    => 'Laporan Aset Produksi',
-            'subtitle' => 'Filter Tahun: ' . ($filterTahun == 'semua' ? 'Semua Tahun' : $filterTahun),
+            'title'    => 'Laporan Aset Produksi (Komersial)',
+            'subtitle' => 'Filter: ' . ($filterTahun == 'semua' ? 'Semua Tahun' : 'Tahun ' . $filterTahun),
             'asetData' => $dataAset,
         ];
 

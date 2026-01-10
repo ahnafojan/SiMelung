@@ -120,7 +120,7 @@ class Kopimasuk extends Controller
     public function store()
     {
         $db = \Config\Database::connect();
-        $db->transStart(); // Mulai transaksi
+        $db->transStart();
         log_message('debug', '================= AWAL TRANSAKSI =================');
 
         try {
@@ -128,22 +128,49 @@ class Kopimasuk extends Controller
             $petaniUserId   = $this->request->getPost('petani_user_id');
             $petaniPohonId  = $this->request->getPost('petani_pohon_id');
             $jumlah         = (float) $this->request->getPost('jumlah');
-            log_message('debug', 'Input Form => petani_user_id: ' . $petaniUserId . ', petani_pohon_id: ' . $petaniPohonId . ', jumlah: ' . $jumlah);
+            $tanggalTransaksi = $this->request->getPost('tanggal');
+            $keterangan     = $this->request->getPost('keterangan');
+
+            log_message('debug', 'Input Form => petani_user_id: ' . $petaniUserId . ', petani_pohon_id: ' . $petaniPohonId . ', jumlah: ' . $jumlah . ', tanggal: ' . $tanggalTransaksi);
+
+            // --- LOGIKA BISNIS: Ambil harga beli terbaru untuk jenis pohon ini ---
+            // Cari jenis_pohon_id dari petani_pohon_id
+            $petaniPohon = $this->petaniPohonModel->find($petaniPohonId);
+            if (!$petaniPohon) {
+                throw new \Exception('Data petani pohon tidak ditemukan.');
+            }
+
+            // Gunakan model HargaJenisKopiModel
+            $hargaModel = new \App\Models\HargaJenisKopiModel();
+            // Dapatkan harga terbaru yang berlaku *pada atau sebelum* tanggal transaksi
+            $hargaTerbaru = $hargaModel->getLatestPrice($petaniPohon['jenis_pohon_id'], $tanggalTransaksi);
+
+            if (!$hargaTerbaru) {
+                throw new \Exception('Tidak ada harga beli yang berlaku untuk jenis pohon ini pada tanggal ' . $tanggalTransaksi . '. Silakan atur harga terlebih dahulu di menu "Jenis Pohon".');
+            }
+
+            $hargaSaatTransaksi = (float) $hargaTerbaru['harga_beli_per_kg'];
+            $totalHarga = $jumlah * $hargaSaatTransaksi; // Hitung total harga
+
+            log_message('debug', 'Harga Beli Terbaru (Rp/Kg): ' . $hargaSaatTransaksi . ', Total Harga: ' . $totalHarga);
+            // --- END LOGIKA BISNIS ---
 
             // Simpan transaksi kopi masuk
             $dataKopiMasuk = [
-                'petani_user_id'  => $petaniUserId,
-                'petani_pohon_id' => $petaniPohonId,
-                'jumlah'          => $jumlah,
-                'tanggal'         => $this->request->getPost('tanggal'),
-                'keterangan'      => $this->request->getPost('keterangan'),
+                'petani_user_id'      => $petaniUserId,
+                'petani_pohon_id'     => $petaniPohonId,
+                'jumlah'              => $jumlah,
+                'tanggal'             => $tanggalTransaksi,
+                'keterangan'          => $keterangan,
+                'harga_saat_transaksi' => $hargaSaatTransaksi, // Gunakan harga dari tabel harga_jenis_kopi
+                'total_harga'         => $totalHarga,          // Gunakan total yang dihitung
             ];
             log_message('debug', 'STEP 1: Menyiapkan data untuk disimpan ke kopi_masuk: ' . json_encode($dataKopiMasuk));
 
             $this->kopiMasukModel->save($dataKopiMasuk);
             log_message('debug', 'STEP 2: SUKSES menyimpan data ke kopi_masuk.');
 
-            // Cari jenis pohon berdasarkan petani_pohon_id
+            // ... (kode stok tetap sama)
             $petaniPohon = $this->petaniPohonModel->find($petaniPohonId);
             log_message('debug', 'STEP 3: Mencari data petani_pohon dengan ID ' . $petaniPohonId . '. Hasil: ' . json_encode($petaniPohon));
 
@@ -181,7 +208,7 @@ class Kopimasuk extends Controller
                 throw new \Exception('Data petani pohon tidak ditemukan.');
             }
 
-            $db->transComplete(); // Commit transaksi
+            $db->transComplete();
             log_message('debug', '================= AKHIR TRANSAKSI (COMMIT) =================');
 
             if ($db->transStatus() === false) {
@@ -190,7 +217,7 @@ class Kopimasuk extends Controller
                 session()->setFlashdata('success', 'Data kopi masuk berhasil ditambahkan dan stok diperbarui');
             }
         } catch (\Exception $e) {
-            $db->transRollback(); // Rollback jika error
+            $db->transRollback();
             log_message('error', '!!! EXCEPTION !!! ' . $e->getMessage());
             log_message('debug', '================= AKHIR TRANSAKSI (ROLLBACK) =================');
             session()->setFlashdata('error', 'Terjadi kesalahan: ' . $e->getMessage());
@@ -220,14 +247,35 @@ class Kopimasuk extends Controller
                 throw new \Exception('Data kopi masuk yang akan diupdate tidak ditemukan.');
             }
 
+            // Ambil data baru dari form
             $dataBaru = [
                 'petani_user_id'  => $this->request->getPost('petani_user_id'),
                 'petani_pohon_id' => $this->request->getPost('petani_pohon_id'),
                 'jumlah'          => (float) $this->request->getPost('jumlah'),
-                'tanggal'         => $this->request->getPost('tanggal'),
+                'tanggal'         => $this->request->getPost('tanggal'), // Tanggal baru
                 'keterangan'      => $this->request->getPost('keterangan'),
             ];
 
+            // --- LOGIKA BISNIS: Ambil harga beli terbaru untuk jenis pohon baru pada tanggal transaksi baru ---
+            $petaniPohonBaru = $this->petaniPohonModel->find($dataBaru['petani_pohon_id']);
+            if (!$petaniPohonBaru) {
+                throw new \Exception('Data jenis pohon petani yang baru tidak valid.');
+            }
+
+            $hargaModel = new \App\Models\HargaJenisKopiModel();
+            // Gunakan tanggal baru untuk mencari harga
+            $hargaTerbaru = $hargaModel->getLatestPrice($petaniPohonBaru['jenis_pohon_id'], $dataBaru['tanggal']);
+
+            if (!$hargaTerbaru) {
+                throw new \Exception('Tidak ada harga beli yang berlaku untuk jenis pohon ini pada tanggal ' . $dataBaru['tanggal'] . '. Silakan atur harga terlebih dahulu di menu "Jenis Pohon".');
+            }
+
+            $dataBaru['harga_saat_transaksi'] = (float) $hargaTerbaru['harga_beli_per_kg'];
+            $dataBaru['total_harga'] = $dataBaru['jumlah'] * $dataBaru['harga_saat_transaksi'];
+            log_message('debug', 'Harga Beli Terbaru (Rp/Kg): ' . $dataBaru['harga_saat_transaksi'] . ', Total Harga: ' . $dataBaru['total_harga']);
+            // --- END LOGIKA BISNIS ---
+
+            // ... (kode stok tetap sama, gunakan $dataLama untuk mengurangi stok lama)
             $petaniPohonLama = $this->petaniPohonModel->find($dataLama['petani_pohon_id']);
             if ($petaniPohonLama) {
                 $stokLama = $this->stokKopiModel
@@ -241,10 +289,7 @@ class Kopimasuk extends Controller
                 }
             }
 
-            $petaniPohonBaru = $this->petaniPohonModel->find($dataBaru['petani_pohon_id']);
-            if (!$petaniPohonBaru) {
-                throw new \Exception('Data jenis pohon petani yang baru tidak valid.');
-            }
+            // ... (kode stok tetap sama, gunakan $petaniPohonBaru untuk menambah stok baru)
             $stokBaru = $this->stokKopiModel
                 ->where('petani_id', $petaniPohonBaru['user_id'])
                 ->where('jenis_pohon_id', $petaniPohonBaru['jenis_pohon_id'])
@@ -261,7 +306,7 @@ class Kopimasuk extends Controller
                 ]);
             }
 
-            $this->kopiMasukModel->update($id, $dataBaru);
+            $this->kopiMasukModel->update($id, $dataBaru); // Simpan data baru termasuk harga_saat_transaksi dan total_harga
 
             $db->transComplete();
 

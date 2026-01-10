@@ -307,7 +307,1711 @@ body {
     text-align: center;
     font-size: 0.9rem;
 }
+/* ==================================
+   STYLING UNTUK TABEL KOPI MASUK
+   FOKUS: DESKTOP VIEW
+   ================================== */
 
+/* Card Container */
+.card.shadow {
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
 
+.card-body.table-responsive {
+    padding: 0;
+    overflow-x: auto;
+}
 
+/* Table Styling */
+.table {
+    margin-bottom: 0;
+    white-space: nowrap;
+    font-size: 14px;
+    width: 100%;
+}
+
+.table th,
+.table td {
+    vertical-align: middle;
+    padding: 14px 12px;
+    border: 1px solid #e0e0e0;
+}
+
+/* Header Table - Modern Dark */
+.table thead.thead-dark th {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: #ffffff;
+    font-weight: 600;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-color: #1a252f;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Baris Genap/Ganjil untuk readability */
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.table tbody tr:hover {
+    background-color: #e3f2fd !important;
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Kolom Nomor - Highlighted */
+.table tbody td:first-child {
+    font-weight: 700;
+    color: #495057;
+    width: 60px;
+    text-align: center;
+    background-color: rgba(52, 152, 219, 0.05);
+    font-size: 15px;
+}
+
+/* Kolom Nama Petani */
+.table tbody td:nth-child(2) {
+    text-align: left;
+    font-weight: 600;
+    color: #2c3e50;
+    min-width: 150px;
+}
+
+/* Kolom Jenis Pohon Kopi */
+.table tbody td:nth-child(3) {
+    text-align: left;
+    font-weight: 500;
+    color: #27ae60;
+    min-width: 140px;
+}
+
+/* Kolom Tanggal */
+.table tbody td:nth-child(4) {
+    font-family: 'Consolas', 'Monaco', monospace;
+    color: #7f8c8d;
+    text-align: center;
+    font-size: 13px;
+    min-width: 120px;
+}
+
+/* Kolom Stok Saat Ini */
+.table tbody td:nth-child(5) {
+    text-align: right;
+    font-weight: 700;
+    color: #27ae60;
+    background-color: rgba(39, 174, 96, 0.05);
+    font-size: 14px;
+    min-width: 140px;
+}
+
+/* Kolom Kopi Masuk */
+.table tbody td:nth-child(6) {
+    text-align: right;
+    font-weight: 700;
+    color: #16a085;
+    font-size: 14px;
+    min-width: 130px;
+}
+
+/* Kolom Harga/Kg */
+.table tbody td:nth-child(7) {
+    text-align: right;
+    font-weight: 600;
+    color: #2980b9;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    min-width: 130px;
+}
+
+/* Kolom Total Harga - Highlighted */
+.table tbody td:nth-child(8) {
+    text-align: right;
+    font-weight: 700;
+    color: #e74c3c;
+    background-color: rgba(231, 76, 60, 0.05);
+    font-size: 14px;
+    min-width: 150px;
+}
+
+/* Kolom Keterangan */
+.table tbody td:nth-child(9) {
+    text-align: center;
+    font-style: italic;
+    color: #95a5a6;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13px;
+}
+
+/* Kolom Aksi - Extra Space */
+.table tbody td:nth-child(10) {
+    text-align: center;
+    min-width: 220px;
+    padding: 10px 8px;
+}
+
+/* Button Styling - Modern & Clean */
+.btn-sm {
+    padding: 7px 14px;
+    font-size: 13px;
+    margin: 3px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Button Warning (Edit) */
+.btn-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+    color: #ffffff;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(243, 156, 18, 0.3);
+}
+
+/* Button Danger (Hapus) */
+.btn-danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: #ffffff;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+}
+
+/* Button Outline */
+.btn-outline-warning {
+    background: transparent;
+    border: 2px solid #f39c12;
+    color: #f39c12;
+}
+
+.btn-outline-warning:hover {
+    background: #f39c12;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.btn-outline-danger {
+    background: transparent;
+    border: 2px solid #e74c3c;
+    color: #e74c3c;
+}
+
+.btn-outline-danger:hover {
+    background: #e74c3c;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+/* Button Secondary (Pending) */
+.btn-secondary {
+    background: #95a5a6;
+    color: #ffffff;
+    opacity: 0.7;
+}
+
+.btn-secondary.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Icon spacing dalam button */
+.btn i {
+    font-size: 12px;
+}
+
+/* Empty State */
+.table tbody td[colspan] {
+    padding: 50px;
+    color: #95a5a6;
+    font-style: italic;
+    font-size: 16px;
+    text-align: center;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ecf0f1 100%);
+}
+
+/* ================================
+   PAGINATION STYLING (EXISTING)
+   ================================ */
+
+.card-footer {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ecf0f1 100%);
+    padding: 20px 24px;
+    border-top: 2px solid #dee2e6;
+}
+
+.pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0.5rem 1.25rem;
+}
+
+.per-page-selector,
+.page-info,
+.pagination-nav {
+    margin: 0.5rem 0;
+}
+
+.per-page-selector {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.per-page-label,
+.per-page-suffix {
+    margin: 0 0.5rem;
+}
+
+.dropdown-container {
+    position: relative;
+}
+
+.per-page-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 0.375rem 1.75rem 0.375rem 0.75rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.per-page-select:hover {
+    border-color: #80bdff;
+}
+
+.per-page-select:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.dropdown-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #6c757d;
+}
+
+.page-info {
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.info-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination-nav .pagination {
+    margin-bottom: 0;
+}
+
+/* ================================
+   SCROLLBAR STYLING - MODERN
+   ================================ */
+
+.table-responsive::-webkit-scrollbar {
+    height: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #ecf0f1;
+    border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #2980b9 0%, #2c3e50 100%);
+}
+
+/* ================================
+   UTILITY CLASSES
+   ================================ */
+
+.text-center {
+    text-align: center !important;
+}
+
+.align-middle {
+    vertical-align: middle !important;
+}
+
+/* ================================
+   MOBILE CARD VIEW STYLING
+   ================================ */
+
+/* Mobile Card Container */
+.d-block.d-lg-none .card.shadow {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12) !important;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.d-block.d-lg-none .card.shadow:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Card Body */
+.d-block.d-lg-none .card-body {
+    padding: 20px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+/* Header - Nama Petani */
+.d-block.d-lg-none .card-body h6.text-primary {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2c3e50 !important;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #3498db;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.d-block.d-lg-none .card-body h6.text-primary::before {
+    content: "👤";
+    font-size: 20px;
+}
+
+/* Paragraph Styling */
+.d-block.d-lg-none .card-body p {
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #34495e;
+    line-height: 1.6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #ffffff;
+    border-radius: 6px;
+    border-left: 3px solid #ecf0f1;
+}
+
+/* Strong/Label Styling */
+.d-block.d-lg-none .card-body p strong {
+    color: #7f8c8d;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+    margin-right: 12px;
+}
+
+/* Jenis Kopi - Green Theme */
+.d-block.d-lg-none .card-body p:nth-of-type(1) {
+    border-left-color: #27ae60;
+}
+
+.d-block.d-lg-none .card-body p:nth-of-type(1) strong::before {
+    content: "";
+}
+
+/* Tanggal */
+.d-block.d-lg-none .card-body p:nth-of-type(2) {
+    border-left-color: #95a5a6;
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.d-block.d-lg-none .card-body p:nth-of-type(2) strong::before {
+    content: "";
+}
+
+/* Stok Saat Ini - Highlighted */
+.d-block.d-lg-none .card-body p:nth-of-type(3) {
+    border-left-color: #27ae60;
+    background: rgba(39, 174, 96, 0.08);
+    font-weight: 600;
+    color: #27ae60;
+}
+
+.d-block.d-lg-none .card-body p:nth-of-type(3) strong {
+    color: #27ae60;
+}
+
+.d-block.d-lg-none .card-body p:nth-of-type(3) strong::before {
+    content: "";
+}
+
+/* Kopi Masuk */
+.d-block.d-lg-none .card-body p:nth-of-type(4) {
+    border-left-color: #16a085;
+    font-weight: 600;
+    color: #16a085;
+}
+
+.d-block.d-lg-none .card-body p:nth-of-type(4) strong {
+    color: #16a085;
+}
+
+.d-block.d-lg-none .card-body p:nth-of-type(4) strong::before {
+    content: "";
+}
+
+/* Harga/Kg */
+.d-block.d-lg-none .card-body p:nth-of-type(5) {
+    border-left-color: #2980b9;
+    font-weight: 600;
+    color: #2980b9;
+}
+
+.d-block.d-lg-none .card-body p:nth-of-type(5) strong {
+    color: #2980b9;
+}
+
+.d-block.d-lg-none .card-body p:nth-of-type(5) strong::before {
+    content: "";
+}
+
+/* Total Harga - Most Important */
+.d-block.d-lg-none .card-body p:nth-of-type(6) {
+    border-left-color: #e74c3c;
+    background: rgba(231, 76, 60, 0.08);
+    font-weight: 700;
+    color: #e74c3c;
+    font-size: 15px;
+}
+
+.d-block.d-lg-none .card-body p:nth-of-type(6) strong {
+    color: #e74c3c;
+}
+
+.d-block.d-lg-none .card-body p:nth-of-type(6) strong::before {
+    content: " ";
+}
+
+/* Keterangan - Italic Style */
+.d-block.d-lg-none .card-body p:nth-of-type(7) {
+    border-left-color: #9b59b6;
+    font-style: italic;
+    color: #7f8c8d;
+    display: block;
+}
+
+.d-block.d-lg-none .card-body p:nth-of-type(7) strong {
+    color: #9b59b6;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.d-block.d-lg-none .card-body p:nth-of-type(7) strong::before {
+    content: "";
+}
+
+/* Action Buttons Section */
+.d-block.d-lg-none .card-body .border-top {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px dashed #dee2e6 !important;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Mobile Buttons */
+.d-block.d-lg-none .btn-sm {
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.d-block.d-lg-none .btn-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+    color: #ffffff;
+}
+
+.d-block.d-lg-none .btn-warning:hover {
+    background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(243, 156, 18, 0.4);
+}
+
+.d-block.d-lg-none .btn-danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: #ffffff;
+}
+
+.d-block.d-lg-none .btn-danger:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(231, 76, 60, 0.4);
+}
+
+.d-block.d-lg-none .btn-outline-warning {
+    background: transparent;
+    border: 2px solid #f39c12 !important;
+    color: #f39c12;
+}
+
+.d-block.d-lg-none .btn-outline-warning:hover {
+    background: #f39c12;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.d-block.d-lg-none .btn-outline-danger {
+    background: transparent;
+    border: 2px solid #e74c3c !important;
+    color: #e74c3c;
+}
+
+.d-block.d-lg-none .btn-outline-danger:hover {
+    background: #e74c3c;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.d-block.d-lg-none .btn-secondary {
+    background: #95a5a6;
+    color: #ffffff;
+}
+
+.d-block.d-lg-none .btn-secondary.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Empty State - Mobile */
+.d-block.d-lg-none .alert.alert-info {
+    border-radius: 12px;
+    padding: 30px;
+    font-size: 16px;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border: none;
+    color: #2e7d32;
+    font-weight: 500;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.d-block.d-lg-none .alert.alert-info::before {
+    content: "ℹ️ ";
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+/* Mobile Pagination */
+.d-block.d-lg-none .d-flex.justify-content-center {
+    margin-top: 24px;
+    padding: 0 16px;
+}
+
+.d-block.d-lg-none .pagination {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.d-block.d-lg-none .pagination .page-link {
+    padding: 10px 16px;
+    font-weight: 600;
+    border: none;
+    color: #2c3e50;
+}
+
+.d-block.d-lg-none .pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    border: none;
+}
+
+/* ================================
+   RESPONSIVE BREAKPOINTS
+   ================================ */
+
+@media screen and (max-width: 576px) {
+    .d-block.d-lg-none .card-body {
+        padding: 16px;
+    }
+    
+    .d-block.d-lg-none .card-body h6.text-primary {
+        font-size: 16px;
+    }
+    
+    .d-block.d-lg-none .card-body p {
+        font-size: 13px;
+        padding: 6px 10px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .d-block.d-lg-none .card-body p strong {
+        font-size: 12px;
+        margin-bottom: 2px;
+    }
+    
+    .d-block.d-lg-none .btn-sm {
+        padding: 7px 12px;
+        font-size: 12px;
+    }
+    
+    .d-block.d-lg-none .card-body .border-top {
+        justify-content: center;
+    }
+}
+
+/* ================================
+   MODAL STYLING - MODERN & ELEGANT
+   ================================ */
+
+/* Modal Backdrop Enhancement */
+.modal-backdrop.show {
+    opacity: 0.6;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(44, 62, 80, 0.6) 100%);
+}
+
+/* Modal Dialog */
+.modal-dialog {
+    max-width: 580px;
+    margin: 1.75rem auto;
+}
+
+.modal.fade .modal-dialog {
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Modal Content */
+.modal-content {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlideUp 0.4s ease-out;
+}
+
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Modal Headers - Different Themes */
+
+/* Primary Header (Tambah) */
+.modal-header.bg-primary {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
+    color: #ffffff !important;
+    padding: 20px 24px;
+    border-bottom: 3px solid #2874a6;
+}
+
+/* Warning Header (Edit) */
+.modal-header.bg-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%) !important;
+    color: #ffffff !important;
+    padding: 20px 24px;
+    border-bottom: 3px solid #d68910;
+}
+
+/* Danger Header (Hapus) */
+.modal-header.bg-danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+    color: #ffffff !important;
+    padding: 20px 24px;
+    border-bottom: 3px solid #a93226;
+}
+
+/* Modal Title */
+.modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Icon untuk Modal Title */
+.modal-header.bg-primary .modal-title::before {
+    content: "";
+    font-size: 24px;
+}
+
+.modal-header.bg-warning .modal-title::before {
+    content: "";
+    font-size: 24px;
+}
+
+.modal-header.bg-danger .modal-title::before {
+    content: "🗑️";
+    font-size: 24px;
+}
+
+/* Close Button */
+.modal-header .close {
+    color: #ffffff;
+    opacity: 0.9;
+    font-size: 32px;
+    font-weight: 300;
+    text-shadow: none;
+    transition: all 0.3s ease;
+    padding: 0;
+    margin: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.modal-header .close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+/* Modal Body */
+.modal-body {
+    padding: 28px 24px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+/* Form Group Styling */
+.modal-body .form-group {
+    margin-bottom: 20px;
+}
+
+.modal-body .form-group:last-of-type {
+    margin-bottom: 0;
+}
+
+/* Label Styling */
+.modal-body label {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.modal-body label::before {
+    content: "▪";
+    color: #3498db;
+    font-size: 16px;
+}
+
+/* Form Control Enhancement */
+.modal-body .form-control,
+.modal-body select.form-control {
+    border: 2px solid #e0e6ed;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background-color: #ffffff;
+    height: auto;
+    min-height: 44px;
+}
+
+.modal-body .form-control:focus,
+.modal-body select.form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+    background-color: #ffffff;
+    outline: none;
+}
+
+.modal-body .form-control:hover {
+    border-color: #bdc3c7;
+}
+
+/* Fix untuk input number agar tidak terlalu tinggi */
+.modal-body input[type="number"].form-control,
+.modal-body input[type="date"].form-control,
+.modal-body input[type="text"].form-control {
+    height: 44px;
+}
+
+/* Select Dropdown - Fix Conflict dengan SB Admin */
+.modal-body select.form-control {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%233498db' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 12px;
+    padding-right: 40px;
+    cursor: pointer;
+    height: auto;
+    line-height: 1.5;
+}
+
+/* Override SB Admin select styling jika ada */
+.modal-body select.form-control option {
+    padding: 8px 12px;
+    background-color: #ffffff;
+    color: #2c3e50;
+}
+
+/* Fix untuk dropdown text yang terpotong */
+.modal-body select.form-control {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Readonly Fields */
+.modal-body .form-control[readonly] {
+    background-color: #ecf0f1;
+    cursor: not-allowed;
+    font-weight: 600;
+    color: #7f8c8d;
+    border-color: #bdc3c7;
+}
+
+/* Textarea */
+.modal-body textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Small Helper Text */
+.modal-body small.form-text {
+    display: block;
+    margin-top: 6px;
+    color: #7f8c8d;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.modal-body small.form-text::before {
+    content: "💡 ";
+    margin-right: 4px;
+}
+
+/* Alert Error Message */
+.modal-body .alert.alert-danger {
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #fdecea 0%, #f8d7da 100%);
+    color: #721c24;
+    padding: 16px;
+    display: flex;
+    align-items: start;
+    gap: 12px;
+    margin-top: 20px;
+    margin-bottom: 0;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-body .alert.alert-danger::before {
+    content: "⚠️";
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.modal-body .alert.alert-danger strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.modal-body .alert.d-none {
+    display: none !important;
+}
+
+/* Modal Footer */
+.modal-footer {
+    padding: 16px 24px;
+    background: #f8f9fa;
+    border-top: 2px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Modal Buttons */
+.modal-footer .btn {
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 10px;
+    border: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Button Secondary (Batal) */
+.modal-footer .btn-secondary {
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    color: #ffffff;
+}
+
+.modal-footer .btn-secondary:hover {
+    background: linear-gradient(135deg, #7f8c8d 0%, #6c7a7b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(127, 140, 141, 0.3);
+}
+
+/* Button Primary (Simpan - Tambah) */
+.modal-footer .btn-primary {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: #ffffff;
+}
+
+.modal-footer .btn-primary:hover {
+    background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(52, 152, 219, 0.4);
+}
+
+/* Button Warning (Simpan - Edit) */
+.modal-footer .btn-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+    color: #ffffff;
+}
+
+.modal-footer .btn-warning:hover {
+    background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(243, 156, 18, 0.4);
+}
+
+/* Button Danger (Hapus) */
+.modal-footer .btn-danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: #ffffff;
+}
+
+.modal-footer .btn-danger:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(231, 76, 60, 0.4);
+}
+
+/* Button Disabled State */
+.modal-footer .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Konfirmasi Hapus Text */
+.modal-body p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.modal-body p strong {
+    color: #e74c3c;
+    font-weight: 700;
+}
+
+/* ================================
+   MODAL RESPONSIVE
+   ================================ */
+
+/* Fix Conflict dengan SB Admin Template */
+.modal .form-control {
+    display: block;
+    width: 100%;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #2c3e50;
+    background-clip: padding-box;
+}
+
+/* Pastikan select terlihat dengan baik */
+.modal select.form-control:not([size]):not([multiple]) {
+    height: 44px;
+}
+
+/* Fix untuk Bootstrap custom-select jika digunakan */
+.modal .custom-select {
+    border: 2px solid #e0e6ed;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 14px;
+}
+
+/* Placeholder styling untuk select */
+.modal select.form-control option:first-child {
+    color: #95a5a6;
+}
+
+.modal select.form-control:invalid {
+    color: #95a5a6;
+}
+
+.modal select.form-control:valid {
+    color: #2c3e50;
+}
+
+@media screen and (max-width: 576px) {
+    .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+    
+    .modal-content {
+        border-radius: 12px;
+    }
+    
+    .modal-header {
+        padding: 16px 20px;
+    }
+    
+    .modal-title {
+        font-size: 18px;
+    }
+    
+    .modal-body {
+        padding: 20px 16px;
+    }
+    
+    .modal-body .form-control,
+    .modal-body select.form-control {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+    
+    .modal-footer {
+        padding: 12px 16px;
+        flex-direction: column-reverse;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ================================
+   KOPI KELUAR - PAGE STYLING
+   ================================ */
+
+/* Page Header */
+.page-title {
+    color: #2c3e50;
+    font-weight: 700;
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.page-subtitle {
+    color: #7f8c8d;
+    font-size: 14px;
+    font-style: italic;
+}
+
+/* Badge Stok */
+.badge.badge-info {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
+    color: #ffffff;
+    font-size: 14px;
+    padding: 10px 20px !important;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
+}
+
+.badge.badge-info b {
+    font-size: 16px;
+}
+
+/* Button Tambah Data */
+.btn-primary.btn-sm {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(52, 152, 219, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-primary.btn-sm:hover {
+    background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(52, 152, 219, 0.4);
+}
+
+.btn-primary.btn-sm i {
+    margin-right: 6px;
+}
+
+/* ================================
+   KOPI KELUAR - TABLE DESKTOP
+   ================================ */
+
+/* Kolom Jenis Kopi */
+.table tbody td:nth-child(2) {
+    text-align: left;
+    font-weight: 600;
+    color: #27ae60;
+    min-width: 140px;
+}
+
+/* Kolom Tujuan */
+.table tbody td:nth-child(3) {
+    text-align: left;
+    font-weight: 500;
+    color: #2c3e50;
+    min-width: 150px;
+}
+
+/* Kolom Jumlah (Kg) */
+.table tbody td:nth-child(4) {
+    text-align: right;
+    font-weight: 700;
+    color: #e74c3c;
+    font-size: 14px;
+    min-width: 120px;
+}
+
+/* Kolom Harga Jual/Kg */
+.table tbody td:nth-child(5) {
+    text-align: right;
+    font-weight: 600;
+    color: #2980b9;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    min-width: 140px;
+}
+
+/* Kolom Total Harga */
+.table tbody td:nth-child(6) {
+    text-align: right;
+    font-weight: 700;
+    color: #c0392b;
+    background-color: rgba(192, 57, 43, 0.05);
+    font-size: 14px;
+    min-width: 150px;
+}
+
+/* Kolom Tanggal */
+.table tbody td:nth-child(7) {
+    font-family: 'Consolas', 'Monaco', monospace;
+    color: #7f8c8d;
+    text-align: center;
+    font-size: 13px;
+    min-width: 110px;
+}
+
+/* Kolom Keterangan */
+.table tbody td:nth-child(8) {
+    text-align: center;
+    font-style: italic;
+    color: #95a5a6;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13px;
+}
+
+/* Kolom Sisa Stok */
+.table tbody td:nth-child(9) {
+    text-align: right;
+    font-weight: 700;
+    color: #16a085;
+    background-color: rgba(22, 160, 133, 0.05);
+    font-size: 14px;
+    min-width: 140px;
+}
+
+/* Kolom Aksi */
+.table tbody td:nth-child(10) {
+    text-align: center;
+    min-width: 180px;
+    padding: 10px 8px;
+}
+
+/* Button Group untuk Aksi */
+.btn-group {
+    display: inline-flex;
+    gap: 6px;
+}
+
+/* ================================
+   KOPI KELUAR - MOBILE CARD VIEW
+   ================================ */
+
+/* Mobile Card Container */
+.d-block.d-lg-none .card.shadow {
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    border: 1px solid #e8ecef;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    background: #ffffff;
+}
+
+.d-block.d-lg-none .card.shadow:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+    border-color: #3498db;
+}
+
+/* Card Body */
+.d-block.d-lg-none .card-body {
+    padding: 24px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+/* Header Section dengan Badge */
+.d-block.d-lg-none .card-body .d-flex.justify-content-between {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 3px solid #ecf0f1;
+    align-items: flex-start;
+}
+
+/* Nama Jenis Kopi - Enhanced */
+.d-block.d-lg-none .card-body h6.font-weight-bold.text-primary {
+    font-size: 20px;
+    font-weight: 700;
+    color: #27ae60 !important;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    line-height: 1.3;
+}
+
+.d-block.d-lg-none .card-body h6.font-weight-bold.text-primary::before {
+    content: "☕";
+    font-size: 24px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+/* Tujuan Text */
+.d-block.d-lg-none .card-body > p {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #34495e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.d-block.d-lg-none .card-body > p strong {
+    color: #7f8c8d;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.d-block.d-lg-none .card-body > p strong::before {
+    content: "📍 ";
+}
+
+/* Badge Tanggal - Enhanced */
+.d-block.d-lg-none .badge.badge-pill.badge-secondary {
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%) !important;
+    border: none;
+    box-shadow: 0 2px 6px rgba(127, 140, 141, 0.3);
+    white-space: nowrap;
+}
+
+/* Row Grid untuk Data - Redesigned */
+.d-block.d-lg-none .card-body .row.text-center {
+    margin: 0 -6px;
+    margin-top: 20px;
+}
+
+.d-block.d-lg-none .card-body .row.text-center .col-6 {
+    padding: 16px 12px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 2px solid #e8ecef;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    margin-left: 6px;
+    margin-right: 6px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.d-block.d-lg-none .card-body .row.text-center .col-6:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #3498db;
+}
+
+/* Accent Bar untuk setiap kolom */
+.d-block.d-lg-none .card-body .row.text-center .col-6::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+}
+
+/* Jumlah Keluar - Red Accent */
+.d-block.d-lg-none .card-body .row.text-center:first-of-type .col-6:first-child::before {
+    background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+
+/* Sisa Stok - Green Accent */
+.d-block.d-lg-none .card-body .row.text-center:first-of-type .col-6:last-child::before {
+    background: linear-gradient(90deg, #16a085, #27ae60);
+}
+
+/* Harga/Kg - Blue Accent */
+.d-block.d-lg-none .card-body .row.text-center:nth-of-type(2) .col-6:first-child::before {
+    background: linear-gradient(90deg, #2980b9, #3498db);
+}
+
+/* Total - Dark Red Accent */
+.d-block.d-lg-none .card-body .row.text-center:nth-of-type(2) .col-6:last-child::before {
+    background: linear-gradient(90deg, #c0392b, #e74c3c);
+}
+
+/* Label Small - Enhanced */
+.d-block.d-lg-none .card-body small.text-muted {
+    display: block;
+    color: #95a5a6;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+/* Value Bold - Enhanced */
+.d-block.d-lg-none .card-body .font-weight-bold {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2c3e50;
+    letter-spacing: 0.3px;
+}
+
+/* Jumlah Keluar - Red */
+.d-block.d-lg-none .card-body .row.text-center:first-of-type .col-6:first-child .font-weight-bold {
+    color: #e74c3c;
+}
+
+/* Sisa Stok - Green */
+.d-block.d-lg-none .card-body .row.text-center:first-of-type .col-6:last-child .font-weight-bold {
+    color: #16a085;
+}
+
+/* Harga/Kg - Blue */
+.d-block.d-lg-none .card-body .row.text-center:nth-of-type(2) .col-6:first-child .font-weight-bold {
+    color: #2980b9;
+}
+
+/* Total - Red Dark */
+.d-block.d-lg-none .card-body .row.text-center:nth-of-type(2) .col-6:last-child .font-weight-bold {
+    color: #c0392b;
+    font-size: 17px;
+}
+
+/* Keterangan Section - Enhanced */
+.d-block.d-lg-none .card-body > p:has(small) {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: rgba(155, 89, 182, 0.05);
+    border-left: 4px solid #9b59b6;
+    border-radius: 8px;
+}
+
+.d-block.d-lg-none .card-body > p small {
+    font-size: 13px;
+    color: #7f8c8d;
+    font-style: italic;
+    line-height: 1.5;
+}
+
+.d-block.d-lg-none .card-body > p small strong {
+    color: #9b59b6;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.d-block.d-lg-none .card-body > p small strong::before {
+    content: "📝 ";
+    margin-right: 4px;
+}
+
+/* Action Buttons Section - Enhanced */
+.d-block.d-lg-none .card-body .border-top {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px dashed #dee2e6 !important;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Mobile Buttons Enhanced */
+.d-block.d-lg-none .btn-sm {
+    padding: 10px 18px;
+    font-size: 13px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.d-block.d-lg-none .btn-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+    color: #ffffff;
+}
+
+.d-block.d-lg-none .btn-warning:hover {
+    background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4);
+}
+
+.d-block.d-lg-none .btn-danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: #ffffff;
+}
+
+.d-block.d-lg-none .btn-danger:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
+}
+
+.d-block.d-lg-none .btn-outline-warning {
+    background: transparent;
+    border: 2px solid #f39c12 !important;
+    color: #f39c12;
+}
+
+.d-block.d-lg-none .btn-outline-warning:hover {
+    background: #f39c12;
+    color: #ffffff;
+    transform: translateY(-3px);
+}
+
+.d-block.d-lg-none .btn-outline-danger {
+    background: transparent;
+    border: 2px solid #e74c3c !important;
+    color: #e74c3c;
+}
+
+.d-block.d-lg-none .btn-outline-danger:hover {
+    background: #e74c3c;
+    color: #ffffff;
+    transform: translateY(-3px);
+}
+
+.d-block.d-lg-none .btn-secondary {
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    color: #ffffff;
+}
+
+.d-block.d-lg-none .btn-secondary.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.d-block.d-lg-none .btn-sm i {
+    font-size: 13px;
+}
+
+/* Empty State - Mobile */
+.d-block.d-lg-none .alert.alert-info {
+    border-radius: 12px;
+    padding: 30px;
+    font-size: 16px;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border: none;
+    color: #2e7d32;
+    font-weight: 500;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.d-block.d-lg-none .alert.alert-info::before {
+    content: "ℹ️ ";
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+/* ================================
+   MODAL KOPI KELUAR - ENHANCEMENTS
+   ================================ */
+
+/* Input Group Styling */
+.modal-body .input-group {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.modal-body .input-group-prepend .input-group-text {
+    background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
+    border: 2px solid #e0e6ed;
+    border-right: none;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.modal-body .input-group .form-control {
+    border-left: none;
+}
+
+.modal-body .input-group .form-control[readonly] {
+    background-color: #f8f9fa;
+    font-weight: 700;
+    color: #2980b9;
+}
+
+/* Text Muted Span */
+.modal-body label .text-muted {
+    font-size: 12px;
+    font-weight: 400;
+    color: #95a5a6 !important;
+}
+
+/* Warning Text in Delete Modal */
+.modal-body .text-danger.font-weight-bold {
+    color: #e74c3c !important;
+    background-color: rgba(231, 76, 60, 0.1);
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 4px solid #e74c3c;
+    margin-top: 12px;
+}
+
+/* ================================
+   RESPONSIVE ADJUSTMENTS
+   ================================ */
+
+@media screen and (max-width: 768px) {
+    .page-title {
+        font-size: 24px;
+    }
+    
+    .page-subtitle {
+        font-size: 13px;
+    }
+    
+    .badge.badge-info {
+        font-size: 13px;
+        padding: 8px 16px !important;
+    }
+    
+    .badge.badge-info b {
+        font-size: 14px;
+    }
+    
+    .d-block.d-lg-none .card-body .row.text-center .col-6 {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .d-flex.justify-content-between.flex-wrap {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 12px;
+    }
+    
+    .d-flex.justify-content-between.flex-wrap > div {
+        width: 100%;
+    }
+    
+    .badge.badge-info {
+        display: block;
+        text-align: center;
+    }
+    
+    .btn-primary.btn-sm {
+        width: 100%;
+        justify-content: center;
+    }
+}
     

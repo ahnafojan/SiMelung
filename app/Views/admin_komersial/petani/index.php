@@ -92,7 +92,7 @@
                                 <td><?= esc($row['nama']) ?></td>
                                 <td><?= esc($row['alamat']) ?></td>
                                 <td><?= esc($row['no_hp']) ?></td>
-                                <td><?= esc($row['usia']) ?></td>
+                                <td><?= esc($row['usia']) ?> Tahun</td>
                                 <td><?= esc($row['tempat_lahir'] . ', ' . $row['tanggal_lahir']) ?></td>
                                 <td>
                                     <?php if (!empty($row['foto'])): ?>

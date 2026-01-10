@@ -16,10 +16,11 @@
         </button>
     </div>
 
-
+    <!-- Modal Tambah -->
     <div class="modal fade" id="modalTambahKopi" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
-            <form action="<?= base_url('kopi-masuk/create') ?>" method="post">
+            <!-- Pastikan form memiliki ID untuk JS -->
+            <form id="formTambahKopi" action="<?= base_url('kopi-masuk/create') ?>" method="post">
                 <?= csrf_field() ?>
                 <div class="modal-content shadow">
                     <div class="modal-header bg-primary text-white">
@@ -48,20 +49,34 @@
                         </div>
                         <div class="form-group">
                             <label for="jumlah">Jumlah (Kg)</label>
-                            <input type="number" step="0.01" min="0" class="form-control" id="jumlah" name="jumlah" placeholder="Masukkan jumlah kopi Kg">
+                            <input type="number" step="0.01" min="0" class="form-control" id="jumlah" name="jumlah" placeholder="Masukkan jumlah kopi Kg" required>
                         </div>
                         <div class="form-group">
                             <label>Tanggal Setor</label>
-                            <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                            <input type="date" id="tanggal" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="harga_saat_transaksi">Harga Kopi (Rp/Kg) - Otomatis</label>
+                            <input type="number" step="0.01" min="0" class="form-control" id="harga_saat_transaksi" name="harga_saat_transaksi" placeholder="Harga akan muncul otomatis" readonly>
+                            <small id="hargaHelp" class="form-text text-muted">Harga ini di ambil dari daftar harga kopi yang berlaku dari tanggal data master Jenis Kopi</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="total_harga">Total Harga (Rp)</label>
+                            <input type="number" step="0.01" min="0" class="form-control" id="total_harga" name="total_harga" placeholder="Total harga akan dihitung otomatis" readonly>
                         </div>
                         <div class="form-group">
                             <label>Keterangan</label>
                             <textarea name="keterangan" class="form-control" rows="2" placeholder="Masukan Keterangan jika ada"></textarea>
                         </div>
+                        <!-- Pesan Error Dinamis -->
+                        <div class="alert alert-danger d-none mt-3" id="errorHargaMessage">
+                            <strong>Perhatian!</strong> Tidak ada harga beli yang berlaku untuk jenis pohon ini pada tanggal yang dipilih. Silakan atur harga terlebih dahulu di menu "Jenis Pohon".
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <!-- Tambahkan ID ke tombol submit -->
+                        <button type="submit" class="btn btn-primary" id="btnSimpanKopiMasuk">Simpan</button>
                     </div>
                 </div>
             </form>
@@ -79,6 +94,10 @@
                         <th>Tanggal</th>
                         <th>Stok Saat Ini (Kg)</th>
                         <th>Kopi Masuk (Kg)</th>
+                        <!-- Kolom Harga Ditambahkan -->
+                        <th>Harga/Kg (Rp)</th>
+                        <th>Total Harga (Rp)</th>
+                        <!-- /Kolom Harga Ditambahkan -->
                         <th>Keterangan</th>
                         <th class="text-center">Aksi</th>
                     </tr>
@@ -91,9 +110,18 @@
                                 <td><?= $nomor++ ?></td>
                                 <td><?= esc($k['nama_petani']) ?></td>
                                 <td><?= esc($k['nama_pohon']) ?></td>
-                                <td><?= esc($k['tanggal']) ?></td>
+                                <td>
+                                    <?php
+                                    $tgl = $k['tanggal'] ?? '';
+                                    echo $tgl ? date('d/m/Y', strtotime($tgl)) : '-';
+                                    ?>
+                                </td>
                                 <td><?= esc($k['stok'] ?? 0) ?> Kg</td>
                                 <td><?= esc($k['jumlah']) ?> Kg</td>
+                                <!-- Data Harga Ditampilkan -->
+                                <td>Rp <?= number_format($k['harga_saat_transaksi'] ?? 0, 0, ',', '.') ?></td>
+                                <td>Rp <?= number_format($k['total_harga'] ?? 0, 0, ',', '.') ?></td>
+                                <!-- /Data Harga Ditampilkan -->
                                 <td><?= esc($k['keterangan']) ?></td>
                                 <td>
                                     <!-- Untuk Desktop -->
@@ -106,7 +134,7 @@
                                     <?php endif; ?>
 
                                     <?php if ($k['delete_status'] == 'approved') : ?>
-                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalHapusKopi<?= $k['id'] ?>"><i class="fas fa-trash"></i> Hapus</button>
+                                        <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalHapusKopi<?= $k['id'] ?>"><i class="fas fa-trash"></i></button>
                                     <?php elseif ($k['delete_status'] == 'pending') : ?>
                                         <button class="btn btn-sm btn-secondary disabled" title="Permintaan sedang diproses"><i class="fas fa-clock"></i></button>
                                     <?php else : ?>
@@ -117,7 +145,7 @@
                         <?php endforeach; ?>
                     <?php else : ?>
                         <tr>
-                            <td colspan="8" class="text-center">Belum ada data</td>
+                            <td colspan="10" class="text-center">Belum ada data</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -160,30 +188,87 @@
             <?php foreach ($kopiMasuk as $k) : ?>
                 <div class="card shadow mb-3">
                     <div class="card-body">
-                        <h6 class="font-weight-bold text-primary"><?= esc($k['nama_petani']) ?></h6>
-                        <p class="mb-1"><strong>Jenis Kopi:</strong> <?= esc($k['nama_pohon']) ?></p>
-                        <p class="mb-1"><strong>Tanggal:</strong> <?= esc($k['tanggal']) ?></p>
-                        <p class="mb-1"><strong>Stok Saat Ini:</strong> <?= esc($k['stok'] ?? 0) ?> Kg</p>
-                        <p class="mb-1"><strong>Kopi Masuk:</strong> <?= esc($k['jumlah']) ?> Kg</p>
+                        <!-- Header: Nama Petani & Tanggal -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="font-weight-bold text-primary mb-1"><?= esc($k['nama_petani']) ?></h6>
+                                <p class="mb-0"><strong>Jenis Kopi:</strong> <?= esc($k['nama_pohon']) ?></p>
+                            </div>
+                            <span class="badge badge-pill badge-secondary"><?= date('d M Y', strtotime($k['tanggal'])) ?></span>
+                        </div>
+
+                        <!-- Blok Informasi Vertikal (Centered) -->
+                        <div class="text-center mb-3">
+
+                            <!-- Kopi Masuk -->
+                            <div class="mb-2 p-2 rounded border" style="background-color: #f8f9fa; border-left: 4px solid #007bff;">
+                                <small class="text-muted d-block">KOPI MASUK</small>
+                                <p class="font-weight-bold mb-0" style="color: #007bff; font-size: 1.1rem;">
+                                    <?= number_format($k['jumlah'], 2, ',', '.') ?> Kg
+                                </p>
+                            </div>
+
+                            <!-- Stok Saat Ini -->
+                            <div class="mb-2 p-2 rounded border" style="background-color: #f8f9fa; border-left: 4px solid #28a745;">
+                                <small class="text-muted d-block">STOK SAAT INI</small>
+                                <p class="font-weight-bold mb-0" style="color: #28a745; font-size: 1.1rem;">
+                                    <?= number_format($k['stok'] ?? 0, 2, ',', '.') ?> Kg
+                                </p>
+                            </div>
+
+                            <!-- Harga/Kg -->
+                            <div class="mb-2 p-2 rounded border" style="background-color: #f8f9fa; border-left: 4px solid #ffc107;">
+                                <small class="text-muted d-block">HARGA/KG</small>
+                                <p class="font-weight-bold mb-0" style="color: #ffc107; font-size: 1.1rem;">
+                                    <?= isset($k['harga_saat_transaksi']) ? 'Rp&nbsp;' . number_format($k['harga_saat_transaksi'], 0, ',', '.') : '–' ?>
+                                </p>
+                            </div>
+
+                            <!-- Total Harga -->
+                            <div class="mb-2 p-2 rounded border" style="background-color: #f8f9fa; border-left: 4px solid #dc3545;">
+                                <small class="text-muted d-block">TOTAL HARGA</small>
+                                <p class="font-weight-bold mb-0" style="color: #dc3545; font-size: 1.1rem;">
+                                    <?= isset($k['total_harga']) ? 'Rp&nbsp;' . number_format($k['total_harga'], 0, ',', '.') : '–' ?>
+                                </p>
+                            </div>
+
+                        </div>
+
+                        <!-- Keterangan -->
                         <?php if (!empty($k['keterangan'])) : ?>
-                            <p class="mb-2"><strong>Ket:</strong> <?= esc($k['keterangan']) ?></p>
+                            <div class="border-top pt-2 mt-2">
+                                <small><strong>Ket:</strong> <?= esc($k['keterangan']) ?></small>
+                            </div>
                         <?php endif; ?>
 
-                        <div class="mt-3 border-top pt-3 text-right">
+                        <!-- Aksi (Edit & Hapus) -->
+                        <div class="mt-3 border-top pt-3 d-flex justify-content-end gap-2">
                             <?php if ($k['edit_status'] == 'approved') : ?>
-                                <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modalEditKopi<?= $k['id'] ?>"><i class="fas fa-edit"></i> Edit</button>
+                                <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modalEditKopi<?= $k['id'] ?>" title="Edit Data">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
                             <?php elseif ($k['edit_status'] == 'pending') : ?>
-                                <button class="btn btn-sm btn-secondary disabled" title="Permintaan sedang diproses"><i class="fas fa-clock"></i> Pending</button>
+                                <button class="btn btn-sm btn-secondary disabled" title="Permintaan edit sedang diproses">
+                                    <i class="fas fa-clock"></i> Pending
+                                </button>
                             <?php else : ?>
-                                <button class="btn btn-sm btn-outline-warning btn-request-access" data-kopimasuk-id="<?= $k['id'] ?>" data-action-type="edit" title="Minta Izin Edit"><i class="fas fa-lock"></i> Minta Edit</button>
+                                <button class="btn btn-sm btn-outline-warning btn-request-access" data-kopimasuk-id="<?= $k['id'] ?>" data-action-type="edit" title="Minta Izin Edit">
+                                    <i class="fas fa-lock"></i> Minta Edit
+                                </button>
                             <?php endif; ?>
 
                             <?php if ($k['delete_status'] == 'approved') : ?>
-                                <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalHapusKopi<?= $k['id'] ?>"><i class="fas fa-trash"></i> Hapus</button>
+                                <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalHapusKopi<?= $k['id'] ?>" title="Hapus Data">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             <?php elseif ($k['delete_status'] == 'pending') : ?>
-                                <button class="btn btn-sm btn-secondary disabled" title="Permintaan sedang diproses"><i class="fas fa-clock"></i> Pending</button>
+                                <button class="btn btn-sm btn-secondary disabled" title="Permintaan hapus sedang diproses">
+                                    <i class="fas fa-clock"></i> Pending
+                                </button>
                             <?php else : ?>
-                                <button class="btn btn-sm btn-outline-danger btn-request-access" data-kopimasuk-id="<?= $k['id'] ?>" data-action-type="delete" title="Minta Izin Hapus"><i class="fas fa-lock"></i> Minta Hapus</button>
+                                <button class="btn btn-sm btn-outline-danger btn-request-access" data-kopimasuk-id="<?= $k['id'] ?>" data-action-type="delete" title="Minta Izin Hapus">
+                                    <i class="fas fa-lock"></i> Minta Hapus
+                                </button>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -191,18 +276,19 @@
             <?php endforeach; ?>
 
             <?php if (isset($pager) && $pager->getPageCount() > 1) : ?>
-                <div class="d-flex justify-content-center">
+                <div class="d-flex justify-content-center mt-3">
                     <?= $pager->links('default', 'custom_pagination_template') ?>
                 </div>
             <?php endif; ?>
 
         <?php else : ?>
-            <div class="alert alert-info text-center">Belum ada data</div>
+            <div class="alert alert-info text-center">Belum ada data kopi masuk.</div>
         <?php endif; ?>
     </div>
 
     <?php if (!empty($kopiMasuk)) : ?>
         <?php foreach ($kopiMasuk as $k) : ?>
+            <!-- Modal Edit -->
             <div class="modal fade" id="modalEditKopi<?= $k['id'] ?>" tabindex="-1">
                 <div class="modal-dialog">
                     <form action="<?= base_url('kopi-masuk/update/' . $k['id']) ?>" method="post">
@@ -231,20 +317,34 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Jumlah (Kg)</label>
-                                    <input type="number" step="0.01" min="0" name="jumlah" class="form-control" value="<?= esc($k['jumlah']) ?>" required>
+                                    <input type="number" step="0.01" min="0" name="jumlah" class="form-control" id="jumlah" value="<?= esc($k['jumlah']) ?>" required>
                                 </div>
                                 <div class="form-group">
                                     <label>Tanggal</label>
-                                    <input type="date" name="tanggal" class="form-control" value="<?= esc($k['tanggal']) ?>" required>
+                                    <input type="date" name="tanggal" class="form-control" id="tanggal" value="<?= esc($k['tanggal']) ?>" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="harga_saat_transaksi">Harga Kopi (Rp/Kg) - Otomatis</label>
+                                    <input type="number" step="0.01" min="0" class="form-control" id="harga_saat_transaksi" name="harga_saat_transaksi" value="<?= esc($k['harga_saat_transaksi']) ?>" readonly>
+                                    <small id="hargaHelp" class="form-text text-muted">Harga ini di ambil dari daftar harga kopi yang berlaku dari tanggal data master Jenis Kopi</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="total_harga">Total Harga (Rp)</label>
+                                    <input type="number" step="0.01" min="0" class="form-control" id="total_harga" name="total_harga" value="<?= esc($k['total_harga']) ?>" readonly>
                                 </div>
                                 <div class="form-group">
                                     <label>Keterangan</label>
                                     <textarea name="keterangan" class="form-control" rows="2"><?= esc($k['keterangan']) ?></textarea>
                                 </div>
+                                <!-- Pesan Error Dinamis (Modal Edit) -->
+                                <div class="alert alert-danger d-none mt-3" id="errorHargaMessage">
+                                    <strong>Perhatian!</strong> Tidak ada harga beli yang berlaku untuk jenis pohon ini pada tanggal yang dipilih. Silakan atur harga terlebih dahulu di menu "Jenis Pohon".
+                                </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                <button type="submit" class="btn btn-warning">Simpan</button>
+                                <!-- Tambahkan ID ke tombol submit -->
+                                <button type="submit" class="btn btn-warning" id="btnSimpanKopiMasuk">Simpan</button>
                             </div>
                         </div>
                     </form>
@@ -276,70 +376,9 @@
 
 </div>
 
-<style>
-    /* CSS Kustom untuk Pagination */
-    .pagination-wrapper {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        padding: 0.5rem 1.25rem;
-    }
-
-    .per-page-selector,
-    .page-info,
-    .pagination-nav {
-        margin: 0.5rem 0;
-    }
-
-    .per-page-selector {
-        display: flex;
-        align-items: center;
-        font-size: 0.875rem;
-        color: #6c757d;
-    }
-
-    .per-page-label,
-    .per-page-suffix {
-        margin: 0 0.5rem;
-    }
-
-    .dropdown-container {
-        position: relative;
-    }
-
-    .per-page-select {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        background-color: #fff;
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        padding: 0.375rem 1.75rem 0.375rem 0.75rem;
-        cursor: pointer;
-    }
-
-    .dropdown-icon {
-        position: absolute;
-        right: 0.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        pointer-events: none;
-        color: #6c757d;
-    }
-
-    .page-info {
-        font-size: 0.875rem;
-        color: #6c757d;
-    }
-
-    .pagination-nav .pagination {
-        margin-bottom: 0;
-    }
-</style>
-
 <script>
     $(document).ready(function() {
+
         // Fungsi untuk mengambil data jenis pohon berdasarkan petani
         function loadJenisPohon(petaniId, $dropdown, selectedId = null) {
             $dropdown.prop('disabled', true).html('<option>Loading...</option>');
@@ -357,17 +396,142 @@
             }
         }
 
+        // Fungsi untuk mendapatkan harga beli terbaru berdasarkan petani_pohon_id dan tanggal
+        function getHargaTerbaru(petaniPohonId, tanggal, callback) {
+            if (!petaniPohonId || !tanggal) {
+                callback(null, null);
+                return;
+            }
+
+            $.ajax({
+                url: "<?= base_url('api-harga/getHargaBeliterbaru') ?>",
+                method: "POST",
+                data: {
+                    petani_pohon_id: petaniPohonId,
+                    tanggal: tanggal,
+                    '<?= csrf_token() ?>': '<?= csrf_hash() ?>' // Gunakan token CSRF Anda
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.status === 'success') {
+                        callback(response.data.harga_beli_per_kg, response.data.tanggal_berlaku);
+                    } else {
+                        callback(null, null);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', error);
+                    callback(null, null);
+                }
+            });
+        }
+
+        // Fungsi untuk menghitung total harga (FORM TAMBAH - Global)
+        function calculateTotalHargaFormTambah() {
+            const jumlah = parseFloat($('#jumlah').val()) || 0;
+            const harga = parseFloat($('#harga_saat_transaksi').val()) || 0;
+            const total = jumlah * harga;
+            $('#total_harga').val(total.toFixed(2));
+        }
+
+        // Fungsi untuk menghitung total harga (FORM EDIT - Scoped ke Modal)
+        function calculateTotalHargaFormEdit($modal) {
+            const jumlah = parseFloat($modal.find('#jumlah').val()) || 0;
+            const harga = parseFloat($modal.find('#harga_saat_transaksi').val()) || 0;
+            const total = jumlah * harga;
+            $modal.find('#total_harga').val(total.toFixed(2));
+        }
+
+        // Fungsi untuk memperbarui harga saat transaksi dan total (bisa digunakan di form tambah atau edit)
+        function updateHargaSaatTransaksi($form, petaniPohonId, tanggal) {
+            getHargaTerbaru(petaniPohonId, tanggal, function(harga, tanggalBerlaku) {
+                const $hargaField = $form.find('#harga_saat_transaksi');
+                const $totalField = $form.find('#total_harga');
+                const $errorDiv = $form.find('#errorHargaMessage');
+                const $btnSimpan = $form.find('#btnSimpanKopiMasuk');
+                const $hargaHelp = $form.find('#hargaHelp');
+
+                if (harga !== null) {
+                    $hargaField.val(harga);
+                    // Panggil fungsi kalkulasi yang benar berdasarkan $form
+                    if ($form.attr('id') === 'formTambahKopi') {
+                        calculateTotalHargaFormTambah(); // Panggil fungsi untuk form tambah
+                    } else {
+                        calculateTotalHargaFormEdit($form); // Panggil fungsi untuk form edit (modal)
+                    }
+                    $errorDiv.addClass('d-none');
+                    $btnSimpan.prop('disabled', false);
+                    $hargaHelp.text(`Harga ini diambil dari daftar harga beli terbaru yang berlaku pada tanggal ${tanggalBerlaku}.`);
+                } else {
+                    $hargaField.val('');
+                    $totalField.val('');
+                    $errorDiv.removeClass('d-none');
+                    $btnSimpan.prop('disabled', true);
+                    $hargaHelp.text('Tidak ada harga beli yang berlaku untuk jenis pohon ini pada tanggal yang dipilih.');
+                }
+            });
+        }
+
+
         // Event handler untuk dropdown petani di form TAMBAH
         $('#petani').change(function() {
             let petaniId = $(this).val();
             let $jenisPohon = $('#jenis_pohon');
             loadJenisPohon(petaniId, $jenisPohon);
+
+            // Reset field harga dan total saat petani diubah
+            $('#harga_saat_transaksi').val('');
+            $('#total_harga').val('');
+            $('#errorHargaMessage').addClass('d-none');
+            $('#btnSimpanKopiMasuk').prop('disabled', false);
+            $('#hargaHelp').text('Harga ini di ambil dari daftar harga kopi yang berlaku dari tanggal data master Jenis Kopi');
+        });
+
+        // Event handler untuk dropdown jenis pohon (TAMBAH)
+        $('#jenis_pohon').change(function() {
+            let petaniPohonId = $(this).val();
+            let tanggal = $('#tanggal').val(); // Ambil tanggal saat ini
+            let $form = $('#formTambahKopi'); // Ganti dengan ID form Anda jika berbeda
+
+            if (petaniPohonId && tanggal) {
+                updateHargaSaatTransaksi($form, petaniPohonId, tanggal);
+            } else {
+                $('#harga_saat_transaksi').val('');
+                $('#total_harga').val('');
+                $('#errorHargaMessage').addClass('d-none');
+                $('#btnSimpanKopiMasuk').prop('disabled', false);
+            }
+        });
+
+        // Event handler untuk input tanggal (TAMBAH)
+        $('#tanggal').change(function() {
+            let petaniPohonId = $('#jenis_pohon').val();
+            let tanggal = $(this).val();
+            let $form = $('#formTambahKopi'); // Pastikan $form didefinisikan
+
+            if (petaniPohonId && tanggal) {
+                updateHargaSaatTransaksi($form, petaniPohonId, tanggal);
+            } else {
+                $('#harga_saat_transaksi').val('');
+                $('#total_harga').val('');
+                $('#errorHargaMessage').addClass('d-none');
+                $('#btnSimpanKopiMasuk').prop('disabled', false);
+            }
+        });
+
+        // Tambahkan ini untuk menghitung ulang total saat jumlah diubah (TAMBAH)
+        $('#jumlah').on('input', function() {
+            calculateTotalHargaFormTambah(); // Gunakan fungsi yang benar
         });
 
         // Event handler saat modal EDIT ditampilkan
         $('.modal').on('shown.bs.modal', function() {
-            let $jenisPohon = $(this).find('.jenis-pohon-dropdown');
+            let $modal = $(this);
+            let $jenisPohon = $modal.find('.jenis-pohon-dropdown');
             if (!$jenisPohon.length) return; // Keluar jika bukan modal edit
+
+            let $tanggal = $modal.find('input[name="tanggal"]');
+            let $form = $modal.find('form'); // Ambil form di dalam modal
 
             // Hanya load jika dropdown masih kosong
             if ($jenisPohon.find('option').length <= 1) {
@@ -375,14 +539,64 @@
                 let selectedId = $jenisPohon.data('selected');
                 loadJenisPohon(petaniId, $jenisPohon, selectedId);
             }
+
+            // Event handler untuk dropdown jenis pohon di modal EDIT
+            $jenisPohon.off('change.updateHarga').on('change.updateHarga', function() {
+                let petaniPohonId = $(this).val();
+                let tanggal = $tanggal.val();
+
+                if (petaniPohonId && tanggal) {
+                    updateHargaSaatTransaksi($form, petaniPohonId, tanggal);
+                } else {
+                    $form.find('#harga_saat_transaksi').val('');
+                    $form.find('#total_harga').val('');
+                    $form.find('#errorHargaMessage').addClass('d-none');
+                    $form.find('#btnSimpanKopiMasuk').prop('disabled', false);
+                }
+            });
+
+            // Event handler untuk input tanggal di modal EDIT
+            $tanggal.off('change.updateHarga').on('change.updateHarga', function() {
+                let petaniPohonId = $jenisPohon.val();
+                let tanggal = $(this).val();
+
+                if (petaniPohonId && tanggal) {
+                    updateHargaSaatTransaksi($form, petaniPohonId, tanggal);
+                } else {
+                    $form.find('#harga_saat_transaksi').val('');
+                    $form.find('#total_harga').val('');
+                    $form.find('#errorHargaMessage').addClass('d-none');
+                    $form.find('#btnSimpanKopiMasuk').prop('disabled', false);
+                }
+            });
+
+            // Tambahkan ini untuk menghitung ulang total saat jumlah diubah di modal edit
+            $form.find('#jumlah').off('input.calculateTotal').on('input.calculateTotal', function() {
+                calculateTotalHargaFormEdit($form); // Gunakan fungsi yang benar
+            });
+
+            // Inisialisasi nilai awal saat modal muncul
+            let petaniPohonIdAwal = $jenisPohon.val();
+            let tanggalAwal = $tanggal.val();
+            if (petaniPohonIdAwal && tanggalAwal) {
+                updateHargaSaatTransaksi($form, petaniPohonIdAwal, tanggalAwal);
+            }
         });
 
         // Event handler jika petani diganti di dalam modal EDIT
         $(document).on('change', '.modal select[name="petani_user_id"]', function() {
             let $modal = $(this).closest('.modal');
-            let petaniId = $(this).val();
             let $jenisPohon = $modal.find('.jenis-pohon-dropdown');
+            let petaniId = $(this).val();
+
             loadJenisPohon(petaniId, $jenisPohon);
+
+            // Reset field harga dan total saat petani diubah di modal
+            $modal.find('#harga_saat_transaksi').val('');
+            $modal.find('#total_harga').val('');
+            $modal.find('#errorHargaMessage').addClass('d-none');
+            $modal.find('#btnSimpanKopiMasuk').prop('disabled', false);
+            $modal.find('#hargaHelp').text('Harga ini di ambil dari daftar harga kopi yang berlaku dari tanggal data master Jenis Kopi');
         });
 
         // AJAX untuk Minta Izin Akses (Request Access)

@@ -191,27 +191,37 @@
         </tbody>
     </table>
     <div class="signature-section">
+        <?php
+        // Format tanggal Indonesia untuk tanda tangan
+        $bulanIndonesia = [
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember'
+        ];
+        $tanggalTtd = date('d ') . $bulanIndonesia[(int)date('n')] . date(' Y');
+        ?>
         <table>
             <tr>
                 <td style="width: 50%; text-align: center;">
                     <p>Mengetahui,</p>
                     <p>Ketua BUMDES</p>
                     <div style="height: 60px;"></div>
-                    <p class="underline">
-                        <?= esc($namaKetua ?? '_________________') ?>
-                    </p>
+                    <p class="underline"><?= esc($namaKetua ?? '_________________') ?></p>
                 </td>
                 <td style="width: 50%; text-align: center;">
-                    <p>
-                        <?= esc($lokasi ?? 'Lokasi') ?>, <?= date('d F Y') ?>
-                    </p>
-                    <p>
-                        <?= esc($jabatanKanan ?? 'Admin Komersial') ?>
-                    </p>
+                    <p><?= esc($lokasi ?? 'Lokasi') ?>, <?= esc($tanggalTtd) ?></p>
+                    <p><?= esc($jabatanKanan ?? 'Admin Komersial') ?></p>
                     <div style="height: 60px;"></div>
-                    <p class="underline">
-                        <?= esc($namaKanan ?? '_________________') ?>
-                    </p>
+                    <p class="underline"><?= esc($namaKanan ?? '_________________') ?></p>
                 </td>
             </tr>
         </table>

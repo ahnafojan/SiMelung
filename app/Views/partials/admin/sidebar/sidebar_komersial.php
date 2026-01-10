@@ -131,6 +131,8 @@
             <div class="bg-white py-2 collapse-inner rounded">
                 <a class="collapse-item" href="<?= site_url('Kopimasuk') ?>">Kopi Masuk</a>
                 <a class="collapse-item" href="<?= site_url('Kopikeluar') ?>">Kopi Keluar</a>
+                <!--<a class="collapse-item" href="<?= site_url('pendapatan-kopi') ?>">Rekapitulasi Pendapatan</a>
+                <a class="collapse-item" href="<?= site_url('biaya-kopi') ?>">Biaya Pembelian Kopi</a>-->
             </div>
         </div>
     </li>
@@ -158,14 +160,6 @@
         <a class="nav-link" href="<?= site_url('admin-komersial/laporan') ?>">
             <i class="fas fa-fw fa-file-alt"></i>
             <span>Laporan</span>
-        </a>
-    </li>
-    <li class="nav-item">
-        <!-- URL disesuaikan dengan rute '/pengaturan' -->
-        <a class="nav-link fs-3" href="<?= site_url('pengaturan/komersial') ?>">
-            <!-- Ikon 'fa-cog' lebih cocok untuk pengaturan -->
-            <i class="fas fa-fw fa-cog fa-lg"></i>
-            <span>Pengaturan Export</span>
         </a>
     </li>
 

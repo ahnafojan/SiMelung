@@ -9,6 +9,7 @@ use App\Models\KopiKeluarModel;
 use App\Models\StokKopiModel;
 use App\Models\JenisPohonModel;
 use CodeIgniter\API\ResponseTrait;
+use App\Models\HargaJenisKopiModel;
 
 /**
  * @property \CodeIgniter\HTTP\CLIRequest $request 
@@ -54,39 +55,40 @@ class KomersialRekapKopi extends BaseController
         list($rekapPenjualan, $pagerKopiKeluar) = $this->getRekapKopiKeluar($filter, $perPageKeluar, $pageKeluar);
 
         // [AWAL PERUBAHAN] - Logika untuk mencegah kalkulasi stok yang tidak perlu
-        // 1. Inisialisasi variabel stok dengan nilai default (kosong/nol)
         $stokAkhirPerJenis = [];
         $totalStokGlobal = 0;
         $pagerStokAkhir = null;
 
-        // 2. Buat kondisi: true jika petani dipilih TAPI tidak punya data kopi masuk
-        $petaniDipilihTanpaData = !empty($filter['petani']) && empty($rekapPetani);
+        // FILTER KHUSUS STOK: abaikan petani, pakai tanggal saja
+        $filterStok = $filter;
+        $filterStok['petani'] = '';
 
-        // 3. Hanya jalankan perhitungan stok jika kondisi di atas TIDAK terpenuhi
-        if (!$petaniDipilihTanpaData) {
-            list($stokAkhirPerJenis, $pagerStokAkhir) = $this->getStokAkhir($filter, $perPageStok, $pageStok);
+        // Stok selalu dihitung (tidak tergantung petani)
+        // dan hanya dipengaruhi start_date & end_date
+        [$stokAkhirPerJenis, $pagerStokAkhir] = $this->getStokAkhir($filterStok, $perPageStok, $pageStok);
 
-            // Pastikan $stokAkhirPerJenis tidak kosong sebelum menghitung total global
-            if (!empty($stokAkhirPerJenis)) {
-                $allStokData = $this->getStokAkhir($filter, 0, 1, false);
-                $totalStokGlobal = array_sum(array_column($allStokData, 'stok_akhir'));
-            }
-        }
+        $allStokData = $this->getStokAkhir($filterStok, 0, 1, false);
+        $totalStokGlobal = array_sum(array_column($allStokData, 'stok_akhir'));
+
+        // kalau kamu juga pakai total nilai stok global
+        $totalNilaiStokGlobal = array_sum(array_column($allStokData, 'nilai_stok'));
+
         // [AKHIR PERUBAHAN]
 
         $data = [
-            'petaniList'        => $petaniList,
-            'filter'            => $filter,
-            'rekapPetani'       => $rekapPetani,
-            'rekapPenjualan'    => $rekapPenjualan,
-            'stokAkhirPerJenis' => $stokAkhirPerJenis,
-            'totalStokGlobal'   => $totalStokGlobal,
-            'pagerKopiMasuk'    => $pagerKopiMasuk,
-            'perPageMasuk'      => $perPageMasuk,
-            'pagerKopiKeluar'   => $pagerKopiKeluar,
-            'perPageKeluar'     => $perPageKeluar,
-            'pagerStokAkhir'    => $pagerStokAkhir,
-            'perPageStok'       => $perPageStok,
+            'petaniList'            => $petaniList,
+            'filter'                => $filter,
+            'rekapPetani'           => $rekapPetani,
+            'rekapPenjualan'        => $rekapPenjualan,
+            'stokAkhirPerJenis'     => $stokAkhirPerJenis,
+            'totalStokGlobal'       => $totalStokGlobal, // [BARU]
+            'pagerKopiMasuk'        => $pagerKopiMasuk,
+            'perPageMasuk'          => $perPageMasuk,
+            'pagerKopiKeluar'       => $pagerKopiKeluar,
+            'perPageKeluar'         => $perPageKeluar,
+            'pagerStokAkhir'        => $pagerStokAkhir,
+            'perPageStok'           => $perPageStok,
+            'totalNilaiStokGlobal' => $totalNilaiStokGlobal,
         ];
         $data['breadcrumbs'] = [
             [
@@ -113,32 +115,47 @@ class KomersialRekapKopi extends BaseController
     {
         $db = \Config\Database::connect();
         $builder = $db->table('kopi_masuk');
+
         $builder->select('
-            petani.nama as nama_petani,
-            SUM(kopi_masuk.jumlah) AS total_masuk,
-            MAX(kopi_masuk.tanggal) AS tanggal_terakhir,
-            COUNT(kopi_masuk.id) AS jumlah_transaksi
-        ');
+        petani.nama as nama_petani,
+        jenis_pohon.nama_jenis as jenis_kopi,
+        kopi_masuk.tanggal as tanggal_transaksi,
+        SUM(kopi_masuk.jumlah) AS total_masuk,
+        SUM(kopi_masuk.total_harga) AS total_nilai_masuk,
+        COUNT(kopi_masuk.id) AS jumlah_transaksi
+    ');
+
         $builder->join('petani', 'petani.user_id = kopi_masuk.petani_user_id', 'left');
+        $builder->join('petani_pohon', 'petani_pohon.id = kopi_masuk.petani_pohon_id', 'left');
+        $builder->join('jenis_pohon', 'jenis_pohon.id = petani_pohon.jenis_pohon_id', 'left');
 
         if (!empty($filter['start_date'])) $builder->where('kopi_masuk.tanggal >=', $filter['start_date']);
-        if (!empty($filter['end_date'])) $builder->where('kopi_masuk.tanggal <=', $filter['end_date']);
-        if (!empty($filter['petani'])) $builder->where('kopi_masuk.petani_user_id', $filter['petani']);
-        $builder->groupBy('petani.nama');
+        if (!empty($filter['end_date']))   $builder->where('kopi_masuk.tanggal <=', $filter['end_date']);
+        if (!empty($filter['petani']))     $builder->where('kopi_masuk.petani_user_id', $filter['petani']);
 
-        // Logika Paginasi
+        $builder->where('jenis_pohon.nama_jenis IS NOT NULL');
+
+        // ✅ GROUP BY per petani + jenis + tanggal
+        $builder->groupBy('petani.nama');
+        $builder->groupBy('jenis_pohon.nama_jenis');
+        $builder->groupBy('kopi_masuk.tanggal');
+
+        // ✅ urutkan tanggal terbaru di atas
+        $builder->orderBy('kopi_masuk.tanggal', 'DESC');
+
         if ($paginate) {
             $totalBuilder = clone $builder;
-            $total = $totalBuilder->countAllResults(false); // countAllResults() salah jika ada groupBy, jadi kita hitung manual
-            if (is_array($total)) $total = count($total);
-
+            $total = count($totalBuilder->get()->getResultArray());
             $builder->limit($perPage, ($page - 1) * $perPage);
         }
 
         $data = $builder->get()->getResultArray();
 
+        // (opsional) rata-rata setoran per transaksi pada tanggal itu
         foreach ($data as &$row) {
-            $row['rata_rata_setoran'] = $row['jumlah_transaksi'] > 0 ? $row['total_masuk'] / $row['jumlah_transaksi'] : 0;
+            $row['rata_rata_setoran'] = ($row['jumlah_transaksi'] > 0)
+                ? ($row['total_masuk'] / $row['jumlah_transaksi'])
+                : 0;
         }
 
         if ($paginate) {
@@ -147,27 +164,40 @@ class KomersialRekapKopi extends BaseController
             return [$data, $pager];
         }
 
-        return $data; // Kembalikan hanya data jika tidak paginasi
+        return $data;
     }
+
+
 
     // Fungsi untuk mendapatkan data Rekap Kopi Keluar (Penjualan)
     public function getRekapKopiKeluar($filter, $perPage = null, $page = null, $paginate = true)
     {
         $db = \Config\Database::connect();
         $builder = $db->table('kopi_keluar');
+
         $builder->select('
-            kopi_keluar.tanggal,
-            kopi_keluar.jumlah as jumlah_kg,
-            kopi_keluar.tujuan as tujuan_pembeli,
-            kopi_keluar.keterangan,
-            jenis_pohon.nama_jenis as jenis_kopi
-        ');
+        kopi_keluar.tanggal,
+        kopi_keluar.jumlah as jumlah_kg,
+        kopi_keluar.tujuan as tujuan_pembeli,
+        kopi_keluar.keterangan,
+        jenis_pohon.id as jenis_pohon_id,
+        jenis_pohon.nama_jenis as jenis_kopi,
+        petani.nama as nama_petani,
+        kopi_keluar.harga_saat_transaksi as harga_jual_per_kg
+    ');
+
         $builder->join('stok_kopi', 'stok_kopi.id = kopi_keluar.stok_kopi_id', 'left');
         $builder->join('jenis_pohon', 'jenis_pohon.id = stok_kopi.jenis_pohon_id', 'left');
-        $builder->orderBy('kopi_keluar.tanggal', 'DESC');
+        $builder->join('petani', 'petani.user_id = stok_kopi.petani_id', 'left');
 
         if (!empty($filter['start_date'])) $builder->where('kopi_keluar.tanggal >=', $filter['start_date']);
-        if (!empty($filter['end_date'])) $builder->where('kopi_keluar.tanggal <=', $filter['end_date']);
+        if (!empty($filter['end_date']))   $builder->where('kopi_keluar.tanggal <=', $filter['end_date']);
+        if (!empty($filter['petani'])) {
+            $builder->where('stok_kopi.petani_id', $filter['petani']);
+        }
+
+
+        $builder->orderBy('kopi_keluar.tanggal', 'DESC');
 
         if ($paginate) {
             $total = $builder->countAllResults(false);
@@ -175,6 +205,35 @@ class KomersialRekapKopi extends BaseController
         }
 
         $data = $builder->get()->getResultArray();
+
+        // Ambil harga beli via model (berdasarkan tanggal transaksi)
+        $hargaModel = new \App\Models\HargaJenisKopiModel();
+
+        // Cache: biar 1 jenis + tanggal tidak query berulang
+        $cacheHargaBeli = [];
+
+        foreach ($data as &$row) {
+            $jenisId = (int)($row['jenis_pohon_id'] ?? 0);
+            $tgl     = $row['tanggal'] ?? date('Y-m-d');
+
+            $cacheKey = $jenisId . '|' . $tgl;
+
+            if (!array_key_exists($cacheKey, $cacheHargaBeli)) {
+                $hargaTerbaru = $hargaModel->getLatestPrice($jenisId, $tgl);
+                $cacheHargaBeli[$cacheKey] = (float)($hargaTerbaru['harga_beli_per_kg'] ?? 0);
+            }
+
+            $hargaBeli = $cacheHargaBeli[$cacheKey];
+            $hargaJual = (float)($row['harga_jual_per_kg'] ?? 0);
+            $qty       = (float)($row['jumlah_kg'] ?? 0);
+
+            // Kolom baru yang kamu minta
+            $row['total_harga_petani'] = $hargaBeli * $qty;                // berdasarkan harga beli
+            $row['keuntungan_bumdes']  = ($hargaJual - $hargaBeli) * $qty; // margin * qty
+
+            // optional: kalau mau tampil minus, hapus baris ini
+            if ($row['keuntungan_bumdes'] < 0) $row['keuntungan_bumdes'] = 0;
+        }
 
         if ($paginate) {
             $pager = service('pager');
@@ -185,7 +244,9 @@ class KomersialRekapKopi extends BaseController
         return $data;
     }
 
-    // Fungsi untuk mendapatkan data Stok Akhir per Jenis Kopi
+
+
+
     // Fungsi untuk mendapatkan data Stok Akhir per Jenis Kopi
     public function getStokAkhir($filter, $perPage = null, $page = null, $paginate = true)
     {
@@ -193,9 +254,8 @@ class KomersialRekapKopi extends BaseController
 
         // --- 1. Ambil Total Kopi Masuk per Jenis Kopi ---
         $builderMasuk = $db->table('kopi_masuk');
-        $builderMasuk->select('jenis_pohon.nama_jenis, SUM(kopi_masuk.jumlah) AS total_masuk');
+        $builderMasuk->select('jenis_pohon.nama_jenis, SUM(kopi_masuk.jumlah) AS total_masuk, AVG(kopi_masuk.harga_saat_transaksi) AS avg_harga_masuk');
 
-        // PERBAIKAN: Gunakan dua JOIN untuk menghubungkan kopi_masuk ke jenis_pohon melalui petani_pohon
         $builderMasuk->join('petani_pohon', 'petani_pohon.id = kopi_masuk.petani_pohon_id', 'left');
         $builderMasuk->join('jenis_pohon', 'jenis_pohon.id = petani_pohon.jenis_pohon_id', 'left');
 
@@ -205,16 +265,13 @@ class KomersialRekapKopi extends BaseController
         if (!empty($filter['end_date'])) {
             $builderMasuk->where('kopi_masuk.tanggal <=', $filter['end_date']);
         }
-        if (!empty($filter['petani'])) {
-            // Jika ada filter petani, kita perlu join ke tabel petani juga
-            $builderMasuk->join('petani', 'petani.user_id = kopi_masuk.petani_user_id', 'left');
-            $builderMasuk->where('kopi_masuk.petani_user_id', $filter['petani']);
-        }
+
 
         $builderMasuk->where('jenis_pohon.nama_jenis IS NOT NULL');
         $builderMasuk->groupBy('jenis_pohon.nama_jenis');
         $dataMasuk = $builderMasuk->get()->getResultArray();
         $totalMasuk = array_column($dataMasuk, 'total_masuk', 'nama_jenis');
+        $avgHargaMasuk = array_column($dataMasuk, 'avg_harga_masuk', 'nama_jenis'); // [BARU]
 
         // --- 2. Ambil Total Kopi Keluar per Jenis Kopi ---
         $builderKeluar = $db->table('kopi_keluar');
@@ -228,37 +285,53 @@ class KomersialRekapKopi extends BaseController
         if (!empty($filter['end_date'])) {
             $builderKeluar->where('kopi_keluar.tanggal <=', $filter['end_date']);
         }
-        // Filter petani tidak relevan untuk kopi keluar dalam konteks ini, jadi kita abaikan
 
         $builderKeluar->where('jenis_pohon.nama_jenis IS NOT NULL');
         $builderKeluar->groupBy('jenis_pohon.nama_jenis');
         $dataKeluar = $builderKeluar->get()->getResultArray();
         $totalKeluar = array_column($dataKeluar, 'total_keluar', 'nama_jenis');
 
-        // --- 3. Kalkulasi Stok Akhir ---
-        $stokAkhir = [];
-        $jenisKopiList = $this->jenisPohonModel->select('nama_jenis')->findAll();
+        // --- 3. Ambil Harga Jual Terbaru per Jenis Kopi ---
+        // Gunakan model HargaJenisKopiModel
+        $hargaJualModel = new \App\Models\HargaJenisKopiModel();
+        $jenisKopiList = $this->jenisPohonModel->select('id, nama_jenis')->findAll();
+        $hargaJualPerJenis = [];
 
         foreach ($jenisKopiList as $jenis) {
-            $namaJenis = $jenis['nama_jenis'];
-            $masuk = $totalMasuk[$namaJenis] ?? 0;
-            $keluar = $totalKeluar[$namaJenis] ?? 0;
+            // Ambil harga jual terbaru yang berlaku *pada atau sebelum* tanggal akhir filter
+            $hargaTerbaru = $hargaJualModel->getLatestPrice($jenis['id'], $filter['end_date'] ?: date('Y-m-d'));
+            $hargaJualPerJenis[$jenis['nama_jenis']] = $hargaTerbaru ? $hargaTerbaru['harga_jual_per_kg'] : 0;
+        }
 
-            // Stok akhir tidak boleh negatif
+        // --- 4. Kalkulasi Stok Akhir ---
+        // --- 4. Kalkulasi Stok Akhir ---
+        $stokAkhir = [];
+        foreach ($jenisKopiList as $jenis) {
+            $namaJenis = $jenis['nama_jenis'];
+            $masuk = (float)($totalMasuk[$namaJenis] ?? 0);
+            $keluar = (float)($totalKeluar[$namaJenis] ?? 0);
+            $hargaJual = (float)($hargaJualPerJenis[$namaJenis] ?? 0);
+
             $hasilStok = max(0, $masuk - $keluar);
+            $nilaiStok = $hasilStok * $hargaJual; // ✅ nilai stok per jenis
 
             $stokAkhir[] = [
-                'jenis_kopi' => $namaJenis,
-                'stok_akhir' => $hasilStok
+                'jenis_kopi'        => $namaJenis,
+                'stok_akhir'        => $hasilStok,
+                'harga_jual_per_kg' => $hargaJual,
+                'nilai_stok'        => $nilaiStok, // ✅ TAMBAHKAN INI
             ];
         }
 
-        // Urutkan array berdasarkan nama jenis kopi
-        sort($stokAkhir);
 
-        // --- 4. Logika Paginasi ---
+        // Urutkan array berdasarkan nama jenis kopi
+        usort($stokAkhir, function ($a, $b) {
+            return strcasecmp($a['jenis_kopi'], $b['jenis_kopi']);
+        });
+
+        // --- 5. Logika Paginasi ---
         if (!$paginate) {
-            return $stokAkhir; // Kembalikan semua data untuk proses export
+            return $stokAkhir;
         }
 
         $total = count($stokAkhir);

@@ -152,6 +152,9 @@ $routes->group('jenispohon', function ($routes) {
     $routes->post('update/(:num)', 'JenisPohon::update/$1'); // Rute untuk update
     $routes->post('delete/(:num)', 'JenisPohon::delete/$1'); // Disarankan POST untuk delete
 });
+$routes->post('harga-jenis-kopi/store', 'JenisPohon::storeHarga', ['filter' => 'auth']);
+$routes->post('harga-jenis-kopi/update/(:num)', 'JenisPohon::updateHarga/$1', ['filter' => 'auth']); // Gunakan POST untuk update jika data dikirim via form
+$routes->post('harga-jenis-kopi/delete/(:num)', 'JenisPohon::deleteHarga/$1', ['filter' => 'auth']); // Gunakan POST untuk delete jika data dikirim via form
 
 
 // kopi masuk
@@ -162,6 +165,12 @@ $routes->post('kopi-masuk/delete/(:num)', 'Kopimasuk::delete/$1');
 // app/Config/Routes.php
 $routes->get('get-jenis-pohon/(:any)', 'Kopimasuk::getJenisPohon/$1');
 $routes->get('stok-kopi', 'Kopimasuk::stok');
+$routes->post('api-harga/getHargaBeliterbaru', 'ApiHargaController::getHargaBeliterbaru');
+
+//pendapatannkopi
+$routes->get('pendapatan-kopi', 'PendapatanKopi::index');
+//biayakopi
+$routes->get('biaya-kopi', 'BiayaKopi::index');
 
 
 //kopikeluar
@@ -172,6 +181,8 @@ $routes->get('kopikeluar/edit/(:num)', 'Kopikeluar::edit/$1'); // Form edit
 $routes->post('kopikeluar/update/(:num)', 'Kopikeluar::update/$1'); // Update data
 $routes->post('kopikeluar/delete/(:num)', 'Kopikeluar::delete/$1'); // Hapus data
 $routes->get('kopikeluar/getJenisKopi/(:num)', 'Kopikeluar::getJenisKopi/$1');
+$routes->post('api-harga/get-harga-jual', 'ApiHargaController::getHargaJual');
+$routes->post('kopikeluar/getJenisPohonByPetani', 'Kopikeluar::getJenisPohonByPetani');
 
 //ADMIN UMKM
 $routes->get('umkm', 'Umkm::index');
@@ -213,6 +224,13 @@ $routes->get('admin-komersial/laporan/petani', 'KomersialRekapPetani::index');
 $routes->get('admin-komersial/laporan-petani/export/excel', 'ExportLaporanKomersial::excelPetani');
 $routes->get('admin-komersial/laporan-petani/export/pdf', 'ExportLaporanKomersial::pdfPetani');
 
+// export pendapatan
+$routes->get('admin-komersial/kopi/pendapatan/export/excel', 'ExportPendapatan::excel');
+$routes->get('admin-komersial/kopi/pendapatan/export/pdf', 'ExportPendapatan::pdf');
+// Export Biaya Pembelian
+$routes->get('admin-komersial/kopi/biaya/export/excel', 'ExportBiaya::excel');
+$routes->get('admin-komersial/kopi/biaya/export/pdf', 'ExportBiaya::pdf');
+
 // Rute untuk Laporan Rekap Aset
 $routes->get('admin-komersial/laporan/aset', 'KomersialRekapAset::index');
 $routes->get('admin-komersial/export/aset/excel', 'ExportLaporanKomersial::excelAset');
@@ -221,6 +239,7 @@ $routes->get('admin-komersial/export/aset/pdf', 'ExportLaporanKomersial::pdfAset
 // Ekspor Kopi Masuk
 $routes->get('admin-komersial/export/masuk/excel', 'ExportLaporanKomersial::excelMasuk');
 $routes->get('admin-komersial/export/masuk/pdf', 'ExportLaporanKomersial::exportRekapMasukPdf');
+
 
 // Ekspor Kopi Keluar
 $routes->get('admin-komersial/export/keluar/excel', 'ExportLaporanKomersial::exportRekapKeluarExcel');

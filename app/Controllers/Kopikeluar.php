@@ -6,6 +6,7 @@ use App\Models\KopiKeluarModel;
 use App\Models\KopiMasukModel;
 use App\Models\StokKopiModel;
 use App\Models\PermissionRequestModel;
+use App\Models\HargaJenisKopiModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class Kopikeluar extends BaseController
@@ -14,6 +15,7 @@ class Kopikeluar extends BaseController
     protected $kopiMasukModel;
     protected $stokKopiModel;
     protected $permissionModel;
+    protected $hargaJenisKopiModel;
     protected $db;
 
     public function __construct()
@@ -22,6 +24,7 @@ class Kopikeluar extends BaseController
         $this->kopiMasukModel  = new KopiMasukModel();
         $this->stokKopiModel   = new StokKopiModel();
         $this->permissionModel = new PermissionRequestModel();
+        $this->hargaJenisKopiModel = new HargaJenisKopiModel();
         $this->db              = \Config\Database::connect();
         helper(['date']);
     }
@@ -49,9 +52,9 @@ class Kopikeluar extends BaseController
 
             if (!$permissionData = cache($cacheKey)) {
                 // Jika cache kosong, ambil semua data izin untuk 'kopi_keluar'
-                $permissionData = $this->permissionModel // Pastikan model ini di-load
+                $permissionData = $this->permissionModel
                     ->where('requester_id', $requesterId)
-                    ->where('target_type', 'kopi_keluar') // <-- Target baru
+                    ->where('target_type', 'kopi_keluar')
                     ->whereIn('status', ['approved', 'pending'])
                     ->findAll();
 
@@ -86,15 +89,24 @@ class Kopikeluar extends BaseController
         $totalKeluar = $this->kopiKeluarModel->selectSum('jumlah')->first()['jumlah'] ?? 0;
         $stok = $totalMasuk - $totalKeluar;
 
+        // ✅ TAMBAHAN: Ambil daftar petani untuk dropdown
+        $petaniList = $this->db->table('petani')
+            ->select('user_id, nama')
+            ->orderBy('nama', 'ASC')
+            ->get()
+            ->getResultArray();
+
         $data = [
             'title'       => 'Data Kopi Keluar',
             'kopikeluar'  => $kopikeluar,
             'stokKopi'    => $this->stokKopiModel->getWithJenis(),
+            'petaniList'  => $petaniList, // ✅ TAMBAHAN
             'stok'        => $stok,
             'pager'       => $this->kopiKeluarModel->pager,
             'perPage'     => $perPage,
             'currentPage' => $this->kopiKeluarModel->pager->getCurrentPage('kopikeluar'),
         ];
+
         $data['breadcrumbs'] = [
             [
                 'title' => 'Dashboard',
@@ -107,13 +119,46 @@ class Kopikeluar extends BaseController
                 'icon'  => 'fas fa-seedling'
             ]
         ];
+
         return view('admin_komersial/kopi/kopi-keluar', $data);
+    }
+
+    /**
+     * ✅ METHOD BARU: Ambil jenis pohon berdasarkan petani (untuk AJAX)
+     */
+    public function getJenisPohonByPetani()
+    {
+        if ($this->request->isAJAX()) {
+            $petaniId = $this->request->getPost('petani_id');
+
+            if (empty($petaniId)) {
+                return $this->response->setJSON([]);
+            }
+
+            $data = $this->db->table('stok_kopi')
+                ->select('
+                    stok_kopi.id, 
+                    jenis_pohon.nama_jenis, 
+                    stok_kopi.stok
+                ')
+                ->join('jenis_pohon', 'jenis_pohon.id = stok_kopi.jenis_pohon_id', 'left')
+                ->where('stok_kopi.petani_id', $petaniId)
+                ->where('stok_kopi.stok >', 0) // Hanya tampilkan yang ada stoknya
+                ->orderBy('jenis_pohon.nama_jenis', 'ASC')
+                ->get()
+                ->getResultArray();
+
+            return $this->response->setJSON($data);
+        }
+
+        return $this->response->setStatusCode(403)->setJSON(['error' => 'Forbidden']);
     }
 
     public function store()
     {
         $stokKopiId = $this->request->getPost('stok_kopi_id');
         $jumlahRaw  = $this->request->getPost('jumlah');
+        $tanggal    = $this->request->getPost('tanggal');
 
         // === Validasi stok_kopi_id ===
         if (empty($stokKopiId) || !is_numeric($stokKopiId)) {
@@ -121,15 +166,11 @@ class Kopikeluar extends BaseController
             return redirect()->to(site_url('/kopikeluar'));
         }
 
-        // === Bersihkan dan konversi jumlah ===
-        // Hapus semua karakter kecuali angka, koma, dan titik
+        // === Bersihkan jumlah ===
         $jumlahClean = preg_replace('/[^0-9.,]/', '', $jumlahRaw);
-        // Ganti koma (desimal Indonesia) menjadi titik
         $jumlahClean = str_replace(',', '.', $jumlahClean);
-        // Tangani kasus seperti "1.000.000" → ambil hanya bagian sebelum titik pertama jika lebih dari satu titik
         $parts = explode('.', $jumlahClean);
         if (count($parts) > 2) {
-            // Gabungkan bagian integer, abaikan ribuan
             $integerPart = preg_replace('/[^0-9]/', '', $parts[0]);
             $decimalPart = $parts[1];
             $jumlahClean = $integerPart . '.' . $decimalPart;
@@ -141,9 +182,9 @@ class Kopikeluar extends BaseController
             return redirect()->to(site_url('/kopikeluar'));
         }
 
-        // === Ambil stok terkini langsung dari database (bukan dari model cache) ===
+        // === Ambil jenis_pohon_id dari stok_kopi ===
         $stokRow = $this->db->table('stok_kopi')
-            ->select('stok')
+            ->select('jenis_pohon_id, petani_id')
             ->where('id', (int)$stokKopiId)
             ->get()
             ->getRow();
@@ -153,26 +194,51 @@ class Kopikeluar extends BaseController
             return redirect()->to(site_url('/kopikeluar'));
         }
 
-        $stokTerkini = (float) $stokRow->stok;
+        $jenisPohonId = $stokRow->jenis_pohon_id;
 
+        // === Ambil harga jual terbaru berdasarkan tanggal transaksi ===
+        $hargaData = $this->hargaJenisKopiModel->getLatestPrice($jenisPohonId, $tanggal);
+
+        if (!$hargaData) {
+            session()->setFlashdata('error', 'Tidak ada harga jual yang berlaku untuk jenis kopi ini pada tanggal ' . date('d-m-Y', strtotime($tanggal)) . '. Harap atur harga terlebih dahulu.');
+            return redirect()->to(site_url('/kopikeluar'));
+        }
+
+        $hargaSaatTransaksi = (float) $hargaData['harga_jual_per_kg'];
+        $totalHargaJual     = $jumlah * $hargaSaatTransaksi;
+
+        // === Validasi stok ===
+        $stokTerkiniRow = $this->db->table('stok_kopi')
+            ->select('stok')
+            ->where('id', (int)$stokKopiId)
+            ->get()
+            ->getRow();
+
+        if (!$stokTerkiniRow) {
+            session()->setFlashdata('error', 'Data stok tidak ditemukan.');
+            return redirect()->to(site_url('/kopikeluar'));
+        }
+
+        $stokTerkini = (float) $stokTerkiniRow->stok;
         if ($jumlah > $stokTerkini) {
             session()->setFlashdata('error', 'Gagal! Jumlah keluar melebihi stok yang tersedia (' . number_format($stokTerkini, 2, ',', '.') . ' Kg).');
             return redirect()->to(site_url('/kopikeluar'));
         }
 
-        // === Simpan data dengan transaksi ===
+        // === Simpan dengan transaksi ===
         $this->db->transStart();
         try {
-            // Simpan ke kopi_keluar
             $this->kopiKeluarModel->save([
-                'stok_kopi_id' => (int)$stokKopiId,
-                'tujuan'       => $this->request->getPost('tujuan'),
-                'jumlah'       => $jumlah,
-                'tanggal'      => $this->request->getPost('tanggal'),
-                'keterangan'   => $this->request->getPost('keterangan'),
+                'stok_kopi_id'         => (int)$stokKopiId,
+                'tujuan'               => $this->request->getPost('tujuan'),
+                'jumlah'               => $jumlah,
+                'tanggal'              => $tanggal,
+                'keterangan'           => $this->request->getPost('keterangan'),
+                'harga_saat_transaksi' => $hargaSaatTransaksi,
+                'total_harga_jual'     => $totalHargaJual,
             ]);
 
-            // Update stok dengan nilai baru (lebih aman daripada raw SQL)
+            // Update stok
             $newStok = $stokTerkini - $jumlah;
             $this->db->table('stok_kopi')
                 ->where('id', (int)$stokKopiId)
@@ -183,7 +249,7 @@ class Kopikeluar extends BaseController
                 session()->setFlashdata('error', 'Terjadi kesalahan pada database saat menyimpan data.');
             } else {
                 $this->db->transCommit();
-                session()->setFlashdata('success', 'Data kopi keluar berhasil ditambahkan dan stok telah diperbarui.');
+                session()->setFlashdata('success', 'Data kopi keluar berhasil ditambahkan dengan harga jual otomatis.');
             }
         } catch (\Exception $e) {
             $this->db->transRollback();
@@ -193,10 +259,19 @@ class Kopikeluar extends BaseController
 
         return redirect()->to(site_url('/kopikeluar'));
     }
+
     public function edit($id)
     {
         if ($this->request->isAJAX()) {
-            $data = $this->kopiKeluarModel->find($id);
+            $data = $this->kopiKeluarModel
+                ->select('
+                    kopi_keluar.*, 
+                    stok_kopi.petani_id
+                ')
+                ->join('stok_kopi', 'stok_kopi.id = kopi_keluar.stok_kopi_id', 'left')
+                ->where('kopi_keluar.id', $id)
+                ->first();
+
             if ($data) {
                 return $this->response->setJSON($data);
             }
@@ -211,34 +286,80 @@ class Kopikeluar extends BaseController
             session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengedit data ini.');
             return redirect()->to('/kopikeluar');
         }
+
         $this->db->transStart();
         try {
+            // Ambil data lama
             $dataLama = $this->kopiKeluarModel->find($id);
             if (!$dataLama) {
                 throw new \Exception('Data yang akan diupdate tidak ditemukan.');
             }
-            $jumlahLama = (float) $dataLama['jumlah'];
-            $stokKopiIdLama = $dataLama['stok_kopi_id'];
 
-            $dataBaru = [
-                'stok_kopi_id' => $this->request->getPost('stok_kopi_id'),
-                'tujuan'       => $this->request->getPost('tujuan'),
-                'jumlah'       => (float) $this->request->getPost('jumlah'),
-                'tanggal'      => $this->request->getPost('tanggal'),
-                'keterangan'   => $this->request->getPost('keterangan'),
-            ];
-            $jumlahBaru = $dataBaru['jumlah'];
-            $stokKopiIdBaru = $dataBaru['stok_kopi_id'];
+            $jumlahLama       = (float) $dataLama['jumlah'];
+            $stokKopiIdLama   = $dataLama['stok_kopi_id'];
 
-            $this->stokKopiModel->set('stok', "stok + $jumlahLama", false)->where('id', $stokKopiIdLama)->update();
+            // Ambil input baru
+            $stokKopiIdBaru = (int) $this->request->getPost('stok_kopi_id');
+            $jumlahBaru     = (float) $this->request->getPost('jumlah');
+            $tanggalBaru    = $this->request->getPost('tanggal');
 
-            $stokTerkini = $this->stokKopiModel->find($stokKopiIdBaru)['stok'] ?? 0;
-            if ($jumlahBaru > $stokTerkini) {
-                throw new \Exception('Gagal! Jumlah keluar melebihi stok yang tersedia (' . number_format($stokTerkini, 2, ',', '.') . ' Kg).');
+            // === Validasi jumlah ===
+            if ($jumlahBaru <= 0) {
+                throw new \Exception('Jumlah harus lebih dari 0.');
             }
-            $this->stokKopiModel->set('stok', "stok - $jumlahBaru", false)->where('id', $stokKopiIdBaru)->update();
 
-            $this->kopiKeluarModel->update($id, $dataBaru);
+            // === Ambil jenis_pohon_id dari stok_kopi_id baru ===
+            $stokRowBaru = $this->db->table('stok_kopi')
+                ->select('jenis_pohon_id')
+                ->where('id', $stokKopiIdBaru)
+                ->get()
+                ->getRow();
+
+            if (!$stokRowBaru) {
+                throw new \Exception('Jenis pohon tidak ditemukan untuk stok kopi yang dipilih.');
+            }
+
+            $jenisPohonIdBaru = $stokRowBaru->jenis_pohon_id;
+
+            // === Ambil harga jual terbaru berdasarkan tanggal transaksi BARU ===
+            $hargaData = $this->hargaJenisKopiModel->getLatestPrice($jenisPohonIdBaru, $tanggalBaru);
+
+            if (!$hargaData) {
+                throw new \Exception('Tidak ada harga jual yang berlaku untuk jenis kopi ini pada tanggal ' . date('d-m-Y', strtotime($tanggalBaru)) . '. Harap atur harga terlebih dahulu.');
+            }
+
+            $hargaSaatTransaksiBaru = (float) $hargaData['harga_jual_per_kg'];
+            $totalHargaJualBaru     = $jumlahBaru * $hargaSaatTransaksiBaru;
+
+            // === Kembalikan stok lama (karena data lama akan diubah) ===
+            $this->stokKopiModel->set('stok', "stok + $jumlahLama", false)
+                ->where('id', $stokKopiIdLama)
+                ->update();
+
+            // === Cek stok baru setelah pengembalian stok lama ===
+            $stokTerkiniBaru = $this->stokKopiModel->find($stokKopiIdBaru)['stok'] ?? 0;
+
+            if ($jumlahBaru > $stokTerkiniBaru) {
+                throw new \Exception('Gagal! Jumlah keluar melebihi stok yang tersedia (' . number_format($stokTerkiniBaru, 2, ',', '.') . ' Kg).');
+            }
+
+            // === Kurangi stok baru ===
+            $this->stokKopiModel->set('stok', "stok - $jumlahBaru", false)
+                ->where('id', $stokKopiIdBaru)
+                ->update();
+
+            // === Simpan data kopi keluar yang diperbarui ===
+            $dataUpdate = [
+                'stok_kopi_id'         => $stokKopiIdBaru,
+                'tujuan'               => $this->request->getPost('tujuan'),
+                'jumlah'               => $jumlahBaru,
+                'tanggal'              => $tanggalBaru,
+                'keterangan'           => $this->request->getPost('keterangan'),
+                'harga_saat_transaksi' => $hargaSaatTransaksiBaru,
+                'total_harga_jual'     => $totalHargaJualBaru,
+            ];
+
+            $this->kopiKeluarModel->update($id, $dataUpdate);
 
             if ($this->db->transStatus() === false) {
                 $this->db->transRollback();
@@ -251,6 +372,7 @@ class Kopikeluar extends BaseController
             $this->db->transRollback();
             session()->setFlashdata('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
+
         return redirect()->to('/kopikeluar');
     }
 
@@ -260,6 +382,7 @@ class Kopikeluar extends BaseController
             session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk menghapus data ini.');
             return redirect()->to('/kopikeluar');
         }
+
         $this->db->transStart();
         try {
             $dataKeluar = $this->kopiKeluarModel->find($id);
@@ -268,6 +391,7 @@ class Kopikeluar extends BaseController
                 $stokKopiId = $dataKeluar['stok_kopi_id'];
                 $this->stokKopiModel->set('stok', "stok + $jumlah", false)->where('id', $stokKopiId)->update();
                 $this->kopiKeluarModel->delete($id);
+
                 if ($this->db->transStatus() === false) {
                     $this->db->transRollback();
                     session()->setFlashdata('error', 'Gagal menghapus data karena kesalahan database.');
@@ -282,8 +406,10 @@ class Kopikeluar extends BaseController
             $this->db->transRollback();
             session()->setFlashdata('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
+
         return redirect()->to('/kopikeluar');
     }
+
     public function requestAccess()
     {
         if ($this->request->isAJAX()) {
@@ -325,7 +451,9 @@ class Kopikeluar extends BaseController
         return redirect()->back();
     }
 
-    // 8. [FUNGSI BARU] Helper untuk mengecek izin aktif
+    /**
+     * Helper untuk mengecek izin aktif
+     */
     private function hasActivePermission($kopiKeluarId, $action)
     {
         $requesterId = session()->get('user_id');
@@ -344,6 +472,10 @@ class Kopikeluar extends BaseController
 
         return $permission ? true : false;
     }
+
+    /**
+     * Helper untuk mendapatkan status permission
+     */
     private function getPermissionStatus($kopiKeluarId, $action)
     {
         $requesterId = session()->get('user_id');
