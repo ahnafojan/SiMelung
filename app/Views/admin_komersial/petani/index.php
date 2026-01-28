@@ -29,12 +29,10 @@
                     <div class="modal-body">
                         <?php
                         $fields = [
+                            ['nik', 'text', 'NIK', 'Masukkan NIK (16 digit)'],
                             ['nama', 'text', 'Nama Petani', 'Masukkan nama petani'],
                             ['alamat', 'textarea', 'Alamat', 'Masukkan alamat'],
                             ['no_hp', 'text', 'No HP', 'Masukkan nomor HP'],
-                            ['usia', 'number', 'Usia', 'Masukkan usia petani'],
-                            ['tempat_lahir', 'text', 'Tempat Lahir', 'Masukkan tempat lahir'],
-                            ['tanggal_lahir', 'date', 'Tanggal Lahir', ''],
                         ];
                         foreach ($fields as $f) :
                             if ($f[1] === 'textarea') {
@@ -73,11 +71,10 @@
                     <tr>
                         <th>#</th>
                         <th>User ID</th>
+                        <th>NIK</th>
                         <th>Nama</th>
                         <th>Alamat</th>
                         <th>No HP</th>
-                        <th>Usia</th>
-                        <th>TTL</th>
                         <th>Foto</th>
                         <th>Aksi</th>
                     </tr>
@@ -89,11 +86,10 @@
                             <tr class="align-middle">
                                 <td><?= $nomor++ ?></td>
                                 <td><?= esc($row['user_id']) ?></td>
+                                <td><?= esc($row['nik']) ?></td>
                                 <td><?= esc($row['nama']) ?></td>
                                 <td><?= esc($row['alamat']) ?></td>
                                 <td><?= esc($row['no_hp']) ?></td>
-                                <td><?= esc($row['usia']) ?> Tahun</td>
-                                <td><?= esc($row['tempat_lahir'] . ', ' . $row['tanggal_lahir']) ?></td>
                                 <td>
                                     <?php if (!empty($row['foto'])): ?>
                                         <img src="<?= base_url('uploads/foto_petani/' . esc($row['foto'])) ?>" alt="Foto Petani" class="rounded" style="width:60px; height:60px; object-fit:cover;">
@@ -104,7 +100,15 @@
                                 <td>
                                     <div class="btn-group">
                                         <?php if ($row['edit_status'] == 'approved') : ?>
-                                            <button class="btn btn-warning btn-sm btn-edit-petani" data-toggle="modal" data-target="#modalEditPetani" data-id="<?= esc($row['id']) ?>" data-user_id="<?= esc($row['user_id']) ?>" data-nama="<?= esc($row['nama']) ?>" data-alamat="<?= esc($row['alamat']) ?>" data-no_hp="<?= esc($row['no_hp']) ?>" data-usia="<?= esc($row['usia']) ?>" data-tempat_lahir="<?= esc($row['tempat_lahir']) ?>" data-tanggal_lahir="<?= esc($row['tanggal_lahir']) ?>" data-foto="<?= esc($row['foto']) ?>" title="Edit">
+                                            <button class="btn btn-warning btn-sm btn-edit-petani" data-toggle="modal" data-target="#modalEditPetani"
+                                                data-id="<?= esc($row['id']) ?>"
+                                                data-user_id="<?= esc($row['user_id']) ?>"
+                                                data-nik="<?= esc($row['nik']) ?>"
+                                                data-nama="<?= esc($row['nama']) ?>"
+                                                data-alamat="<?= esc($row['alamat']) ?>"
+                                                data-no_hp="<?= esc($row['no_hp']) ?>"
+                                                data-foto="<?= esc($row['foto']) ?>"
+                                                title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                         <?php elseif ($row['edit_status'] == 'pending') : ?>
@@ -140,7 +144,7 @@
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="9" class="text-center">Tidak ada data petani</td>
+                            <td colspan="8" class="text-center">Tidak ada data petani</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -194,17 +198,24 @@
                             <?php endif; ?>
                             <div>
                                 <h6 class="mb-0"><?= esc($row['nama']) ?></h6>
-                                <small class="text-muted">User ID: <?= esc($row['user_id']) ?></small>
+                                <small class="text-muted">User ID: <?= esc($row['user_id']) ?> | NIK: <?= esc($row['nik']) ?></small>
+
                             </div>
                         </div>
                         <p class="mb-1"><strong>Alamat:</strong> <?= esc($row['alamat']) ?></p>
                         <p class="mb-1"><strong>No HP:</strong> <?= esc($row['no_hp']) ?></p>
-                        <p class="mb-1"><strong>Usia:</strong> <?= esc($row['usia']) ?></p>
-                        <p class="mb-1"><strong>TTL:</strong> <?= esc($row['tempat_lahir'] . ', ' . $row['tanggal_lahir']) ?></p>
 
                         <div class="mt-2">
                             <?php if ($row['edit_status'] == 'approved') : ?>
-                                <button class="btn btn-warning btn-sm btn-edit-petani" data-toggle="modal" data-target="#modalEditPetani" data-id="<?= esc($row['id']) ?>" data-user_id="<?= esc($row['user_id']) ?>" data-nama="<?= esc($row['nama']) ?>" data-alamat="<?= esc($row['alamat']) ?>" data-no_hp="<?= esc($row['no_hp']) ?>" data-usia="<?= esc($row['usia']) ?>" data-tempat_lahir="<?= esc($row['tempat_lahir']) ?>" data-tanggal_lahir="<?= esc($row['tanggal_lahir']) ?>" data-foto="<?= esc($row['foto']) ?>" title="Edit">
+                                <button class="btn btn-warning btn-sm btn-edit-petani" data-toggle="modal" data-target="#modalEditPetani"
+                                    data-id="<?= esc($row['id']) ?>"
+                                    data-user_id="<?= esc($row['user_id']) ?>"
+                                    data-nik="<?= esc($row['nik']) ?>"
+                                    data-nama="<?= esc($row['nama']) ?>"
+                                    data-alamat="<?= esc($row['alamat']) ?>"
+                                    data-no_hp="<?= esc($row['no_hp']) ?>"
+                                    data-foto="<?= esc($row['foto']) ?>"
+                                    title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
                             <?php elseif ($row['edit_status'] == 'pending') : ?>
@@ -271,6 +282,10 @@
                             <input type="text" id="editUserId" name="user_id" class="form-control" readonly>
                         </div>
                         <div class="form-group">
+                            <label>NIK</label>
+                            <input type="text" id="editNik" name="nik" class="form-control" maxlength="16" required>
+                        </div>
+                        <div class="form-group">
                             <label>Nama Petani</label>
                             <input type="text" id="editNama" name="nama" class="form-control" required>
                         </div>
@@ -281,18 +296,6 @@
                         <div class="form-group">
                             <label>No HP</label>
                             <input type="text" id="editNoHp" name="no_hp" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>Usia</label>
-                            <input type="number" id="editUsia" name="usia" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>Tempat Lahir</label>
-                            <input type="text" id="editTempatLahir" name="tempat_lahir" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>Tanggal Lahir</label>
-                            <input type="date" id="editTanggalLahir" name="tanggal_lahir" class="form-control">
                         </div>
                         <div class="form-group">
                             <label>Foto Petani</label><br>
@@ -333,6 +336,7 @@
         </div>
     </div>
 </div>
+
 
 <style>
     /* CSS UNTUK PAGINATION KUSTOM */
@@ -437,12 +441,10 @@
         $(document).on('click', '.btn-edit-petani', function() {
             $('#editPetaniId').val($(this).data('id'));
             $('#editUserId').val($(this).data('user_id'));
+            $('#editNik').val($(this).data('nik'));
             $('#editNama').val($(this).data('nama'));
             $('#editAlamat').val($(this).data('alamat'));
             $('#editNoHp').val($(this).data('no_hp'));
-            $('#editUsia').val($(this).data('usia'));
-            $('#editTempatLahir').val($(this).data('tempat_lahir'));
-            $('#editTanggalLahir').val($(this).data('tanggal_lahir'));
 
             let foto = $(this).data('foto');
             if (foto) {
@@ -562,5 +564,10 @@
         });
 
     });
+    // Batasi input NIK hanya angka & max 16 digit (tambah & edit)
+    $(document).on('input', 'input[name="nik"], #editNik', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 16);
+    });
 </script>
+
 <?= $this->endSection() ?>

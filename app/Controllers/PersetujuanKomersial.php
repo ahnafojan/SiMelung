@@ -53,10 +53,16 @@ class PersetujuanKomersial extends BaseController
                 'wisata.nama_wisata as aset_pariwisata_lokasi',
                 'ow_target.nama_wisata as objekwisata_target_name',
                 // ▼▼▼ KOLOM BARU UNTUK HARGA JENIS KOPI ▼▼▼
+                // Harga (ambil dari hjk kalau target_id = hjk.id)
                 'hjk.harga_beli_per_kg as harga_beli',
                 'hjk.harga_jual_per_kg as harga_jual',
                 'hjk.tanggal_berlaku as harga_tanggal_berlaku',
-                'jp_harga.nama_jenis as harga_jenis_nama'
+
+                // Nama jenis kopi: prioritas dari hjk -> fallback dari jenis_pohon langsung
+                // Nama jenis kopi: prioritas dari hjk -> fallback dari jenis_pohon langsung -> fallback untuk request harga baru
+                'COALESCE(jp_harga.nama_jenis, jp_harga_fallback.nama_jenis, jp_new_price.nama_jenis) as harga_jenis_nama',
+
+
                 // ▲▲▲ AKHIR KOLOM BARU UNTUK HARGA JENIS KOPI ▲▲▲
             ])
             // Join ke tabel users untuk mendapatkan nama pemohon
@@ -73,6 +79,7 @@ class PersetujuanKomersial extends BaseController
             ->join('stok_kopi as sk', 'sk.id = k_keluar.stok_kopi_id', 'left')
             ->join('jenis_pohon as jp_keluar', 'jp_keluar.id = sk.jenis_pohon_id', 'left')
             ->join('jenis_pohon as jp_master', 'jp_master.id = permission_requests.target_id AND permission_requests.target_type = "jenis_pohon"', 'left')
+            ->join('jenis_pohon as jp_new_price', 'jp_new_price.id = permission_requests.target_id AND permission_requests.target_type = "jenis_pohon_new_price"', 'left')
             ->join('master_aset as aset', 'aset.id_aset = permission_requests.target_id AND permission_requests.target_type = "aset"', 'left')
 
             // ▼▼▼ JOIN BARU UNTUK UMKM ▼▼▼
@@ -87,6 +94,12 @@ class PersetujuanKomersial extends BaseController
             // ▼▼▼ JOIN BARU UNTUK HARGA JENIS KOPI ▼▼▼
             ->join('harga_jenis_kopi as hjk', 'hjk.id = permission_requests.target_id AND permission_requests.target_type = "harga_jenis_kopi"', 'left')
             ->join('jenis_pohon as jp_harga', 'jp_harga.id = hjk.jenis_pohon_id', 'left')
+            ->join(
+                'jenis_pohon as jp_harga_fallback',
+                'jp_harga_fallback.id = permission_requests.target_id AND permission_requests.target_type = "harga_jenis_kopi"',
+                'left'
+            )
+
             // ▲▲▲ AKHIR JOIN BARU UNTUK HARGA JENIS KOPI ▲▲▲
 
             ->where('permission_requests.status', 'pending')

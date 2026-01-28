@@ -148,34 +148,65 @@ class Petani extends Controller
     public function create()
     {
         try {
-            $validation = \Config\Services::validation();
-            $validation->setRules([
+            $rules = [
+                'nik'    => 'required|numeric|exact_length[16]|is_unique[petani.nik]',
                 'nama'   => 'required|min_length[3]',
                 'alamat' => 'required',
                 'no_hp'  => 'required|numeric',
-                'foto'   => 'permit_empty|uploaded[foto]|is_image[foto]|max_size[foto,2048]',
-            ]);
+                // foto opsional; kalau diupload harus image max 2MB
+                'foto'   => 'permit_empty|is_image[foto]|max_size[foto,2048]',
+            ];
 
-            if (!$this->validate($validation->getRules())) {
-                return redirect()->to(site_url('petani'))->with('errors', $this->validator->getErrors());
+            $messages = [
+                'nik' => [
+                    'required'     => 'NIK wajib diisi.',
+                    'numeric'      => 'NIK harus angka.',
+                    'exact_length' => 'NIK harus 16 digit.',
+                    'is_unique'    => 'NIK sudah terdaftar. Silakan pakai NIK lain.',
+                ],
+                'nama' => [
+                    'required'     => 'Nama wajib diisi.',
+                    'min_length'   => 'Nama minimal 3 karakter.',
+                ],
+                'alamat' => [
+                    'required' => 'Alamat wajib diisi.',
+                ],
+                'no_hp' => [
+                    'required' => 'No HP wajib diisi.',
+                    'numeric'  => 'No HP harus angka.',
+                ],
+                'foto' => [
+                    'is_image'  => 'File foto harus berupa gambar.',
+                    'max_size'  => 'Ukuran foto maksimal 2MB.',
+                ],
+            ];
+
+            if (!$this->validate($rules, $messages)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('errors', $this->validator->getErrors())
+                    ->with('openModal', 'tambah');
             }
 
+            // Generate user_id seperti sebelumnya
             $lastPetani = $this->petaniModel->orderBy('id', 'DESC')->first();
             $newUserId = $lastPetani
                 ? 'P' . str_pad(((int) substr($lastPetani['user_id'], 1)) + 1, 3, '0', STR_PAD_LEFT)
                 : 'P001';
 
+            // Upload foto (opsional)
             $fotoName = null;
             $fotoFile = $this->request->getFile('foto');
-            if ($fotoFile && $fotoFile->isValid()) {
+
+            if ($fotoFile && $fotoFile->isValid() && !$fotoFile->hasMoved()) {
                 $fotoName = $fotoFile->getRandomName();
+
                 if (ENVIRONMENT === 'development') {
-                    // Path untuk localhost (XAMPP) -> public/uploads/foto_petani
                     $uploadPath = FCPATH . 'uploads/foto_petani';
                 } else {
-                    // Path untuk server hosting -> public_html/uploads/foto_petani
                     $uploadPath = ROOTPATH . '../public_html/uploads/foto_petani';
                 }
+
                 $fotoFile->move($uploadPath, $fotoName);
 
                 $imagePath = $uploadPath . '/' . $fotoName;
@@ -186,15 +217,14 @@ class Petani extends Controller
             }
 
             $this->petaniModel->save([
-                'user_id'       => $newUserId,
-                'nama'          => $this->request->getPost('nama'),
-                'alamat'        => $this->request->getPost('alamat'),
-                'no_hp'         => $this->request->getPost('no_hp'),
-                'usia'          => $this->request->getPost('usia'),
-                'tempat_lahir'  => $this->request->getPost('tempat_lahir'),
-                'tanggal_lahir' => $this->request->getPost('tanggal_lahir'),
-                'foto'          => $fotoName
+                'user_id' => $newUserId,
+                'nik'     => $this->request->getPost('nik'),
+                'nama'    => $this->request->getPost('nama'),
+                'alamat'  => $this->request->getPost('alamat'),
+                'no_hp'   => $this->request->getPost('no_hp'),
+                'foto'    => $fotoName,
             ]);
+
             session()->setFlashdata('success', 'Data petani berhasil ditambahkan');
         } catch (\Exception $e) {
             session()->setFlashdata('error', 'Terjadi kesalahan saat menambah data: ' . $e->getMessage());
@@ -203,11 +233,12 @@ class Petani extends Controller
         return redirect()->to('/petani');
     }
 
+
     public function postUpdate()
     {
         $id = $this->request->getPost('id');
 
-        // [DIUBAH] Menggunakan getPermissionStatus
+        // Cek izin edit
         if ($this->getPermissionStatus($id, 'edit') !== 'approved') {
             session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengedit data ini.');
             return redirect()->to('/petani');
@@ -219,38 +250,63 @@ class Petani extends Controller
             return redirect()->to('/petani');
         }
 
-        $validation = \Config\Services::validation();
-        $validation->setRules([
+        $rules = [
+            'nik'    => 'required|numeric|exact_length[16]|is_unique[petani.nik,id,' . $id . ']',
             'nama'   => 'required|min_length[3]',
             'alamat' => 'required',
             'no_hp'  => 'required|numeric',
             'foto'   => 'permit_empty|is_image[foto]|max_size[foto,5000]',
-        ]);
+        ];
 
-        if (!$this->validate($validation->getRules())) {
-            return redirect()->to('/petani')->with('errors', $this->validator->getErrors());
+        $messages = [
+            'nik' => [
+                'required'     => 'NIK wajib diisi.',
+                'numeric'      => 'NIK harus angka.',
+                'exact_length' => 'NIK harus 16 digit.',
+                'is_unique'    => 'NIK sudah dipakai petani lain.',
+            ],
+            'nama' => [
+                'required'   => 'Nama wajib diisi.',
+                'min_length' => 'Nama minimal 3 karakter.',
+            ],
+            'alamat' => [
+                'required' => 'Alamat wajib diisi.',
+            ],
+            'no_hp' => [
+                'required' => 'No HP wajib diisi.',
+                'numeric'  => 'No HP harus angka.',
+            ],
+            'foto' => [
+                'is_image' => 'File foto harus berupa gambar.',
+                'max_size' => 'Ukuran foto maksimal 5MB.',
+            ],
+        ];
+
+        if (!$this->validate($rules, $messages)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('errors', $this->validator->getErrors())
+                ->with('openModal', 'edit')
+                ->with('editId', $id);
         }
 
         $dataUpdate = [
-            'nama'          => $this->request->getPost('nama'),
-            'alamat'        => $this->request->getPost('alamat'),
-            'no_hp'         => $this->request->getPost('no_hp'),
-            'usia'          => $this->request->getPost('usia'),
-            'tempat_lahir'  => $this->request->getPost('tempat_lahir'),
-            'tanggal_lahir' => $this->request->getPost('tanggal_lahir'),
+            'nik'    => $this->request->getPost('nik'),
+            'nama'   => $this->request->getPost('nama'),
+            'alamat' => $this->request->getPost('alamat'),
+            'no_hp'  => $this->request->getPost('no_hp'),
         ];
 
         $fotoFile = $this->request->getFile('foto');
         if ($fotoFile && $fotoFile->isValid() && !$fotoFile->hasMoved()) {
             $fotoName = $fotoFile->getRandomName();
-            // ====================================================================
+
             if (ENVIRONMENT === 'development') {
-                // Path untuk localhost (XAMPP) -> public/uploads/foto_petani
                 $uploadPath = FCPATH . 'uploads/foto_petani';
             } else {
-                // Path untuk server hosting -> public_html/uploads/foto_petani
                 $uploadPath = ROOTPATH . '../public_html/uploads/foto_petani';
             }
+
             $fotoFile->move($uploadPath, $fotoName);
 
             $imagePath = $uploadPath . '/' . $fotoName;
@@ -259,9 +315,11 @@ class Petani extends Controller
                 ->resize(600, 600, true, 'height')
                 ->save($imagePath, 75);
 
+            // Hapus foto lama jika ada
             if (!empty($petaniLama['foto']) && file_exists($uploadPath . '/' . $petaniLama['foto'])) {
                 unlink($uploadPath . '/' . $petaniLama['foto']);
             }
+
             $dataUpdate['foto'] = $fotoName;
         }
 
@@ -269,7 +327,7 @@ class Petani extends Controller
             $this->petaniModel->update($id, $dataUpdate);
             session()->setFlashdata('success', 'Data petani berhasil diperbarui');
         } catch (\Exception $e) {
-            session()->setFlashdata('error', 'Terjadi kesalahan saat memperbarui data');
+            session()->setFlashdata('error', 'Terjadi kesalahan saat memperbarui data: ' . $e->getMessage());
         }
 
         return redirect()->to('/petani');

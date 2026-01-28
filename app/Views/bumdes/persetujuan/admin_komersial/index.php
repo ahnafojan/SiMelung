@@ -366,16 +366,27 @@
                                             <br><small class="text-muted">Kontak: <?= esc($req['umkm_kontak']) ?></small>
                                         <?php endif; ?>
                                         <?= esc(ucfirst(str_replace('_', ' ', $req['target_type']))) ?> ID: #<?= esc($req['target_id']) ?>
-                                    <?php elseif ($req['target_type'] === 'harga_jenis_kopi' && !empty($req['harga_jenis_nama'])): ?>
-                                        Harga Jenis: <strong><?= esc($req['harga_jenis_nama']) ?></strong>
-                                        <br><small class="text-muted">
-                                            Beli: <?= esc(number_format((float)$req['harga_beli'], 0, ',', '.')) ?> /Kg |
-                                            Jual: <?= esc(number_format((float)$req['harga_jual'], 0, ',', '.')) ?> /Kg
-                                        </small>
-                                        <?php if (!empty($req['harga_tanggal_berlaku'])): ?>
-                                            <br><small class="text-muted">Berlaku: <?= esc(date('d M Y', strtotime($req['harga_tanggal_berlaku']))) ?></small>
+                                    <?php elseif ($req['target_type'] === 'jenis_pohon_new_price'): ?>
+                                        Harga Jenis (Baru): <strong><?= esc($req['harga_jenis_nama'] ?? '-') ?></strong>
+                                        <br><small class="text-muted"><em>Belum ada harga (request untuk menambahkan harga baru)</em></small>
+                                        <br><small class="text-muted">Jenis Pohon ID: #<?= esc($req['target_id']) ?></small>
+
+                                    <?php elseif ($req['target_type'] === 'harga_jenis_kopi'): ?>
+                                        Harga Jenis: <strong><?= esc($req['harga_jenis_nama'] ?? '-') ?></strong>
+
+                                        <?php if (!empty($req['harga_beli']) || !empty($req['harga_jual'])): ?>
+                                            <br><small class="text-muted">
+                                                Beli: <?= esc(number_format((float)($req['harga_beli'] ?? 0), 0, ',', '.')) ?> /Kg |
+                                                Jual: <?= esc(number_format((float)($req['harga_jual'] ?? 0), 0, ',', '.')) ?> /Kg
+                                            </small>
+                                            <?php if (!empty($req['harga_tanggal_berlaku'])): ?>
+                                                <br><small class="text-muted">Berlaku: <?= esc(date('d M Y', strtotime($req['harga_tanggal_berlaku']))) ?></small>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <br><small class="text-muted"><em>Belum ada harga (request untuk menambahkan harga baru)</em></small>
                                         <?php endif; ?>
-                                        <br><small class="text-muted">ID Harga: #<?= esc($req['target_id']) ?></small>
+
+                                        <br><small class="text-muted">Target ID: #<?= esc($req['target_id']) ?></small>
                                     <?php endif; ?>
                                 </span>
                             </div>
@@ -462,17 +473,25 @@
                                                 <br><small class="text-muted">Kontak: <?= esc($req['umkm_kontak']) ?></small>
                                             <?php endif; ?>
                                             <?= esc(ucfirst(str_replace('_', ' ', $req['target_type']))) ?> ID: #<?= esc($req['target_id']) ?>
-                                        <?php elseif ($req['target_type'] === 'harga_jenis_kopi' && !empty($req['harga_jenis_nama'])): ?>
-                                            Harga Jenis: <strong><?= esc($req['harga_jenis_nama']) ?></strong>
-                                            <br><small class="text-muted">
-                                                Beli: <?= esc(number_format((float)$req['harga_beli'], 0, ',', '.')) ?> /Kg |
-                                                Jual: <?= esc(number_format((float)$req['harga_jual'], 0, ',', '.')) ?> /Kg
-                                            </small>
-                                            <?php if (!empty($req['harga_tanggal_berlaku'])): ?>
-                                                <br><small class="text-muted">Berlaku: <?= esc(date('d M Y', strtotime($req['harga_tanggal_berlaku']))) ?></small>
-                                            <?php endif; ?>
-                                            <br><small class="text-muted">ID Harga: #<?= esc($req['target_id']) ?></small>
+                                        <?php elseif ($req['target_type'] === 'jenis_pohon_new_price'): ?>
+                                            Harga Jenis (Baru): <strong><?= esc($req['harga_jenis_nama'] ?? '-') ?></strong>
+                                            <br><small class="text-muted"><em>Belum ada harga (request untuk menambahkan harga baru)</em></small>
+                                            <br><small class="text-muted">Jenis Pohon ID: #<?= esc($req['target_id']) ?></small>
 
+                                        <?php elseif ($req['target_type'] === 'harga_jenis_kopi'): ?>
+                                            Harga Jenis: <strong><?= esc($req['harga_jenis_nama'] ?? '-') ?></strong>
+                                            <?php if (!empty($req['harga_beli']) || !empty($req['harga_jual'])): ?>
+                                                <br><small class="text-muted">
+                                                    Beli: <?= esc(number_format((float)($req['harga_beli'] ?? 0), 0, ',', '.')) ?> /Kg |
+                                                    Jual: <?= esc(number_format((float)($req['harga_jual'] ?? 0), 0, ',', '.')) ?> /Kg
+                                                </small>
+                                                <?php if (!empty($req['harga_tanggal_berlaku'])): ?>
+                                                    <br><small class="text-muted">Berlaku: <?= esc(date('d M Y', strtotime($req['harga_tanggal_berlaku']))) ?></small>
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                <br><small class="text-muted"><em>Belum ada harga (request untuk menambahkan harga baru)</em></small>
+                                            <?php endif; ?>
+                                            <br><small class="text-muted">Target ID: #<?= esc($req['target_id']) ?></small>
                                         <?php endif; ?>
                                     </td>
                                     <td>
