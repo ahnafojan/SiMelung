@@ -339,23 +339,61 @@
                             <div class="card-body-details">
                                 <strong>Target Data:</strong><br>
                                 <span>
-                                    <?php if ($req['target_type'] === 'petani' && !empty($req['petani_target_name'])): ?>
+                                    <?php if (!empty($req['requested_jenis_pohon_id'])): ?>
+                                        <div>
+                                            Harga Jenis: <strong><?= esc($req['requested_jenis_nama'] ?? '-') ?></strong>
+                                            <br><small class="text-muted">Perubahan harga (sebelumnya → usulan)</small>
+
+                                            <div class="mt-2">
+                                                <small class="text-muted d-block"><strong>Sebelumnya:</strong></small>
+                                                <small class="text-muted">
+                                                    Beli: <?= esc(number_format((float)($req['prev_harga_beli'] ?? 0), 0, ',', '.')) ?> /Kg |
+                                                    Jual: <?= esc(number_format((float)($req['prev_harga_jual'] ?? 0), 0, ',', '.')) ?> /Kg
+                                                    <?php if (!empty($req['prev_tanggal_berlaku'])): ?>
+                                                        | Berlaku: <?= esc(date('d M Y', strtotime($req['prev_tanggal_berlaku']))) ?>
+                                                    <?php endif; ?>
+                                                </small>
+                                            </div>
+
+                                            <div class="mt-2">
+                                                <small class="text-muted d-block"><strong>Usulan Baru:</strong></small>
+                                                <small class="text-muted">
+                                                    Beli: <?= esc(number_format((float)($req['requested_harga_beli_per_kg'] ?? 0), 0, ',', '.')) ?> /Kg |
+                                                    Jual: <?= esc(number_format((float)($req['requested_harga_jual_per_kg'] ?? 0), 0, ',', '.')) ?> /Kg
+                                                    <?php if (!empty($req['requested_tanggal_berlaku'])): ?>
+                                                        | Berlaku: <?= esc(date('d M Y', strtotime($req['requested_tanggal_berlaku']))) ?>
+                                                    <?php endif; ?>
+                                                </small>
+                                            </div>
+
+                                            <br><small class="text-muted">Request ID: #<?= esc($req['id']) ?></small>
+                                        </div>
+
+                                    <?php elseif ($req['target_type'] === 'petani' && !empty($req['petani_target_name'])): ?>
                                         Petani: <strong><?= esc($req['petani_target_name']) ?></strong>
+
                                     <?php elseif ($req['target_type'] === 'pohon' && !empty($req['pohon_owner_name'])): ?>
                                         Pohon Milik: <strong><?= esc($req['pohon_owner_name']) ?></strong>
+
                                     <?php elseif ($req['target_type'] === 'kopi_masuk' && !empty($req['kopimasuk_petani_name'])): ?>
                                         Kopi Masuk: <strong><?= esc($req['kopimasuk_petani_name']) ?> (<?= esc($req['kopimasuk_jumlah']) ?> Kg)</strong>
+
                                     <?php elseif ($req['target_type'] === 'kopi_keluar' && !empty($req['kopikeluar_tujuan'])): ?>
                                         Kopi Keluar: <strong><?= esc($req['kopikeluar_jumlah']) ?> Kg ke <?= esc($req['kopikeluar_tujuan']) ?></strong>
+
                                     <?php elseif ($req['target_type'] === 'jenis_pohon' && !empty($req['jenispohon_target_name'])): ?>
                                         Jenis Pohon: <strong><?= esc($req['jenispohon_target_name']) ?></strong>
+
                                     <?php elseif ($req['target_type'] === 'aset' && !empty($req['aset_target_name'])): ?>
                                         Aset: <strong><?= esc($req['aset_target_name']) ?> (<?= esc($req['aset_target_kode']) ?>)</strong>
+
                                     <?php elseif ($req['target_type'] === 'aset_pariwisata' && !empty($req['aset_pariwisata_target_name'])): ?>
                                         Aset: <strong><?= esc($req['aset_pariwisata_target_name']) ?></strong>
                                         <br><small class="text-muted">Lokasi: <?= esc($req['aset_pariwisata_lokasi']) ?></small>
+
                                     <?php elseif ($req['target_type'] === 'objek_wisata' && !empty($req['objekwisata_target_name'])): ?>
                                         Objek Wisata: <strong><?= esc($req['objekwisata_target_name']) ?></strong>
+
                                     <?php elseif ($req['target_type'] === 'umkm' && !empty($req['umkm_nama'])): ?>
                                         UMKM: <strong><?= esc($req['umkm_nama']) ?></strong>
                                         <br><small class="text-muted">
@@ -366,6 +404,7 @@
                                             <br><small class="text-muted">Kontak: <?= esc($req['umkm_kontak']) ?></small>
                                         <?php endif; ?>
                                         <?= esc(ucfirst(str_replace('_', ' ', $req['target_type']))) ?> ID: #<?= esc($req['target_id']) ?>
+
                                     <?php elseif ($req['target_type'] === 'jenis_pohon_new_price'): ?>
                                         Harga Jenis (Baru): <strong><?= esc($req['harga_jenis_nama'] ?? '-') ?></strong>
                                         <br><small class="text-muted"><em>Belum ada harga (request untuk menambahkan harga baru)</em></small>
@@ -390,7 +429,6 @@
                                     <?php endif; ?>
                                 </span>
                             </div>
-
                             <div class="card-actions">
                                 <button class="btn btn-sm btn-success btn-respond" data-request-id="<?= $req['id'] ?>" data-decision="approve"><i class="fas fa-check-circle mr-1"></i> Setujui</button>
                                 <button class="btn btn-sm btn-danger btn-respond" data-request-id="<?= $req['id'] ?>" data-decision="reject"><i class="fas fa-times-circle mr-1"></i> Tolak</button>
@@ -446,23 +484,54 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <?php if ($req['target_type'] === 'petani' && !empty($req['petani_target_name'])): ?>
+                                        <?php if (!empty($req['requested_jenis_pohon_id'])): ?>
+                                            Harga Jenis: <strong><?= esc($req['requested_jenis_nama'] ?? '-') ?></strong>
+
+                                            <br><small class="text-muted">
+                                                <strong>Sebelumnya:</strong>
+                                                Beli: <?= esc(number_format((float)($req['prev_harga_beli'] ?? 0), 0, ',', '.')) ?> /Kg |
+                                                Jual: <?= esc(number_format((float)($req['prev_harga_jual'] ?? 0), 0, ',', '.')) ?> /Kg
+                                                <?php if (!empty($req['prev_tanggal_berlaku'])): ?>
+                                                    | Berlaku: <?= esc(date('d M Y', strtotime($req['prev_tanggal_berlaku']))) ?>
+                                                <?php endif; ?>
+                                            </small>
+
+                                            <br><small class="text-muted">
+                                                <strong>Usulan Baru:</strong>
+                                                Beli: <?= esc(number_format((float)($req['requested_harga_beli_per_kg'] ?? 0), 0, ',', '.')) ?> /Kg |
+                                                Jual: <?= esc(number_format((float)($req['requested_harga_jual_per_kg'] ?? 0), 0, ',', '.')) ?> /Kg
+                                                <?php if (!empty($req['requested_tanggal_berlaku'])): ?>
+                                                    | Berlaku: <?= esc(date('d M Y', strtotime($req['requested_tanggal_berlaku']))) ?>
+                                                <?php endif; ?>
+                                            </small>
+
+                                            <br><small class="text-muted">Request ID: #<?= esc($req['id']) ?></small>
+
+                                        <?php elseif ($req['target_type'] === 'petani' && !empty($req['petani_target_name'])): ?>
                                             Petani: <strong><?= esc($req['petani_target_name']) ?></strong>
+
                                         <?php elseif ($req['target_type'] === 'pohon' && !empty($req['pohon_owner_name'])): ?>
                                             Pohon Milik: <strong><?= esc($req['pohon_owner_name']) ?></strong>
+
                                         <?php elseif ($req['target_type'] === 'kopi_masuk' && !empty($req['kopimasuk_petani_name'])): ?>
                                             Kopi Masuk: <strong><?= esc($req['kopimasuk_petani_name']) ?> (<?= esc($req['kopimasuk_jumlah']) ?> Kg)</strong>
+
                                         <?php elseif ($req['target_type'] === 'kopi_keluar' && !empty($req['kopikeluar_tujuan'])): ?>
                                             Kopi Keluar: <strong><?= esc($req['kopikeluar_jumlah']) ?> Kg ke <?= esc($req['kopikeluar_tujuan']) ?></strong>
+
                                         <?php elseif ($req['target_type'] === 'jenis_pohon' && !empty($req['jenispohon_target_name'])): ?>
                                             Jenis Pohon: <strong><?= esc($req['jenispohon_target_name']) ?></strong>
+
                                         <?php elseif ($req['target_type'] === 'aset' && !empty($req['aset_target_name'])): ?>
                                             Aset: <strong><?= esc($req['aset_target_name']) ?> (<?= esc($req['aset_target_kode']) ?>)</strong>
+
                                         <?php elseif ($req['target_type'] === 'aset_pariwisata' && !empty($req['aset_pariwisata_target_name'])): ?>
                                             Aset: <strong><?= esc($req['aset_pariwisata_target_name']) ?></strong>
                                             <br><small class="text-muted">Lokasi: <?= esc($req['aset_pariwisata_lokasi']) ?></small>
+
                                         <?php elseif ($req['target_type'] === 'objek_wisata' && !empty($req['objekwisata_target_name'])): ?>
                                             Objek Wisata: <strong><?= esc($req['objekwisata_target_name']) ?></strong>
+
                                         <?php elseif ($req['target_type'] === 'umkm' && !empty($req['umkm_nama'])): ?>
                                             UMKM: <strong><?= esc($req['umkm_nama']) ?></strong>
                                             <br><small class="text-muted">
@@ -473,6 +542,7 @@
                                                 <br><small class="text-muted">Kontak: <?= esc($req['umkm_kontak']) ?></small>
                                             <?php endif; ?>
                                             <?= esc(ucfirst(str_replace('_', ' ', $req['target_type']))) ?> ID: #<?= esc($req['target_id']) ?>
+
                                         <?php elseif ($req['target_type'] === 'jenis_pohon_new_price'): ?>
                                             Harga Jenis (Baru): <strong><?= esc($req['harga_jenis_nama'] ?? '-') ?></strong>
                                             <br><small class="text-muted"><em>Belum ada harga (request untuk menambahkan harga baru)</em></small>
@@ -494,6 +564,7 @@
                                             <br><small class="text-muted">Target ID: #<?= esc($req['target_id']) ?></small>
                                         <?php endif; ?>
                                     </td>
+
                                     <td>
                                         <div class="font-weight-bold"><?= esc(date('d M Y', strtotime($req['created_at']))) ?></div>
                                         <div class="small text-muted"><?= esc(date('H:i', strtotime($req['created_at']))) ?> WIB</div>

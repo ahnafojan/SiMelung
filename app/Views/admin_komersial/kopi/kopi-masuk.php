@@ -1,6 +1,13 @@
 <?= $this->extend('layouts/main_layout_admin') ?>
 
 <?= $this->section('content') ?>
+<?php
+$kopiMasuk = $kopiMasuk ?? [];
+$petani = $petani ?? [];
+$pager = $pager ?? null;
+$currentPage = $currentPage ?? 1;
+$perPage = $perPage ?? 10;
+?>
 <div class="container-fluid py-4">
 
     <div class="d-flex justify-content-between align-items-center mb-4">

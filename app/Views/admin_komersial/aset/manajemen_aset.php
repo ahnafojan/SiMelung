@@ -3,6 +3,9 @@
 
 <?php
 // Memberikan nilai default untuk mencegah error
+$asets = $asets ?? [];
+$pager = $pager ?? null;
+$kategoriAset = $kategoriAset ?? [];
 $currentPage = $currentPage ?? 1;
 $perPage = $perPage ?? 10;
 ?>

@@ -7,6 +7,7 @@ use App\Models\KopiMasukModel;
 use App\Models\KopiKeluarModel;
 use App\Models\AsetKomersialModel;
 use App\Models\UmkmModel;
+use App\Models\BkuBulananModel;
 
 class LandingPage extends BaseController
 {
@@ -104,7 +105,25 @@ class LandingPage extends BaseController
         $publishedUmkm = $umkmModel->where('is_published', 1)->findAll(); // Ambil semua data UMKM
 
         // ----------------------------------------------------
-        // BAGIAN 5: Gabungkan Semua Data ke View
+        // BAGIAN 5: Tren Laporan Anggaran
+        // ----------------------------------------------------
+        $tanggalMulaiAnggaran = $this->normalizeDateInput(
+            $this->request->getGet('start_date'),
+            date('Y-m-d', strtotime('-1 year'))
+        );
+        $tanggalSelesaiAnggaran = $this->normalizeDateInput(
+            $this->request->getGet('end_date'),
+            date('Y-m-d')
+        );
+
+        if ($tanggalMulaiAnggaran > $tanggalSelesaiAnggaran) {
+            [$tanggalMulaiAnggaran, $tanggalSelesaiAnggaran] = [$tanggalSelesaiAnggaran, $tanggalMulaiAnggaran];
+        }
+
+        $laporanAnggaran = $this->getLaporanAnggaranLanding($tanggalMulaiAnggaran, $tanggalSelesaiAnggaran);
+
+        // ----------------------------------------------------
+        // BAGIAN 6: Gabungkan Semua Data ke View
         // ----------------------------------------------------
         $data = [
             'petani_list'    => $petani_list,
@@ -115,11 +134,119 @@ class LandingPage extends BaseController
             'chartKopiKeluar' => json_encode($dataKopiKeluar),
             'chartYear'      => $currentYear,
             'aset_summary'   => $aset_summary,
-            'published_umkm' => $publishedUmkm // <-- Tambahan data UMKM yang sudah difilter
+            'published_umkm' => $publishedUmkm, // <-- Tambahan data UMKM yang sudah difilter
+            'laporan_anggaran' => $laporanAnggaran
         ];
 
         return view('landing/landing_page', $data);
     }
+
+    private function getLaporanAnggaranLanding(string $tanggalMulai, string $tanggalSelesai): array
+    {
+        $emptyData = [
+            'hasData' => false,
+            'tanggal_mulai' => $tanggalMulai,
+            'tanggal_selesai' => $tanggalSelesai,
+            'periode_label' => $this->formatTanggalIndonesia($tanggalMulai) . ' - ' . $this->formatTanggalIndonesia($tanggalSelesai),
+            'bulan_tercatat' => 0,
+            'total_pendapatan' => 0,
+            'total_pengeluaran' => 0,
+            'surplus_defisit' => 0,
+            'grafik_line' => [
+                'labels' => [],
+                'pendapatan' => [],
+                'pengeluaran' => [],
+            ],
+        ];
+
+        try {
+            $bkuModel = new BkuBulananModel();
+            $laporanBulanan = $bkuModel
+                ->where("STR_TO_DATE(CONCAT(tahun, '-', bulan, '-01'), '%Y-%m-%d') >=", $tanggalMulai)
+                ->where("STR_TO_DATE(CONCAT(tahun, '-', bulan, '-01'), '%Y-%m-%d') <=", $tanggalSelesai)
+                ->orderBy('tahun', 'ASC')
+                ->orderBy('bulan', 'ASC')
+                ->findAll();
+
+            if (empty($laporanBulanan)) {
+                return $emptyData;
+            }
+
+            $grafikLine = [
+                'labels' => [],
+                'pendapatan' => [],
+                'pengeluaran' => [],
+            ];
+
+            foreach ($laporanBulanan as $laporan) {
+                $grafikLine['labels'][] = $laporan['tahun'] . '-' . str_pad((string) $laporan['bulan'], 2, '0', STR_PAD_LEFT);
+                $grafikLine['pendapatan'][] = (float) ($laporan['total_pendapatan'] ?? 0);
+                $grafikLine['pengeluaran'][] = (float) ($laporan['total_pengeluaran'] ?? 0);
+            }
+
+            $totalPendapatan = array_sum($grafikLine['pendapatan']);
+            $totalPengeluaran = array_sum($grafikLine['pengeluaran']);
+
+            return [
+                'hasData' => true,
+                'tanggal_mulai' => $tanggalMulai,
+                'tanggal_selesai' => $tanggalSelesai,
+                'periode_label' => $this->formatTanggalIndonesia($tanggalMulai) . ' - ' . $this->formatTanggalIndonesia($tanggalSelesai),
+                'bulan_tercatat' => count($laporanBulanan),
+                'total_pendapatan' => $totalPendapatan,
+                'total_pengeluaran' => $totalPengeluaran,
+                'surplus_defisit' => $totalPendapatan - $totalPengeluaran,
+                'grafik_line' => $grafikLine,
+            ];
+        } catch (\Throwable $e) {
+            log_message('error', 'Gagal mengambil laporan anggaran landing: ' . $e->getMessage());
+
+            return $emptyData;
+        }
+    }
+
+    private function normalizeDateInput(?string $date, string $fallback): string
+    {
+        $parsedDate = \DateTime::createFromFormat('Y-m-d', (string) $date);
+
+        if ($parsedDate && $parsedDate->format('Y-m-d') === $date) {
+            return $date;
+        }
+
+        return $fallback;
+    }
+
+    private function formatTanggalIndonesia(string $date): string
+    {
+        $timestamp = strtotime($date);
+
+        if (!$timestamp) {
+            return $date;
+        }
+
+        $bulan = $this->getBulanIndonesia();
+
+        return date('j', $timestamp) . ' ' . ($bulan[(int) date('n', $timestamp)] ?? date('F', $timestamp)) . ' ' . date('Y', $timestamp);
+    }
+
+    private function getBulanIndonesia(): array
+    {
+        return [
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
+        ];
+    }
+
     public function detailUmkm($id)
     {
         $umkmModel = new UmkmModel();

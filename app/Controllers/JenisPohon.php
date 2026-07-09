@@ -116,7 +116,7 @@ class JenisPohon extends BaseController
         $hargaJual = $this->request->getPost('harga_jual_per_kg');
         $tanggalBerlaku = $this->request->getPost('tanggal_berlaku');
 
-        $validation =  \Config\Services::validation();
+        $validation = \Config\Services::validation();
         $validation->setRules([
             'jenis_pohon_id'      => 'required|integer|greater_than[0]',
             'harga_beli_per_kg'   => 'required|decimal',
@@ -124,46 +124,66 @@ class JenisPohon extends BaseController
             'tanggal_berlaku'     => 'required|valid_date'
         ]);
 
-        if (!$validation->run(['jenis_pohon_id' => $jenisPohonId, 'harga_beli_per_kg' => $hargaBeli, 'harga_jual_per_kg' => $hargaJual, 'tanggal_berlaku' => $tanggalBerlaku])) {
+        if (!$validation->run([
+            'jenis_pohon_id' => $jenisPohonId,
+            'harga_beli_per_kg' => $hargaBeli,
+            'harga_jual_per_kg' => $hargaJual,
+            'tanggal_berlaku' => $tanggalBerlaku
+        ])) {
             session()->setFlashdata('error', 'Data tidak valid: ' . $validation->listErrors());
             return redirect()->back();
         }
 
         if (!$this->jenisPohonModel->find($jenisPohonId)) {
-            session()->setFlashdata('error', 'Data tidak valid: Jenis pohon tidak ditemukan.');
+            session()->setFlashdata('error', 'Jenis pohon tidak ditemukan.');
             return redirect()->back();
         }
 
-        // Cek apakah sudah ada harga sebelumnya
-        $existingPrice = $this->hargaJenisKopiModel->getLatestPrice($jenisPohonId); // Gunakan method yang benar
-
-        if ($existingPrice) {
-            // Jika SUDAH ADA harga, cek izin edit
-            // Gunakan ID entri harga yang ditemukan untuk mengecek izin
-            $hargaIdUntukIzin = $existingPrice['id']; // Pastikan field 'id' ada di hasil getLatestPrice
-            if (!$this->hasActivePermission($hargaIdUntukIzin, 'harga_edit', 'harga_jenis_kopi')) {
-                session()->setFlashdata('error', 'Akses ditolak. Anda tidak memiliki izin untuk mengedit harga ini.');
-                return redirect()->to(site_url('/jenispohon'));
-            }
+        $requesterId = session()->get('user_id');
+        if (empty($requesterId)) {
+            session()->setFlashdata('error', 'Sesi tidak valid.');
+            return redirect()->back();
         }
-        // Jika BELUM ADA harga (harga baru), tidak perlu cek izin. Biarkan disimpan.
 
-        $data = [
-            'jenis_pohon_id'    => $jenisPohonId,
-            'harga_beli_per_kg' => $hargaBeli,
-            'harga_jual_per_kg' => $hargaJual,
-            'tanggal_berlaku'   => $tanggalBerlaku,
+        // ✅ Cegah duplikat pending untuk jenis pohon yang sama (harga)
+        $existing = $this->permissionModel->where([
+            'requester_id' => $requesterId,
+            'target_id'    => $jenisPohonId,
+            'target_type'  => 'jenis_pohon',
+            'action_type'  => 'edit',
+            'status'       => 'pending'
+        ])->first();
+
+        if ($existing) {
+            session()->setFlashdata('error', 'Sudah ada permintaan harga yang sedang diproses untuk jenis kopi ini.');
+            return redirect()->to(site_url('/jenispohon'));
+        }
+
+        // ✅ Simpan sebagai request (bukan simpan ke harga_jenis_kopi)
+        $saveData = [
+            'requester_id' => $requesterId,
+            'target_id'    => $jenisPohonId,
+            'target_type'  => 'jenis_pohon',   // satu pintu
+            'action_type'  => 'edit',          // enum kamu: edit/delete
+            'status'       => 'pending',
+            'expires_at'   => date('Y-m-d H:i:s', strtotime('+24 hours')),
+
+            // kolom usulan harga
+            'requested_jenis_pohon_id'      => (int)$jenisPohonId,
+            'requested_harga_beli_per_kg'   => $hargaBeli,
+            'requested_harga_jual_per_kg'   => $hargaJual,
+            'requested_tanggal_berlaku'     => $tanggalBerlaku,
         ];
 
-        try {
-            $this->hargaJenisKopiModel->save($data);
-            session()->setFlashdata('success', 'Harga jenis pohon berhasil disimpan.');
-        } catch (\Exception $e) {
-            session()->setFlashdata('error', 'Terjadi kesalahan saat menyimpan data harga: ' . $e->getMessage());
+        if (!$this->permissionModel->save($saveData)) {
+            session()->setFlashdata('error', 'Gagal mengirim permintaan harga.');
+            return redirect()->back();
         }
 
+        session()->setFlashdata('success', 'Permintaan harga berhasil dikirim. Menunggu approval Bumdes.');
         return redirect()->to(site_url('/jenispohon'));
     }
+
 
     public function updateHarga($id)
     {
@@ -239,17 +259,7 @@ class JenisPohon extends BaseController
             return redirect()->back();
         }
 
-        $jenisPohonId = $this->request->getPost('jenispohon_id');
-        $hargaId      = $this->request->getPost('harga_id');
-        $action       = $this->request->getPost('action_type');
         $requesterId  = session()->get('user_id');
-
-        log_message('debug', 'Request Access - Data received: ' . json_encode([
-            'jenispohon_id' => $jenisPohonId,
-            'harga_id' => $hargaId,
-            'action_type' => $action
-        ]));
-
         if (empty($requesterId)) {
             return $this->response->setJSON([
                 'status' => 'error',
@@ -257,51 +267,102 @@ class JenisPohon extends BaseController
             ])->setStatusCode(401);
         }
 
-        // Inisialisasi variabel
+        // ===== Ambil data dasar =====
+        $jenisPohonId = (int) $this->request->getPost('jenispohon_id');
+        $hargaId      = $this->request->getPost('harga_id'); // optional
+        $action       = $this->request->getPost('action_type');
+
+        // ===== Ambil kolom usulan harga (dikirim dari AJAX) =====
+        $reqJenisId = $this->request->getPost('requested_jenis_pohon_id');
+        $reqBeli    = $this->request->getPost('requested_harga_beli_per_kg');
+        $reqJual    = $this->request->getPost('requested_harga_jual_per_kg');
+        $reqTgl     = $this->request->getPost('requested_tanggal_berlaku');
+
+        log_message('debug', 'Request Access - Data received: ' . json_encode([
+            'jenispohon_id' => $jenisPohonId,
+            'harga_id' => $hargaId,
+            'action_type' => $action,
+            'requested_jenis_pohon_id' => $reqJenisId,
+            'requested_harga_beli_per_kg' => $reqBeli,
+            'requested_harga_jual_per_kg' => $reqJual,
+            'requested_tanggal_berlaku' => $reqTgl,
+        ]));
+
+        // Validasi minimal
+        if (empty($action)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Aksi tidak valid.'
+            ])->setStatusCode(400);
+        }
+
+        // Inisialisasi variabel target
         $targetType = '';
         $targetId   = null;
 
-        // 🎯 LOGIKA PERBAIKAN: Tentukan target berdasarkan tipe aksi
+        // ===== Tentukan target berdasarkan aksi =====
         if (in_array($action, ['edit', 'delete'])) {
-            // Untuk edit/delete jenis pohon
+            // Edit/Delete Jenis Pohon
+            if (empty($jenisPohonId) || !$this->jenisPohonModel->find($jenisPohonId)) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Data jenis pohon tidak ditemukan.'
+                ])->setStatusCode(404);
+            }
+
             $targetType = 'jenis_pohon';
             $targetId   = $jenisPohonId;
         } elseif ($action === 'harga_edit') {
-            // Validasi harga_id: harus angka > 0 atau 0 (untuk baru)
-            if (isset($hargaId) && !empty($hargaId) && is_numeric($hargaId)) {
-                $hargaId = (int)$hargaId;
-                // Jika harga_id valid (sudah ada harga)
-                $targetType = 'harga_jenis_kopi';
-                $targetId   = $hargaId;
-
-                // Validasi apakah harga_id benar-benar ada
-                if (!$this->hargaJenisKopiModel->find($targetId)) {
-                    return $this->response->setJSON([
-                        'status' => 'error',
-                        'message' => 'Data harga tidak ditemukan.'
-                    ]);
-                }
-            } else {
-                // Jika harga_id tidak valid (kosong atau 0), maka tambah harga baru
-                $targetType = 'jenis_pohon_new_price';
-                $targetId   = $jenisPohonId;
-
-                // Validasi jenis pohon
-                if (!$this->jenisPohonModel->find($targetId)) {
-                    return $this->response->setJSON([
-                        'status' => 'error',
-                        'message' => 'Data jenis pohon tidak ditemukan.'
-                    ]);
-                }
+            // Untuk request perubahan/penambahan harga:
+            // Kita pakai target_type khusus biar Bumdes gampang filter + tidak tergantung harga_id
+            // (karena yang disetujui adalah data usulan di kolom requested_*)
+            if (empty($jenisPohonId) || !$this->jenisPohonModel->find($jenisPohonId)) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Data jenis pohon tidak ditemukan.'
+                ])->setStatusCode(404);
             }
+
+            $targetType = 'harga_jenis_kopi_request';
+            $targetId   = $jenisPohonId; // simpan jenis_pohon_id sebagai target_id
+        } elseif ($action === 'harga_delete') {
+            // Delete harga historis (jika kamu masih butuh)
+            if (!is_numeric($hargaId) || (int)$hargaId <= 0) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'ID harga tidak valid.'
+                ])->setStatusCode(400);
+            }
+            $hargaId = (int)$hargaId;
+
+            if (!$this->hargaJenisKopiModel->find($hargaId)) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Data harga tidak ditemukan.'
+                ])->setStatusCode(404);
+            }
+
+            $targetType = 'harga_jenis_kopi';
+            $targetId   = $hargaId;
+        } else {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Aksi tidak dikenali.'
+            ])->setStatusCode(400);
         }
 
-        // Cegah duplikat request pending
+        // ===== Map action_type ke enum DB (edit/delete) =====
+        $mappedAction = $action;
+        if ($action === 'harga_edit')  $mappedAction = 'edit';
+        if ($action === 'harga_delete') $mappedAction = 'delete';
+
+        // ===== Cegah duplikat request pending =====
+        // Untuk harga, duplikat dicegah berdasarkan jenis_pohon_id (targetId)
         $existing = $this->permissionModel->where([
             'requester_id' => $requesterId,
             'target_id'    => $targetId,
             'target_type'  => $targetType,
-            'action_type'  => $action, // ← Ini seharusnya "edit" jika action="harga_edit"
+            'action_type'  => $mappedAction,
             'status'       => 'pending'
         ])->first();
 
@@ -312,27 +373,31 @@ class JenisPohon extends BaseController
             ]);
         }
 
-        // Simpan permintaan baru
+        // ===== Data utama yang disimpan =====
         $saveData = [
             'requester_id' => $requesterId,
             'target_id'    => $targetId,
             'target_type'  => $targetType,
-            'action_type'  => $action, // ← TAPI INI HARUS DI-UBAH KE NILAI YANG VALID
+            'action_type'  => $mappedAction,
             'status'       => 'pending',
-            'expires_at'   => date('Y-m-d H:i:s', strtotime('+24 hours'))
+            'expires_at'   => date('Y-m-d H:i:s', strtotime('+24 hours')),
         ];
 
-        // MAP ACTION_TYPE KE NILAI YANG VALID UNTUK ENUM
-        switch ($action) {
-            case 'harga_edit':
-                $saveData['action_type'] = 'edit';
-                break;
-            case 'harga_delete':
-                $saveData['action_type'] = 'delete';
-                break;
-            default:
-                $saveData['action_type'] = $action;
-                break;
+        // ===== Jika ini request harga, simpan usulan ke kolom baru =====
+        if ($action === 'harga_edit') {
+            // Validasi usulan harga
+            if (empty($reqJenisId) || empty($reqTgl) || $reqBeli === null || $reqJual === null) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'Data usulan harga belum lengkap.'
+                ])->setStatusCode(400);
+            }
+
+            // Paksa konsisten: requested_jenis_pohon_id harus sama dengan target (jenisPohonId)
+            $saveData['requested_jenis_pohon_id']    = (int) $jenisPohonId;
+            $saveData['requested_harga_beli_per_kg'] = $reqBeli;
+            $saveData['requested_harga_jual_per_kg'] = $reqJual;
+            $saveData['requested_tanggal_berlaku']   = $reqTgl;
         }
 
         log_message('debug', 'Saving permission request: ' . json_encode($saveData));
@@ -350,6 +415,7 @@ class JenisPohon extends BaseController
             'message' => 'Permintaan izin berhasil dikirim dan akan diproses oleh admin Bumdes.'
         ]);
     }
+
 
     // Helper untuk mengecek izin aktif
     // Helper untuk mengecek izin aktif

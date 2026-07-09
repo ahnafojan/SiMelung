@@ -72,9 +72,10 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    <form id="formHargaJenisPohon" action="<?= site_url('harga-jenis-kopi/store') ?>" method="post">
+                    <form id="formHargaJenisPohon" action="javascript:void(0)" method="post">
                         <?= csrf_field() ?>
                         <input type="hidden" id="harga_id" name="id">
+
                         <div class="form-group">
                             <label for="harga_jenis_pohon_id" class="font-weight-bold">Jenis Kopi</label>
                             <select id="harga_jenis_pohon_id" name="jenis_pohon_id" class="form-control" required>
@@ -84,24 +85,35 @@
                                 <?php endforeach; ?>
                             </select>
                         </div>
+
                         <div class="form-group">
                             <label for="harga_beli_per_kg" class="font-weight-bold">Harga Kopi (Rp/Kg)</label>
-                            <input type="number" step="0.01" min="0" id="harga_beli_per_kg" name="harga_beli_per_kg" class="form-control" placeholder="Contoh: 25000" required>
+                            <input type="number" step="0.01" min="0" id="harga_beli_per_kg" name="harga_beli_per_kg" class="form-control" required>
                         </div>
+
                         <div class="form-group">
-                            <label for="harga_jual_per_kg" class="font-weight-bold">Harga Jual (Rp/Kg)</label>
-                            <input type="number" step="0.01" min="0" id="harga_jual_per_kg" name="harga_jual_per_kg" class="form-control" placeholder="Contoh: 40000" required>
+                            <label for="harga_jual_per_kg" class="font-weight-bold">Harga Jual Bumdes (Rp/Kg)</label>
+                            <input type="number" step="0.01" min="0" id="harga_jual_per_kg" name="harga_jual_per_kg" class="form-control" required>
                         </div>
+
                         <div class="form-group">
                             <label for="tanggal_berlaku" class="font-weight-bold">Tanggal Berlaku</label>
                             <input type="date" id="tanggal_berlaku" name="tanggal_berlaku" class="form-control" value="<?= date('Y-m-d') ?>" required>
                         </div>
-                        <button type="submit" class="btn btn-info btn-block shadow-sm">
-                            <i class="fas fa-save mr-2"></i>Simpan Harga
+
+                        <!-- tombol baru -->
+                        <button type="button" id="btn-kirim-permintaan-harga" class="btn btn-success btn-block shadow-sm">
+                            <i class="fas fa-paper-plane mr-2"></i>Simpan & Kirim Permintaan
                         </button>
+
                         <button type="button" id="btn-batal-edit-harga" class="btn btn-secondary btn-block shadow-sm d-none">
-                            <i class="fas fa-times mr-2"></i>Batal Edit
+                            <i class="fas fa-times mr-2"></i>Reset
                         </button>
+
+                        <!-- info UX biar user paham -->
+                        <small class="text-muted d-block mt-2">
+                            Harga tidak akan berubah sebelum disetujui oleh admin Bumdes.
+                        </small>
                     </form>
                 </div>
             </div>
@@ -173,11 +185,21 @@
                                                             title="Edit Harga">
                                                             <i class="fas fa-tag"></i>
                                                         </button>
-                                                    <?php elseif ($row['harga_edit_status'] == 'pending') : ?>
-                                                        <button class="btn btn-secondary disabled" title="Permintaan edit harga sedang diproses">
-                                                            <i class="fas fa-clock"></i>
-                                                        </button>
-                                                    <?php else : ?>
+                                                        <?php if ($row['harga_edit_status'] == 'pending') : ?>
+                                                            <button class="btn btn-secondary disabled" title="Permintaan harga sedang diproses">
+                                                                <i class="fas fa-clock"></i>
+                                                            </button>
+                                                        <?php else : ?>
+                                                            <button class="btn btn-info btn-edit-harga"
+                                                                data-id="<?= $row['id'] ?>"
+                                                                data-nama="<?= esc($row['nama_jenis']) ?>"
+                                                                data-harga-beli="<?= $row['harga_beli_saat_ini'] ?? 0 ?>"
+                                                                data-harga-jual="<?= $row['harga_jual_saat_ini'] ?? 0 ?>"
+                                                                data-tanggal-berlaku="<?= date('Y-m-d') ?>"
+                                                                title="Usulkan perubahan harga">
+                                                                <i class="fas fa-tag"></i>
+                                                            </button>
+                                                        <?php endif; ?>
                                                         <button class="btn btn-outline-info btn-request-access"
                                                             data-jenispohon-id="<?= $row['id'] ?>"
                                                             data-harga-id="<?= $row['harga_id'] ?? 0 ?>"
@@ -326,94 +348,116 @@
         });
 
         // AJAX REQUEST ACCESS - FIXED VERSION
-        $('.btn-request-access').on('click', function() {
-            const button = $(this);
-            const jenisPohonId = button.data('jenispohon-id');
-            const actionType = button.data('action-type');
-            const hargaId = button.data('harga-id') || null;
+        $('#btn-kirim-permintaan-harga').on('click', function() {
+            const jenisPohonId = $('#harga_jenis_pohon_id').val();
+            const hargaId = $('#harga_id').val(); // ✅ TAMBAH INI
+            const hargaBeli = $('#harga_beli_per_kg').val();
+            const hargaJual = $('#harga_jual_per_kg').val();
+            const tanggalBerlaku = $('#tanggal_berlaku').val();
 
-            console.log('Request data:', {
-                jenispohon_id: jenisPohonId,
-                action_type: actionType,
-                harga_id: hargaId
-            });
+            if (!jenisPohonId) {
+                Swal.fire('Gagal', 'Pilih jenis kopi dulu.', 'error');
+                return;
+            }
+            if (!hargaBeli || !hargaJual || !tanggalBerlaku) {
+                Swal.fire('Gagal', 'Harga beli, harga jual, dan tanggal berlaku wajib diisi.', 'error');
+                return;
+            }
 
-            // Disable tombol dan ganti teks
-            button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+            const btn = $(this);
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Mengirim...');
 
             $.ajax({
                 url: "<?= site_url('jenispohon/requestAccess') ?>",
                 method: "POST",
+                dataType: "json",
                 data: {
                     jenispohon_id: jenisPohonId,
-                    action_type: actionType,
                     harga_id: hargaId,
+                    action_type: 'harga_edit',
+
+                    // ✅ simpan ke kolom baru permission_requests
+                    requested_jenis_pohon_id: jenisPohonId,
+                    requested_harga_beli_per_kg: hargaBeli,
+                    requested_harga_jual_per_kg: hargaJual,
+                    requested_tanggal_berlaku: tanggalBerlaku,
+
                     '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
                 },
-                dataType: "json",
-                success: function(response) {
-                    console.log('Response:', response);
-                    if (response.status === 'success') {
-                        // Perbarui status tombol langsung
-                        button.prop('disabled', true);
-                        button.html('<i class="fas fa-clock"></i>');
-                        button.attr('title', 'Permintaan edit harga sedang diproses');
-
-                        // Panggil API untuk update status
-                        $.ajax({
-                            url: "<?= site_url('jenispohon/getPermissionStatusAjax') ?>",
-                            method: "POST",
-                            data: {
-                                jenispohon_id: jenisPohonId,
-                                action_type: actionType,
-                                '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
-                            },
-                            dataType: "json",
-                            success: function(statusResponse) {
-                                if (statusResponse.status === 'success') {
-                                    const newStatus = statusResponse.data.status;
-                                    if (newStatus === 'approved') {
-                                        // Ubah tombol kembali ke ikon edit
-                                        button.html('<i class="fas fa-tag"></i>');
-                                        button.attr('title', 'Edit Harga');
-                                        button.prop('disabled', false);
-                                    } else if (newStatus === 'pending') {
-                                        button.html('<i class="fas fa-clock"></i>');
-                                        button.attr('title', 'Permintaan edit harga sedang diproses');
-                                    }
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                console.error('AJAX Error:', error);
-                            }
-                        });
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            text: response.message
-                        });
+                success: function(res) {
+                    if (res.status === 'success') {
+                        Swal.fire('Berhasil', res.message, 'success')
+                            .then(() => location.reload());
                     } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            text: response.message
-                        });
-                        button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                        Swal.fire('Gagal', res.message || 'Permintaan gagal.', 'error');
                     }
                 },
-                error: function(xhr, status, error) {
-                    console.error('AJAX Error:', error);
-                    console.error('Response:', xhr.responseText);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'Terjadi kesalahan koneksi. Coba lagi.'
-                    });
-                    button.prop('disabled', false).html('<i class="fas fa-lock"></i>');
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    Swal.fire('Error', 'Koneksi/server bermasalah.', 'error');
+                },
+                complete: function() {
+                    btn.prop('disabled', false)
+                        .html('<i class="fas fa-paper-plane mr-2"></i>Simpan & Kirim Permintaan (Approval Bumdes)');
                 }
             });
         });
+        // ✅ HANDLER UNTUK TOMBOL REQUEST ACCESS (EDIT / DELETE / HARGA_EDIT / HARGA_DELETE)
+        $(document).on('click', '.btn-request-access', function() {
+            const btn = $(this);
+
+            const jenisPohonId = btn.data('jenispohon-id'); // wajib untuk semua request jenis_pohon
+            const actionType = btn.data('action-type'); // edit | delete | harga_edit | harga_delete
+            const hargaId = btn.data('harga-id') ?? ''; // optional (khusus harga)
+
+            if (!jenisPohonId || !actionType) {
+                Swal.fire('Gagal', 'Data tombol tidak lengkap (jenispohon_id / action_type).', 'error');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Kirim permintaan izin?',
+                text: 'Permintaan akan dikirim ke admin Bumdes untuk disetujui.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, kirim',
+                cancelButtonText: 'Batal'
+            }).then((res) => {
+                if (!res.isConfirmed) return;
+
+                btn.prop('disabled', true);
+
+                $.ajax({
+                    url: "<?= site_url('jenispohon/requestAccess') ?>",
+                    method: "POST",
+                    dataType: "json",
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }, // ✅ penting biar controller anggap AJAX
+                    data: {
+                        jenispohon_id: jenisPohonId,
+                        harga_id: hargaId, // kosong untuk edit/delete biasa, ada untuk harga
+                        action_type: actionType, // edit/delete/harga_edit/harga_delete
+                        '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+                    },
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            Swal.fire('Berhasil', response.message, 'success')
+                                .then(() => location.reload());
+                        } else {
+                            Swal.fire('Gagal', response.message || 'Permintaan gagal.', 'error');
+                            btn.prop('disabled', false);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                        Swal.fire('Error', 'Server/koneksi bermasalah.', 'error');
+                        btn.prop('disabled', false);
+                    }
+                });
+            });
+        });
+
     });
 </script>
 

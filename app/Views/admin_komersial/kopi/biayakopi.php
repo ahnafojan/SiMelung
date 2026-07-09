@@ -2,6 +2,18 @@
 <?= $this->extend('layouts/main_layout_admin') ?>
 
 <?= $this->section('content') ?>
+<?php
+$tanggalAwal = $tanggalAwal ?? date('Y-m-01');
+$tanggalAkhir = $tanggalAkhir ?? date('Y-m-d');
+$totalBiayaPembelian = $totalBiayaPembelian ?? 0;
+$jumlahTransaksi = $jumlahTransaksi ?? 0;
+$totalKgDibeli = $totalKgDibeli ?? 0;
+$transaksi = $transaksi ?? [];
+$pager = $pager ?? null;
+$currentPage = $currentPage ?? 1;
+$perPage = $perPage ?? 10;
+$chartDataBiaya = $chartDataBiaya ?? ['labels' => [], 'biaya' => []];
+?>
 <div class="container-fluid py-4">
 
     <!-- Header Section -->

@@ -50,6 +50,9 @@
                         <a class="nav-link" href="#grafik">Grafik</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="#anggaran">Anggaran</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="#aset">Aset</a>
                     </li>
                     <li class="nav-item">

@@ -1,6 +1,10 @@
 <?= $this->extend('layouts/main_layout_admin') ?>
 <?= $this->section('content') ?>
 
+<?php
+$kategoriAset = $kategoriAset ?? [];
+?>
+
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
         <div>

@@ -6,18 +6,22 @@ use App\Models\PermissionRequestModel;
 use App\Models\PetaniModel;
 use App\Models\UmkmModel; // 1. Tambahkan UmkmModel
 use CodeIgniter\Controller;
+use App\Models\HargaJenisKopiModel;
+
 
 class PersetujuanKomersial extends BaseController
 {
     protected $permissionModel;
     protected $petaniModel;
-    protected $umkmModel; // 2. Daftarkan UmkmModel
+    protected $umkmModel;
+    protected $hargaJenisKopiModel; // 2. Daftarkan UmkmModel
 
     public function __construct()
     {
         $this->permissionModel = new PermissionRequestModel();
         $this->petaniModel = new PetaniModel();
-        $this->umkmModel = new UmkmModel(); // 3. Inisialisasi UmkmModel
+        $this->umkmModel = new UmkmModel();
+        $this->hargaJenisKopiModel = new HargaJenisKopiModel(); // 3. Inisialisasi UmkmModel
         helper('date');
     }
 
@@ -61,6 +65,16 @@ class PersetujuanKomersial extends BaseController
                 // Nama jenis kopi: prioritas dari hjk -> fallback dari jenis_pohon langsung
                 // Nama jenis kopi: prioritas dari hjk -> fallback dari jenis_pohon langsung -> fallback untuk request harga baru
                 'COALESCE(jp_harga.nama_jenis, jp_harga_fallback.nama_jenis, jp_new_price.nama_jenis) as harga_jenis_nama',
+                // ▼▼▼ USULAN HARGA (dari permission_requests) ▼▼▼
+                'permission_requests.requested_jenis_pohon_id',
+                'permission_requests.requested_harga_beli_per_kg',
+                'permission_requests.requested_harga_jual_per_kg',
+                'permission_requests.requested_tanggal_berlaku',
+                'jp_req_price.nama_jenis as requested_jenis_nama',
+                // Harga sebelumnya (latest) untuk jenis yang diusulkan
+                'hjk_prev.harga_beli_per_kg as prev_harga_beli',
+                'hjk_prev.harga_jual_per_kg as prev_harga_jual',
+                'hjk_prev.tanggal_berlaku as prev_tanggal_berlaku',
 
 
                 // ▲▲▲ AKHIR KOLOM BARU UNTUK HARGA JENIS KOPI ▲▲▲
@@ -80,6 +94,24 @@ class PersetujuanKomersial extends BaseController
             ->join('jenis_pohon as jp_keluar', 'jp_keluar.id = sk.jenis_pohon_id', 'left')
             ->join('jenis_pohon as jp_master', 'jp_master.id = permission_requests.target_id AND permission_requests.target_type = "jenis_pohon"', 'left')
             ->join('jenis_pohon as jp_new_price', 'jp_new_price.id = permission_requests.target_id AND permission_requests.target_type = "jenis_pohon_new_price"', 'left')
+            ->join(
+                'jenis_pohon as jp_req_price',
+                'jp_req_price.id = permission_requests.requested_jenis_pohon_id',
+                'left'
+            )
+            ->join(
+                '(SELECT jenis_pohon_id, MAX(tanggal_berlaku) AS max_tgl 
+      FROM harga_jenis_kopi 
+      GROUP BY jenis_pohon_id) AS hjk_latest',
+                'hjk_latest.jenis_pohon_id = permission_requests.requested_jenis_pohon_id',
+                'left'
+            )
+            ->join(
+                'harga_jenis_kopi AS hjk_prev',
+                'hjk_prev.jenis_pohon_id = hjk_latest.jenis_pohon_id AND hjk_prev.tanggal_berlaku = hjk_latest.max_tgl',
+                'left'
+            )
+
             ->join('master_aset as aset', 'aset.id_aset = permission_requests.target_id AND permission_requests.target_type = "aset"', 'left')
 
             // ▼▼▼ JOIN BARU UNTUK UMKM ▼▼▼
@@ -158,6 +190,25 @@ class PersetujuanKomersial extends BaseController
                 $targetType = $requestData['target_type'];
                 $requesterId = $requestData['requester_id'];
 
+                // ✅ Jika request berisi usulan harga, maka saat approve -> simpan ke harga_jenis_kopi
+                if ($decision === 'approve') {
+
+                    $reqJenisId = $requestData['requested_jenis_pohon_id'] ?? null;
+                    $reqBeli    = $requestData['requested_harga_beli_per_kg'] ?? null;
+                    $reqJual    = $requestData['requested_harga_jual_per_kg'] ?? null;
+                    $reqTgl     = $requestData['requested_tanggal_berlaku'] ?? null;
+
+                    if (!empty($reqJenisId) && $reqBeli !== null && $reqJual !== null && !empty($reqTgl)) {
+
+                        // Insert histori harga baru (lebih aman daripada update)
+                        $this->hargaJenisKopiModel->save([
+                            'jenis_pohon_id'    => (int)$reqJenisId,
+                            'harga_beli_per_kg' => $reqBeli,
+                            'harga_jual_per_kg' => $reqJual,
+                            'tanggal_berlaku'   => $reqTgl,
+                        ]);
+                    }
+                }
                 // Buat nama cache key berdasarkan target_type
                 $cacheKey = 'permissions_' . $targetType . '_user_' . $requesterId;
 

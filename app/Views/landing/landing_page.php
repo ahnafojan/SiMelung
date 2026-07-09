@@ -1,5 +1,30 @@
 <?= $this->extend('layouts/main_layout_landing') ?>
 <?= $this->section('content') ?>
+<?php
+$published_umkm = $published_umkm ?? [];
+$petani_list = $petani_list ?? [];
+$aset_summary = $aset_summary ?? [];
+$laporan_anggaran = $laporan_anggaran ?? [
+    'hasData' => false,
+    'tanggal_mulai' => date('Y-m-d', strtotime('-1 year')),
+    'tanggal_selesai' => date('Y-m-d'),
+    'periode_label' => '-',
+    'total_pendapatan' => 0,
+    'total_pengeluaran' => 0,
+    'surplus_defisit' => 0,
+    'grafik_line' => [
+        'labels' => [],
+        'pendapatan' => [],
+        'pengeluaran' => [],
+    ],
+];
+$perPage = isset($perPage) ? (int) $perPage : 10;
+$pager = $pager ?? null;
+$chartLabels = $chartLabels ?? '[]';
+$chartKopiMasuk = $chartKopiMasuk ?? '[]';
+$chartKopiKeluar = $chartKopiKeluar ?? '[]';
+$chartYear = $chartYear ?? date('Y');
+?>
 
 <section id="home" class="hero-section position-relative">
     <div class="hero-background"></div>
@@ -328,7 +353,9 @@
                     </form>
 
                     <nav class="pagination-nav" aria-label="Navigasi Halaman">
-                        <?= $pager->links('default', 'custom_pagination_template') ?>
+                        <?php if ($pager): ?>
+                            <?= $pager->links('default', 'custom_pagination_template') ?>
+                        <?php endif; ?>
                     </nav>
 
                     <div class="page-info">
@@ -385,7 +412,9 @@
             </div>
 
             <div class="pagination-mobile fade-up mt-4">
-                <?= $pager->links('default', 'mobile_pagination_template') ?>
+                <?php if ($pager): ?>
+                    <?= $pager->links('default', 'mobile_pagination_template') ?>
+                <?php endif; ?>
 
                 <form method="get" class="mobile-per-page">
                     <?php
@@ -448,6 +477,114 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<?php
+$laporanAnggaran = $laporan_anggaran ?? [];
+$anggaranHasData = !empty($laporanAnggaran['hasData']);
+$totalPendapatanAnggaran = (float) ($laporanAnggaran['total_pendapatan'] ?? 0);
+$totalPengeluaranAnggaran = (float) ($laporanAnggaran['total_pengeluaran'] ?? 0);
+$surplusDefisitAnggaran = (float) ($laporanAnggaran['surplus_defisit'] ?? 0);
+$surplusDefisitClass = $surplusDefisitAnggaran < 0 ? 'negative' : 'positive';
+?>
+<section id="anggaran" class="py-5 bg-white scroll-section">
+    <div class="container">
+        <div class="overflow-hidden">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <div class="section-header fade-up">
+                        <span class="section-subtitle text-coffee-medium">Transparansi BUMDes</span>
+                        <h2 class="section-title text-mountain-dark">Laporan Anggaran</h2>
+                        <p class="section-description text-muted">
+                            Tren pendapatan dan pengeluaran.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="budget-filter-card fade-up">
+            <div class="budget-filter-head">
+                <div>
+                    <span class="budget-card-kicker">Filter Rentang Waktu</span>
+                    <h3>Atur Periode Laporan</h3>
+                </div>
+                <div class="budget-period-badge">
+                    <i class="fas fa-calendar-alt mr-2"></i>
+                    <?= esc($laporanAnggaran['periode_label'] ?? '-') ?>
+                </div>
+            </div>
+            <form action="<?= current_url() ?>#anggaran" method="get" class="budget-filter-form">
+                <?php if (!empty($perPage)): ?>
+                    <input type="hidden" name="per_page" value="<?= esc($perPage) ?>">
+                <?php endif; ?>
+                <div class="budget-filter-field">
+                    <label for="landing_start_date">Tanggal Mulai</label>
+                    <input type="date" id="landing_start_date" name="start_date" value="<?= esc($laporanAnggaran['tanggal_mulai'] ?? date('Y-m-d', strtotime('-1 year'))) ?>">
+                </div>
+                <div class="budget-filter-field">
+                    <label for="landing_end_date">Tanggal Selesai</label>
+                    <input type="date" id="landing_end_date" name="end_date" value="<?= esc($laporanAnggaran['tanggal_selesai'] ?? date('Y-m-d')) ?>">
+                </div>
+                <button type="submit" class="budget-filter-button">
+                    <i class="fas fa-check mr-2"></i>Terapkan Filter
+                </button>
+            </form>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="budget-stat-card income fade-up" data-delay="100">
+                    <div>
+                        <span>Total Pendapatan</span>
+                        <strong>Rp <?= number_format($totalPendapatanAnggaran, 0, ',', '.') ?></strong>
+                    </div>
+                    <i class="fas fa-wallet"></i>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="budget-stat-card expense fade-up" data-delay="200">
+                    <div>
+                        <span>Total Pengeluaran</span>
+                        <strong>Rp <?= number_format($totalPengeluaranAnggaran, 0, ',', '.') ?></strong>
+                    </div>
+                    <i class="fas fa-receipt"></i>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-12 mb-4">
+                <div class="budget-stat-card balance <?= esc($surplusDefisitClass) ?> fade-up" data-delay="300">
+                    <div>
+                        <span>Surplus / Defisit</span>
+                        <strong>Rp <?= number_format($surplusDefisitAnggaran, 0, ',', '.') ?></strong>
+                    </div>
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="budget-trend-card fade-up" data-delay="400">
+            <div class="budget-trend-header">
+                <div>
+                    <span class="budget-card-kicker">Grafik Keuangan</span>
+                    <h3>Tren Pendapatan vs Pengeluaran</h3>
+                </div>
+                <div class="budget-chart-legends">
+                    <span><i class="legend-dot income"></i>Pendapatan</span>
+                    <span><i class="legend-dot expense"></i>Pengeluaran</span>
+                </div>
+            </div>
+            <div class="budget-chart-body" id="landing-budget-line-chart-container">
+                <?php if ($anggaranHasData): ?>
+                    <canvas id="pendapatanVsPengeluaranLandingChart"></canvas>
+                <?php else: ?>
+                    <div class="budget-empty-inline">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Tidak ada data tren untuk ditampilkan pada rentang waktu ini.</span>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -2293,6 +2430,517 @@
         background: var(--coffee-gold);
     }
 
+    /* Budget Report Section */
+    .budget-panel {
+        background: linear-gradient(135deg, var(--mountain-primary), var(--mountain-dark));
+        border-radius: 22px;
+        padding: 2rem;
+        box-shadow: 0 15px 35px rgba(44, 62, 80, 0.18);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .budget-panel::before {
+        content: '';
+        position: absolute;
+        top: -80px;
+        right: -80px;
+        width: 220px;
+        height: 220px;
+        background: rgba(212, 165, 116, 0.16);
+        border-radius: 50%;
+    }
+
+    .budget-highlight {
+        position: relative;
+        color: white;
+        z-index: 1;
+    }
+
+    .budget-year-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.55rem 1rem;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 999px;
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .budget-highlight-title {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 1rem;
+    }
+
+    .budget-highlight-text {
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 1.5rem;
+    }
+
+    .budget-progress-wrap {
+        margin-bottom: 1rem;
+    }
+
+    .budget-progress-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+        margin-bottom: 0.65rem;
+    }
+
+    .budget-progress {
+        height: 10px;
+        background: rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .budget-progress-fill {
+        height: 100%;
+        background: var(--gradient-coffee);
+        border-radius: inherit;
+    }
+
+    .budget-note {
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 0.9rem;
+    }
+
+    .budget-summary-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .budget-metric-card {
+        background: rgba(255, 255, 255, 0.96);
+        border-radius: 16px;
+        padding: 1.25rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .budget-metric-icon {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        color: white;
+        margin-bottom: 1rem;
+        background: var(--gradient-primary);
+    }
+
+    .budget-metric-icon.income {
+        background: linear-gradient(135deg, #27ae60, #1e8449);
+    }
+
+    .budget-metric-icon.allocation {
+        background: var(--gradient-coffee);
+    }
+
+    .budget-metric-icon.realization {
+        background: linear-gradient(135deg, #3498db, #2c3e50);
+    }
+
+    .budget-metric-icon.balance.positive {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+    }
+
+    .budget-metric-icon.balance.negative {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+    }
+
+    .budget-metric-label {
+        display: block;
+        color: #6c757d;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.35rem;
+    }
+
+    .budget-metric-card strong {
+        color: var(--mountain-dark);
+        font-size: 1.1rem;
+        line-height: 1.35;
+    }
+
+    .budget-metric-card strong.positive {
+        color: var(--nature-green);
+    }
+
+    .budget-metric-card strong.negative {
+        color: #c0392b;
+    }
+
+    .budget-detail-card,
+    .budget-empty-state {
+        background: white;
+        border-radius: 18px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 24px var(--soft-shadow);
+        height: 100%;
+    }
+
+    .budget-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .budget-card-header h4 {
+        color: var(--mountain-dark);
+        font-size: 1.2rem;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .budget-card-header>i {
+        color: var(--coffee-gold);
+        font-size: 1.6rem;
+    }
+
+    .budget-card-kicker {
+        display: block;
+        color: var(--coffee-medium);
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.25rem;
+    }
+
+    .budget-category-list,
+    .budget-month-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .budget-category-item {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(44, 62, 80, 0.08);
+    }
+
+    .budget-category-item:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+
+    .budget-category-main,
+    .budget-category-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .budget-category-main h5 {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--mountain-dark);
+        margin-bottom: 0.15rem;
+    }
+
+    .budget-category-main span,
+    .budget-category-foot,
+    .budget-month-item span {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+
+    .budget-category-progress {
+        height: 8px;
+        background: #eef1f4;
+        border-radius: 999px;
+        overflow: hidden;
+        margin: 0.75rem 0 0.45rem;
+    }
+
+    .budget-category-progress div {
+        height: 100%;
+        border-radius: inherit;
+        background: var(--gradient-coffee);
+    }
+
+    .budget-month-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: 14px;
+        background: var(--mountain-mist);
+    }
+
+    .budget-month-item strong,
+    .budget-month-item span {
+        display: block;
+    }
+
+    .budget-month-values {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .budget-month-values .income {
+        color: var(--nature-green);
+        font-weight: 700;
+    }
+
+    .budget-month-values .expense {
+        color: #c0392b;
+        font-weight: 700;
+    }
+
+    .budget-empty-state {
+        text-align: center;
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
+    }
+
+    .budget-empty-icon {
+        width: 76px;
+        height: 76px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 24px;
+        color: white;
+        font-size: 2rem;
+        background: var(--gradient-coffee);
+        margin-bottom: 1.25rem;
+    }
+
+    .budget-empty-state h4 {
+        color: var(--mountain-dark);
+        font-weight: 800;
+    }
+
+    .budget-empty-state p,
+    .budget-empty-inline {
+        color: #6c757d;
+    }
+
+    .budget-empty-inline {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        border-radius: 14px;
+        background: var(--mountain-mist);
+    }
+
+    .budget-filter-card,
+    .budget-trend-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px var(--soft-shadow);
+        border: 1px solid rgba(44, 62, 80, 0.06);
+    }
+
+    .budget-filter-card {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .budget-filter-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-coffee);
+    }
+
+    .budget-filter-head,
+    .budget-trend-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .budget-filter-head h3,
+    .budget-trend-header h3 {
+        color: var(--mountain-dark);
+        font-size: 1.35rem;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .budget-period-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.7rem 1rem;
+        background: var(--mountain-mist);
+        border-radius: 999px;
+        color: var(--mountain-dark);
+        font-size: 0.9rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .budget-filter-form {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .budget-filter-field label {
+        display: block;
+        color: var(--mountain-dark);
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 0.45rem;
+    }
+
+    .budget-filter-field input {
+        width: 100%;
+        height: 48px;
+        border: 1px solid rgba(44, 62, 80, 0.16);
+        border-radius: 12px;
+        padding: 0 1rem;
+        color: var(--mountain-dark);
+        background: #fff;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .budget-filter-field input:focus {
+        border-color: var(--coffee-gold);
+        box-shadow: 0 0 0 4px rgba(212, 165, 116, 0.16);
+    }
+
+    .budget-filter-button {
+        height: 48px;
+        border: 0;
+        border-radius: 12px;
+        padding: 0 1.35rem;
+        color: white;
+        background: var(--gradient-coffee);
+        font-weight: 800;
+        box-shadow: 0 8px 20px rgba(139, 69, 19, 0.22);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .budget-filter-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 26px rgba(139, 69, 19, 0.28);
+    }
+
+    .budget-stat-card {
+        min-height: 132px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        background: white;
+        border-radius: 18px;
+        padding: 1.4rem;
+        box-shadow: 0 8px 24px var(--soft-shadow);
+        border-left: 5px solid var(--coffee-gold);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .budget-stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .budget-stat-card span {
+        display: block;
+        color: #6c757d;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-bottom: 0.4rem;
+    }
+
+    .budget-stat-card strong {
+        color: var(--mountain-dark);
+        font-size: 1.2rem;
+        line-height: 1.35;
+    }
+
+    .budget-stat-card>i {
+        color: rgba(44, 62, 80, 0.16);
+        font-size: 2.4rem;
+    }
+
+    .budget-stat-card.income {
+        border-left-color: var(--nature-green);
+    }
+
+    .budget-stat-card.expense {
+        border-left-color: #e74c3c;
+    }
+
+    .budget-stat-card.balance.positive {
+        border-left-color: #3498db;
+    }
+
+    .budget-stat-card.balance.negative {
+        border-left-color: #e74c3c;
+    }
+
+    .budget-stat-card.balance.negative strong {
+        color: #c0392b;
+    }
+
+    .budget-chart-legends {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-weight: 700;
+        flex-wrap: wrap;
+    }
+
+    .legend-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        margin-right: 0.4rem;
+    }
+
+    .legend-dot.income {
+        background: var(--nature-green);
+    }
+
+    .legend-dot.expense {
+        background: #e74c3c;
+    }
+
+    .budget-chart-body {
+        position: relative;
+        min-height: 340px;
+    }
+
+    .budget-chart-body canvas {
+        width: 100% !important;
+        height: 340px !important;
+    }
+
     /* Asset Cards */
     .asset-card {
         background: white;
@@ -2520,6 +3168,55 @@
 
         .chart-legends {
             gap: 1rem;
+        }
+
+        .budget-panel {
+            padding: 1.25rem;
+        }
+
+        .budget-highlight-title {
+            font-size: 1.55rem;
+        }
+
+        .budget-summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .budget-filter-head,
+        .budget-trend-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .budget-period-badge {
+            width: 100%;
+            justify-content: center;
+            white-space: normal;
+            text-align: center;
+        }
+
+        .budget-filter-form {
+            grid-template-columns: 1fr;
+        }
+
+        .budget-filter-button {
+            width: 100%;
+        }
+
+        .budget-stat-card {
+            min-height: auto;
+        }
+
+        .budget-category-main,
+        .budget-category-foot,
+        .budget-month-item {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .budget-month-values {
+            text-align: left;
+            white-space: normal;
         }
 
         .asset-card {
@@ -3168,6 +3865,124 @@
                     }
                 }
             });
+        }
+
+        const budgetChart = document.getElementById('pendapatanVsPengeluaranLandingChart');
+        if (budgetChart) {
+            const dataGrafikAnggaran = <?= json_encode($laporan_anggaran['grafik_line'] ?? ['labels' => [], 'pendapatan' => [], 'pengeluaran' => []]) ?>;
+
+            if (dataGrafikAnggaran.labels && dataGrafikAnggaran.labels.length > 0) {
+                new Chart(budgetChart, {
+                    type: 'line',
+                    data: {
+                        labels: dataGrafikAnggaran.labels,
+                        datasets: [{
+                            label: 'Pendapatan',
+                            data: dataGrafikAnggaran.pendapatan,
+                            borderColor: '#27ae60',
+                            backgroundColor: 'rgba(39, 174, 96, 0.12)',
+                            fill: true,
+                            tension: 0.35,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#27ae60',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }, {
+                            label: 'Pengeluaran',
+                            data: dataGrafikAnggaran.pengeluaran,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.12)',
+                            fill: true,
+                            tension: 0.35,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#e74c3c',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(44, 62, 80, 0.94)',
+                                titleColor: '#ffffff',
+                                bodyColor: '#ffffff',
+                                borderColor: '#d4a574',
+                                borderWidth: 1,
+                                cornerRadius: 10,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.dataset.label ? context.dataset.label + ': ' : '';
+                                        return label + new Intl.NumberFormat('id-ID', {
+                                            style: 'currency',
+                                            currency: 'IDR',
+                                            maximumFractionDigits: 0
+                                        }).format(context.parsed.y || 0);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Jumlah (Rp)',
+                                    color: '#666',
+                                    font: {
+                                        size: 13,
+                                        weight: '600'
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#666',
+                                    callback: function(value) {
+                                        return new Intl.NumberFormat('id-ID', {
+                                            notation: 'compact',
+                                            compactDisplay: 'short'
+                                        }).format(value);
+                                    }
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Periode',
+                                    color: '#666',
+                                    font: {
+                                        size: 13,
+                                        weight: '600'
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.04)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: '#666'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
         }
     });
 </script>
